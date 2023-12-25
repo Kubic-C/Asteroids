@@ -31,5 +31,9 @@
 *.out
 *.app
 
+# Other crap
+*.exp
+*.ilk
+*pdb
 
 ./.vs/*
