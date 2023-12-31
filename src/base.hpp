@@ -41,6 +41,8 @@ constexpr float timeToRemovePerAsteroidSpawn = 0.01f;
 constexpr u32_t scorePerAsteroid = 10;
 constexpr float windowWidth = 600.0f;
 constexpr float windowHeight = 400.0f;
+constexpr HSteamNetConnection hostPlayerID = 1;
+
 
 constexpr std::initializer_list<sf::Vector2f> playerVertices = {
     {10.0f, -10.0f},

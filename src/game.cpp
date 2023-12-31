@@ -9,10 +9,7 @@ player_t::player_t(gameWorld_t* world)
 }
 
 sf::Vector2f GetMouseWorldCoords() {
-	sf::Vector2i mouseScreenCoords = sf::Mouse::getPosition(*game.window);
-
-	//sf::View view = game.window->getView();
-	game.debug.mouse = (sf::Vector2f)mouseScreenCoords;
+	sf::Vector2i mouseScreenCoords = sf::Mouse::getPosition(game->GetWindow());
 
 	// Since we have not set the view, there is no transformation to be done.
 	return (sf::Vector2f)mouseScreenCoords;
@@ -145,7 +142,7 @@ void gameWorld_t::CheckCollision() {
         if (asteroids[asterI].IsDestroyed())
             continue;
 
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < players.size(); i++) {
             if (players[i].IsDestroyed()) {
                 continue;
             }
@@ -154,7 +151,7 @@ void gameWorld_t::CheckCollision() {
             if (TestCollision(asteroids[asterI].polygon, players[i].polygon, manifold)) {
                 lives--;
                 players[i].MarkDestroyed();
-                game.getNoobPlayer.play();
+                game->PlayNoobSound();
             }
         }
 
@@ -172,7 +169,7 @@ void gameWorld_t::CheckCollision() {
                     asteroidsToDestroy.push_back(asterI);
                     asteroids[asterI].MarkDestroyed();
                     score += scorePerAsteroid;
-                    game.destroyPlayer.play();
+                    game->PlayDestroySound();
                     break;
                 }
             }
@@ -280,7 +277,7 @@ void player_t::Tick(gameStateEnum_t state, float deltaTime) {
     }
 }
 
-void game_t::TransitionState(gameStateEnum_t state) {
+void global_t::TransitionState(gameStateEnum_t state) {
 	switch (state) {
 	case gameStateEnum_t::connecting:
 		TransitionState<connecting_t>();
@@ -306,7 +303,7 @@ void game_t::TransitionState(gameStateEnum_t state) {
 }
 
 void gameWorld_t::Render(sf::RenderWindow& window) {
-    for (u8_t i = 0; i < 2; i++) {
+    for (u8_t i = 0; i < players.size(); i++) {
         RenderPolygon(window, players[i].color, players[i].polygon);
     }
 
@@ -321,8 +318,105 @@ void gameWorld_t::Render(sf::RenderWindow& window) {
         window.draw(shape);
     }
 
-    sf::Text text(game.font);
+    sf::Text text(game->GetFont());
     text.setString("Score: " + std::to_string(score) + "\nLives: " + std::to_string(lives));
     text.setStyle(sf::Text::Style::Bold | sf::Text::Style::Underlined);
     window.draw(text);
+}
+
+void global_t::Update() {
+    {
+        sockets->RunCallbacks();
+
+        sf::Event event;
+        if (window->pollEvent(event)) {
+            // handle window events ...
+            switch (event.type) {
+            case event.Closed:
+                exit = true;
+                break;
+            case event.MouseButtonPressed:
+                if (event.mouseButton.button == sf::Mouse::Button::Left) {
+                    input |= inputFlagBits_t::FIRE;
+                }
+                break;
+            case event.MouseButtonReleased:
+                if (event.mouseButton.button == sf::Mouse::Button::Left) {
+                    input &= ~inputFlagBits_t::FIRE;
+                }
+                break;
+
+            case event.KeyPressed:
+                if (event.key.code == sf::Keyboard::A) {
+                    input |= inputFlagBits_t::LEFT;
+                }
+                if (event.key.code == sf::Keyboard::D) {
+                    input |= inputFlagBits_t::RIGHT;
+                }
+                if (event.key.code == sf::Keyboard::W) {
+                    input |= inputFlagBits_t::UP;
+                }
+                if (event.key.code == sf::Keyboard::S) {
+                    input |= inputFlagBits_t::DOWN;
+                }
+                if (event.key.code == sf::Keyboard::R) {
+                    input |= inputFlagBits_t::READY;
+                }
+                break;
+            case event.KeyReleased:
+                if (event.key.code == sf::Keyboard::A) {
+                    input &= ~inputFlagBits_t::LEFT;
+                }
+                if (event.key.code == sf::Keyboard::D) {
+                    input &= ~inputFlagBits_t::RIGHT;
+                }
+                if (event.key.code == sf::Keyboard::W) {
+                    input &= ~inputFlagBits_t::UP;
+                }
+                if (event.key.code == sf::Keyboard::S) {
+                    input &= ~inputFlagBits_t::DOWN;
+                }
+                if (event.key.code == sf::Keyboard::R) {
+                    input &= ~inputFlagBits_t::READY;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+
+        HandleInput();
+        world.SetMapBoundries((float)window->getSize().x, (float)window->getSize().y);
+
+        assert(state);
+        float now = NowSeconds();
+        time.frameTime = now - time.lastFrame;
+        time.ticksToDo += time.frameTime * ticksPerSecond;
+        time.lastFrame = now;
+
+        while (time.ticksToDo >= 1.0f) {
+            now = NowSeconds();
+            time.deltaTime = now - time.lastTick;
+            time.lastTick = now;
+
+            state->OnTick();
+            world.Tick(state, time.deltaTime);
+            time.ticksToDo--;
+        }
+
+        window->clear();
+        state->OnUpdate();
+        world.Render(*window);
+        window->display();
+
+        if (state->Enum() != gameStateEnum_t::connecting) {
+            if (IsHost()) {
+                HostNetworkUpdate(time.frameTime);
+            } else {
+                ClientNetworkUpdate(time.frameTime);
+            }
+
+            messageManager.Update(clients, utils, sockets);
+        }
+    }
 }

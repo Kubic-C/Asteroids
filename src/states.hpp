@@ -4,21 +4,21 @@
 class connecting_t : public gameState_t {
 public:
 	connecting_t() 
-		: text(game.font) {
-		if (game.listen == k_HSteamListenSocket_Invalid) {
+		: text(game->GetFont()) {
+		if (!game->IsHost()) {
 			text.setString("Connecting...\n");
 		} else {
 			text.setString("Waiting for connection...\n");
 		}
 
-		sf::Vector2f center = ((sf::Vector2f)game.window->getSize() / 2.0f) - text.getLocalBounds().getCenter();
+		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
 		text.setPosition(center);
 
-		game.music.play();
+		game->PlayMainTrack();
 	}
 
 	virtual void OnUpdate() override {
-		game.window->draw(text);
+		game->GetWindow().draw(text);
 	}
 
 	virtual void OnTick() override {}
@@ -31,16 +31,16 @@ private:
 class connectionFailed_t : public gameState_t {
 public:
 	connectionFailed_t()
-		: timeLeft(5.0f), text(game.font, "Connection Failed!") {}
+		: timeLeft(5.0f), text(game->GetFont(), "Connection Failed!") {}
 
 	virtual void OnUpdate() override {
-		game.window->draw(text);
+		game->GetWindow().draw(text);
 	}
 	
 	virtual void OnTick() override {
-		timeLeft -= game.time.deltaTime;
+		timeLeft -= game->GetDeltaTime();
 		if (timeLeft <= 0.0f) {
-			game.exit = true;
+			game->MarkExit();
 		}
 	}
 
@@ -57,7 +57,7 @@ class gameOver_t;
 class connected_t : public gameState_t {
 public:
 	virtual void OnUpdate() override {
-		game.TransitionState<start_t>();
+		game->TransitionState<start_t>();
 	}
 	
 	virtual void OnTick() override {}
@@ -69,30 +69,30 @@ private:
 class start_t : public gameState_t {
 public:
 	start_t() 
-		: text(game.font, "Both players must press R to start.") {
+		: text(game->GetFont(), "Both players must press R to start.") {
 		
 		text.setCharacterSize(20);
-		sf::Vector2f center = ((sf::Vector2f)game.window->getSize() / 2.0f) - text.getLocalBounds().getCenter();
+		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
 		text.setPosition(center);
 
 	}
 
 	virtual void OnUpdate() override {
-		game.window->draw(text);
+		game->GetWindow().draw(text);
 
-		if (game.world.IsBothReady() && !changedToReady) {
+		if (game->GetWorld().IsAllReady() && !changedToReady) {
 			changedToReady = true;
 			text.setString("BOTH ARE READY... GET READY TO RUMBLE!");
-			sf::Vector2f center = ((sf::Vector2f)game.window->getSize() / 2.0f) - text.getLocalBounds().getCenter();
+			sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
 			text.setPosition(center);
 		}
 	}
 	
 	virtual void OnTick() override {
-		if (game.world.IsBothReady()) {
-			time -= game.time.deltaTime;
+		if (game->GetWorld().IsAllReady()) {
+			time -= game->GetDeltaTime();
 			if (time <= 0.0f) {
-				game.TransitionState<play_t>();
+				game->TransitionState<play_t>();
 			}
 		}
 	}
@@ -109,9 +109,9 @@ public:
 	virtual void OnUpdate() override {
 	}
 	virtual void OnTick() override {
-		if(game.world.IsBothDestroyed()) {
-			game.TransitionState<gameOver_t>();
-			game.world.GameEnd();
+		if(game->GetWorld().IsAllDestroyed()) {
+			game->TransitionState<gameOver_t>();
+			game->GetWorld().GameEnd();
 		}
 	}
 
@@ -121,18 +121,18 @@ public:
 class gameOver_t : public gameState_t {
 public:
 	gameOver_t() 
-		: text(game.font, "Game Over. Both players must\npress R to Reset") {
-		sf::Vector2f center = ((sf::Vector2f)game.window->getSize() / 2.0f) - text.getLocalBounds().getCenter();
+		: text(game->GetFont(), "Game Over. Both players must\npress R to Reset") {
+		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
 		text.setPosition(center);
 	}
 
 	virtual void OnUpdate() override {
-		game.window->draw(text);
+		game->GetWindow().draw(text);
 	}
 	virtual void OnTick() override {
-		if(game.world.IsBothReady()) {
-			game.TransitionState<start_t>();
-			game.world.Reset();
+		if(game->GetWorld().IsAllReady()) {
+			game->TransitionState<start_t>();
+			game->GetWorld().Reset();
 		}
 	}
 

@@ -48,11 +48,23 @@ struct messageInput_t {
 	}
 };
 
+struct client_t {
+	u8_t keys;
+	sf::Vector2f mouse;
+	u32_t playerID;
+};
+
+enum messageFlagBits_t {
+	SEND_ALL = 1 << 0
+};
+
 struct message_t {
 	message_t() {}
 
 	message_t(message_t&& other) noexcept {
 		bytes = std::move(other.bytes);
+		connection = other.connection;
+		flags = other.flags;
 	}
 
 	typedef bitsery::InputBufferAdapter<std::vector<u8_t>> inputAdapter_t;
@@ -96,31 +108,80 @@ struct message_t {
 	bool EndDeserialization(deserializer_t& des) {
 		return des.adapter().isCompletedSuccessfully();
 	}
+
+	void SetConnection(HSteamNetConnection connection) {
+		this->connection = connection;
+	}
+
+	HSteamNetConnection GetConnection() const {
+		return connection;
+	}
+
+	void SetFlags(uint8_t flags) {
+		this->flags = flags;
+	}
+
+	bool IsSendAll() {
+		return flags & SEND_ALL;
+	}
+
 private:
+	uint8_t flags = 0;
+	HSteamNetConnection connection = 0;
 	std::vector<u8_t> bytes;
 };
 
 class messageManagerr_t {
+protected:
+
+	void Send(ISteamNetworkingSockets* sockets, HSteamNetConnection connection, void* payload, u32_t size) {
+		EResult result = sockets->SendMessageToConnection(connection, payload, size, k_nSteamNetworkingSend_Unreliable, nullptr);
+		if(result != k_EResultOK) {
+			std::cout << "Failed to send:" << result << '\n';
+			exit(EXIT_FAILURE);
+		}
+	}
+
 public:
-	void Update(HSteamNetConnection peer, ISteamNetworkingUtils* utils, ISteamNetworkingSockets* sockets) {
+	void Init() {
+		pollGroup = SteamNetworkingSockets()->CreatePollGroup();
+		if(pollGroup == k_HSteamNetPollGroup_Invalid) {
+			std::cout << "Failed to create poll group\n";
+			exit(EXIT_FAILURE);
+		}
+	}
+	
+
+	void Update(std::unordered_map<HSteamNetConnection, client_t>& clients, ISteamNetworkingUtils* utils, ISteamNetworkingSockets* sockets) {
 		// Send outgoing messages
 		while (!outgoing.empty()) {
 			message_t message = std::move(outgoing.front());
 
-			sockets->SendMessageToConnection(peer, message.Data(), message.Size(), k_nSteamNetworkingSend_Unreliable, nullptr);
+			if(message.IsSendAll()) {
+				for(const std::pair<HSteamNetConnection, client_t>& pair : clients) {
+					if(pair.first == message.GetConnection() || pair.first == hostPlayerID) 
+						continue;
+
+					Send(sockets, pair.first, message.Data(), message.Size());
+				}
+			} else {
+				Send(sockets, message.GetConnection(), message.Data(), message.Size());
+			}
+
 			outgoing.pop();
 		}
 
 		// Get incoming messages;
 		do {
 			SteamNetworkingMessage_t* message;
-			int amount = sockets->ReceiveMessagesOnConnection(peer, &message, 1);
+			int amount = sockets->ReceiveMessagesOnPollGroup(pollGroup, &message, 1);
 			if(amount < 1) {
 				break;
 			}
 
 			message_t new_message;
 			new_message.SetData(message->GetSize(), (u8_t*)message->GetData());
+			new_message.SetConnection(message->GetConnection());
 			incoming.push(std::move(new_message));
 
 			message->Release();
@@ -140,7 +201,15 @@ public:
 		incoming.pop();
 		return message;
 	}
+
+	void AddConnection(HSteamNetConnection connection) {
+		if(!SteamNetworkingSockets()->SetConnectionPollGroup(connection, pollGroup)) {
+			std::cout << "Failed to add connection to poll group: " << connection << '\n'; 
+		}
+	}
+
 private:
+	HSteamNetPollGroup pollGroup;
 	std::queue<message_t> outgoing;
 	std::queue<message_t> incoming;
 };
@@ -246,6 +315,10 @@ public:
 		destroyed = true;
 	}
 
+	void ResetDestroyed() {
+		destroyed = false;
+	}
+
 protected:
 	gameWorld_t* world;
 	sf::Color color;
@@ -273,10 +346,6 @@ public:
 		s.object(polygon);
 	}
 
-	void SetLocalControlled(bool localControlled) {
-		isLocalControlled = localControlled;
-	}
-
 	void SetInput(u8_t input, sf::Vector2f mouse) {
 		this->input = input;
 		this->mouse = mouse;
@@ -302,7 +371,6 @@ protected:
 	float timeTillRevive = 5.0f;
 	float lastBlink = 0.0f;
 	float lastFired = 0.0f;
-	bool isLocalControlled = false; // LOCAL FLAG. DO NOT SERIALIZE
 	polygon_t polygon;
 	u8_t input = 0;
 	bool ready = false;
@@ -410,8 +478,7 @@ struct aabb_t {
 
 class gameWorld_t {
 public:
-	gameWorld_t()
-		: players({player_t(this), player_t(this)}) {
+	gameWorld_t() {
 		Reset();
 	}
 
@@ -427,24 +494,23 @@ public:
 	template<typename S>
 	void serialize(S& s) {
 		s.value4b(score);
-		s.container(players);
+		s.value1b(lives);
+		s.container(players, UINT32_MAX);
 		s.container(asteroids, UINT32_MAX);
 		s.container(bullets, UINT32_MAX);
 	}
 
-	enum playerIndex_t {
-		HOST = 0,
-		CLIENT = 1,
-		INVALID = 32
-	};
+	u32_t AddNewPlayer() {
+		u32_t playerID = nextPlayerID;
+		nextPlayerID++;
+		players.emplace_back(this);
 
-	void SetInput(u8_t input, sf::Vector2f mouse) {
-		if (isHost) {
-			players[HOST].SetLocalControlled(true);
-			players[HOST].SetInput(input, mouse);
-		} else {
-			players[CLIENT].SetLocalControlled(true);
-			players[CLIENT].SetInput(input, mouse);
+		return playerID;
+	}
+
+	void HostSetInput(std::unordered_map<HSteamNetConnection, client_t>& clients) {
+		for(auto& pair : clients) {
+			players[pair.second.playerID].SetInput(pair.second.keys, pair.second.mouse);
 		}
 	}
 
@@ -452,12 +518,6 @@ public:
 
 	u8_t GetTotalLives() {
 		return lives;
-	}
-
-	// Used by host only vvv 
-	void SetClientInput(messageInput_t input) {
-		assert(isHost);
-		players[CLIENT].SetInput(input.input, input.mouse);
 	}
 
 	void Tick(gameState_t* state, float deltaTime) {
@@ -469,7 +529,7 @@ public:
 			bullets[i].Wrap(mapWidth, mapHeight);
 		}
 
-		for (u8_t i = 0; i < 2; i++) {
+		for (u8_t i = 0; i < players.size(); i++) {
 			players[i].Intergrate(deltaTime);
 			players[i].Tick(state->Enum(), deltaTime);
 			players[i].Wrap(mapWidth, mapHeight);
@@ -501,12 +561,22 @@ public:
 
 	void Render(sf::RenderWindow& window);
 
-	bool IsBothReady() {
-		return players[HOST].IsReady() && players[CLIENT].IsReady();
+	bool IsAllReady() {
+		for(u32_t i = 0; i < players.size(); i++) {
+			if(!players[i].IsReady())
+				return false;
+		}
+
+		return true;
 	}
 
-	bool IsBothDestroyed() {
-		return players[HOST].IsDestroyed() && players[CLIENT].IsDestroyed();
+	bool IsAllDestroyed() {
+		for (u32_t i = 0; i < players.size(); i++) {
+			if (!players[i].IsDestroyed())
+				return false;
+		}
+
+		return true;
 	}
 
 	void SpawnAsteroidWhenReady(gameStateEnum_t state, float deltaTime) {
@@ -568,30 +638,21 @@ public:
 
 	void GameEnd() {
 		asteroidSpawnRate = 10000.0f;
-		players[HOST].ResetReady();
-		players[CLIENT].ResetReady();
+
+		for(u32_t i = 0; i < players.size(); i++) {
+			players[i].ResetReady();
+		}
 	}
 
 	void Reset() {
 		mapWidth = windowWidth;
 		mapHeight = windowHeight;
 		
-		sf::Vector2f center = sf::Vector2f(mapWidth, mapHeight) / 2.0f;
-
-		center.x -= 50;
-		center.y += 50;
-		players[HOST].SetPos(center);
-		players[HOST].rot = 3.14159f;
-		center.x += 100;
-		players[CLIENT].SetPos(center);
-
-		players[HOST].vel = { 0.0f, 0.0f };
-		players[CLIENT].vel = {0.0f, 0.0f};
-
-		players[HOST].ResetReady();
-		players[CLIENT].ResetReady();
-		players[HOST].destroyed = false;
-		players[CLIENT].destroyed = false;
+		for (u32_t i = 0; i < players.size(); i++) {
+			players[i].vel = { 0.0f, 0.0f };
+			players[i].ResetReady();
+			players[i].ResetDestroyed();
+		}
 
 		asteroidSpawnRate = timePerAsteroidSpawn;
 		timeToSpawnAsteroid = asteroidSpawnRate;
@@ -603,6 +664,10 @@ public:
 		bullets.clear();
 	}
 
+	void MarkHost() {
+		isHost = true;
+	}
+
 private:
 	float asteroidSpawnRate = timePerAsteroidSpawn;
 	float timeToSpawnAsteroid = asteroidSpawnRate;
@@ -611,40 +676,63 @@ private:
 	float mapWidth = 0.0f;
 	float mapHeight = 0.0f;
 	bool isHost = false;
-	u32_t score;
-	std::array<player_t, 2> players;
+	u32_t score = 0;
+	u8_t nextPlayerID = 0;
+	std::vector<player_t> players;
 	std::vector<asteroids_t> asteroids;
 	std::vector<bullet_t> bullets;
 };
 
-inline struct game_t {
-	game_t() 
-		: destroyPlayer(destroySound), getNoobPlayer(getNoobSound) {
+class global_t;
+
+inline global_t* game = nullptr;
+
+class global_t {
+
+public:
+	global_t() 
+		: destroyPlayer(res.destroySound), getNoobPlayer(res.getNoobSound) {
+		assert(game == nullptr);
+
+		window = nullptr;
+
+		exit = false;
+		state = nullptr;
+
+		listen = k_HSteamListenSocket_Invalid;
+		connection = k_HSteamNetConnection_Invalid;
+		input = 0;
 		
+		clients[hostPlayerID].playerID = world.AddNewPlayer();
 	}
 
+	~global_t() {
+		StopMainTrack();
+		delete window;
+	}
+	
 	bool LoadResources() {
-		if(!music.openFromFile("./arcadeMusic.mp3")) {
+		if(!res.music.openFromFile("./arcadeMusic.mp3")) {
 			return false;
 		}
 
-		music.setLoop(true);
+		res.music.setLoop(true);
 		std::cout << "Loaded Music\n";
 
-		if(!destroySound.loadFromFile("./destroySound.mp3")) {
+		if(!res.destroySound.loadFromFile("./destroySound.mp3")) {
 			return false;
 		}
-		destroyPlayer.setBuffer(destroySound);
+		destroyPlayer.setBuffer(res.destroySound);
 
-		if (!getNoobSound.loadFromFile("./getNoob.mp3")) {
+		if (!res.getNoobSound.loadFromFile("./getNoob.mp3")) {
 			return false;
 		}
-		getNoobPlayer.setBuffer(getNoobSound);
-		game.getNoobPlayer.setVolume(70);
+		getNoobPlayer.setBuffer(res.getNoobSound);
+		getNoobPlayer.setVolume(70);
 
 		std::cout << "Loaded Sounds\n";
 
-		if (!SetFont("./times.ttf")) {
+		if (!res.font.loadFromFile("./times.ttf")) {
 			return false;
 		}
 
@@ -653,117 +741,43 @@ inline struct game_t {
 		return true;
 	}
 
-	bool SetFont(std::string path) {
-		return font.loadFromFile(path);
+	void FinishNetworkInit() {
+		SteamNetworkingErrMsg msg;
+		if (!GameNetworkingSockets_Init(nullptr, msg)) {
+			std::cout << msg << std::endl;
+			::exit(EXIT_FAILURE);
+		}
+		game->sockets = SteamNetworkingSockets();
+		game->utils = SteamNetworkingUtils();
+
+		messageManager.Init();
 	}
 
 	void CreateWindow(u32_t w, u32_t h, std::string title) {
 		window = new sf::RenderWindow(sf::VideoMode({ w, h }), title);
 	}
 
-	void Update() {
-		sockets->RunCallbacks();
-
-		sf::Event event;
-		if (window->pollEvent(event)) {
-			// handle window events ...
-			switch (event.type) {
-			case event.Closed:
-				exit = true;
-				break;
-			case event.MouseButtonPressed:
-				if(event.mouseButton.button == sf::Mouse::Button::Left) {
-					input |= inputFlagBits_t::FIRE;
-				}
-				break;
-			case event.MouseButtonReleased:
-				if (event.mouseButton.button == sf::Mouse::Button::Left) {
-					input &= ~inputFlagBits_t::FIRE;
-				}
-				break;
-
-			case event.KeyPressed:
-				if (event.key.code == sf::Keyboard::A) {
-					input |= inputFlagBits_t::LEFT;
-				}
-				if (event.key.code == sf::Keyboard::D) {
-					input |= inputFlagBits_t::RIGHT;
-				}
-				if (event.key.code == sf::Keyboard::W) {
-					input |= inputFlagBits_t::UP;
-				}
-				if (event.key.code == sf::Keyboard::S) {
-					input |= inputFlagBits_t::DOWN;
-				}
-				if (event.key.code == sf::Keyboard::R) {
-					input |= inputFlagBits_t::READY;
-				}
-				break;
-			case event.KeyReleased:
-				if (event.key.code == sf::Keyboard::A) {
-					input &= ~inputFlagBits_t::LEFT;
-				}
-				if (event.key.code == sf::Keyboard::D) {
-					input &= ~inputFlagBits_t::RIGHT;
-				}
-				if (event.key.code == sf::Keyboard::W) {
-					input &= ~inputFlagBits_t::UP;
-				}
-				if (event.key.code == sf::Keyboard::S) {
-					input &= ~inputFlagBits_t::DOWN;
-				}
-				if (event.key.code == sf::Keyboard::R) {
-					input &= ~inputFlagBits_t::READY;
-				}
-				break;
-			default:
-				break;
-			}
-		}
-
-		world.SetInput(input, GetMouseWorldCoords());
-		world.SetMapBoundries((float)window->getSize().x, (float)window->getSize().y);
-
-		assert(state);
-		float now = NowSeconds();
-		time.frameTime = now - time.lastFrame;
-		time.ticksToDo += time.frameTime * ticksPerSecond;
-		time.lastFrame = now;
-
-		while (time.ticksToDo >= 1.0f) {
-			now = NowSeconds();
-			time.deltaTime = now - time.lastTick;
-			time.lastTick = now;
-
-			state->OnTick();
-			world.Tick(state, time.deltaTime);
-			time.ticksToDo--;
-		}
-
-		window->clear();
-		state->OnUpdate();
-		world.Render(*window);
-
-		sf::CircleShape shape(5.0f);
-		shape.setPosition(debug.mouse);
-		window->draw(shape);
-		window->display();
-
-		if (connection != k_HSteamNetConnection_Invalid) {
-			if (listen == k_HSteamListenSocket_Invalid) {
-				ClientNetworkUpdate(time.frameTime);
-			} else {
-				HostNetworkUpdate(time.frameTime);
-			}
-		
-			messageManager.Update(connection, utils, sockets);
-		}
+	sf::RenderWindow& GetWindow() {
+		return *window;
 	}
 
-	~game_t() {
-		music.stop();
-		delete window;
+	void MarkExit() {
+		exit = true;
 	}
+
+	void MarkHost() {
+		world.MarkHost();
+	}
+
+	void Update();
+
+	void HandleInput() {
+		if(IsHost()) {
+			clients[hostPlayerID].keys = input;
+			clients[hostPlayerID].mouse = GetMouseWorldCoords();
+			world.HostSetInput(clients);
+		} 
+ 	}
 
 	template<typename T>
 	void TransitionState() {
@@ -779,6 +793,8 @@ inline struct game_t {
 		state = new T;
 	}
 
+	void TransitionState(gameStateEnum_t state);
+
 	void HostNetworkUpdate(float frameTime) {
 		while (!messageManager.IsIncomingEmpty()) {
 			message_t message = messageManager.PopIncoming();
@@ -793,7 +809,8 @@ inline struct game_t {
 				continue;
 			}
 
-			world.SetClientInput(input);
+			clients[message.GetConnection()].keys = input.input;
+			clients[message.GetConnection()].mouse = input.mouse;
 		}
 
 		network.lastUpdateSent += frameTime;
@@ -801,17 +818,16 @@ inline struct game_t {
 			network.lastUpdateSent = 0.0f;
 
 			message_t message;
+			message.SetFlags(SEND_ALL);
 			auto ser = message.StartSerialize();
 			message.Serialize(ser, messageHeader_t::state);
 			message.Serialize(ser, state->Enum());
 			message.Serialize(ser, world);
-			message.EndSerialize(ser);
+ 			message.EndSerialize(ser);
 
 			messageManager.PushOutgoing(std::move(message));
 		}
 	}
-
-	void TransitionState(gameStateEnum_t state);
 
 	void ClientNetworkUpdate(float frameTime) {
 		while (!messageManager.IsIncomingEmpty()) {
@@ -838,6 +854,7 @@ inline struct game_t {
 			network.lastUpdateSent = 0.0f;
 
 			message_t message;
+			message.SetConnection(GetHostConnection());
 			auto ser = message.StartSerialize();
 			message.Serialize(ser, messageHeader_t::input);
 			message.Serialize(ser, messageInput_t(input, GetMouseWorldCoords()));
@@ -847,29 +864,87 @@ inline struct game_t {
 		}
 	}
 
-	sf::RenderWindow* window;
-	sf::Music music;
-	sf::Font font;
-	sf::SoundBuffer destroySound;
-	sf::SoundBuffer getNoobSound;
-	sf::Sound destroyPlayer;
-	sf::Sound getNoobPlayer;
+	void PlayMainTrack() {
+		res.music.play();
+	}
 
-	struct {
-		sf::Vector2f mouse;
-	} debug;
+	void StopMainTrack() {
+		res.music.stop();
+	}
 
-	bool exit;
-	gameState_t* state;
-	gameWorld_t world;
-	float timeRecieved;
-	messageManagerr_t messageManager;
+	void PlayDestroySound() {
+		destroyPlayer.play();
+	}
+
+	void PlayNoobSound() {
+		getNoobPlayer.play();
+	}
+
+	sf::Font& GetFont() {
+		return res.font;
+	}
+
+	gameState_t& GetState() {
+		return *state;
+	}
+
+	bool IsHost() {
+		return IsListenSocketValid();
+	}
+
+	void SetListen(HSteamListenSocket socket) {
+		listen = socket;
+	}
+
+	bool IsListenSocketValid() {
+		return listen != k_HSteamListenSocket_Invalid;
+	}
+
+	bool ShouldAppClose() {
+		return !window->isOpen() || exit; 
+	}
+
+	gameWorld_t& GetWorld() {
+		return world;
+	}
+
+	float GetDeltaTime() {
+		return time.deltaTime;
+	}
+
+	float GetFrameTime() {
+		return time.frameTime;
+	}
+
+	void AddNewClient(HSteamNetConnection connection) {
+		messageManager.AddConnection(connection);
+		clients[connection].playerID = world.AddNewPlayer();
+	}
+
+	HSteamNetConnection GetHostConnection() {
+		// the ID of the host connection will be the first non-host-id
+		for(const std::pair<HSteamNetConnection, client_t>& pair : clients) {
+			if(pair.first != hostPlayerID) {
+				return pair.first;
+			}
+		}
 	
+		return -1;
+	}
+
+public:
 	ISteamNetworkingSockets* sockets;
 	ISteamNetworkingUtils* utils;
-	HSteamListenSocket listen;
-	HSteamNetConnection connection;
-	uint8_t input;
+
+private:
+	std::unordered_map<HSteamNetConnection, client_t> clients;
+
+	struct {
+		sf::Music music;
+		sf::Font font;
+		sf::SoundBuffer destroySound;
+		sf::SoundBuffer getNoobSound;
+	} res;
 
 	struct {
 		float lastUpdateSent = 0.0f;
@@ -882,4 +957,17 @@ inline struct game_t {
 		float lastTick  = 0.0f;
 		float ticksToDo = 0.0f;
 	} time;
-} game;
+
+	sf::RenderWindow* window;
+	sf::Sound destroyPlayer;
+	sf::Sound getNoobPlayer;
+
+	bool exit;
+	gameState_t* state;
+	gameWorld_t world;
+	messageManagerr_t messageManager;
+
+	HSteamListenSocket listen;
+	HSteamNetConnection connection;
+	uint8_t input;
+};

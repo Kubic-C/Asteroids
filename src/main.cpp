@@ -8,16 +8,16 @@ void ClientOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCall
 
 	case k_ESteamNetworkingConnectionState_ClosedByPeer:
 	case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
-		game.sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
-		game.TransitionState<connectionFailed_t>();
+		game->sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
+		game->TransitionState<connectionFailed_t>();
 		break;
 
 	case k_ESteamNetworkingConnectionState_Connecting:
-		game.TransitionState<connecting_t>();
+		game->TransitionState<connecting_t>();
 		break;
 
 	case k_ESteamNetworkingConnectionState_Connected:
-		game.TransitionState<connected_t>();
+		game->TransitionState<connected_t>();
 		break;
 
 	default:
@@ -32,26 +32,21 @@ void ServerOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCall
 		break;
 	case k_ESteamNetworkingConnectionState_ClosedByPeer:
 	case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
-		game.sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
-		game.TransitionState<connectionFailed_t>();
+		game->sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
+		game->TransitionState<connectionFailed_t>();
 		break;
 	case k_ESteamNetworkingConnectionState_Connecting:
-		if (game.connection != k_HSteamNetConnection_Invalid) {
-			// We already have a peer connected. 
-			break;
-		}
-
-		if (game.sockets->AcceptConnection(pInfo->m_hConn) != k_EResultOK) {
-			game.sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
-			game.TransitionState<connectionFailed_t>();
+		if (game->sockets->AcceptConnection(pInfo->m_hConn) != k_EResultOK) {
+			game->sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
+			game->TransitionState<connectionFailed_t>();
 			break;
 		} 
 			
-		game.connection = pInfo->m_hConn;
-		game.TransitionState<connecting_t>();
+		game->TransitionState<connecting_t>();
 		break;
 	case k_ESteamNetworkingConnectionState_Connected:
-		game.TransitionState<connected_t>();
+		game->AddNewClient(pInfo->m_hConn);
+		game->TransitionState<connected_t>();
 		break;
 	default:
 		break;
@@ -59,7 +54,9 @@ void ServerOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCall
 }
 
 int main() {
-	if (!game.LoadResources()) {
+	game = new global_t();
+
+	if (!game->LoadResources()) {
 		std::cout << "Failed to load resources.\n";
 		return 1;
 	}
@@ -90,22 +87,15 @@ int main() {
 	// to prevent freezing, we initialize all data after the neccessary terminal input
 	// is entered
 
-	SteamNetworkingErrMsg msg;
-	if (!GameNetworkingSockets_Init(nullptr, msg)) {
-		std::cout << msg << std::endl;
-		return 1;
-	}
-	game.sockets = SteamNetworkingSockets();
-	game.utils = SteamNetworkingUtils();
-	game.listen = k_HSteamListenSocket_Invalid;
-	game.connection = k_HSteamNetConnection_Invalid;
+	game->FinishNetworkInit();
 
 	if (isUserHost) {
 		SteamNetworkingIPAddr listenAddr;
 		listenAddr.SetIPv4(0, defaultHostPort);
 		SteamNetworkingConfigValue_t opt;
 		opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ServerOnSteamNetConnectionStatusChanged);
-		game.listen = game.sockets->CreateListenSocketIP(listenAddr, 1, &opt);
+		game->SetListen(game->sockets->CreateListenSocketIP(listenAddr, 1, &opt));
+		game->MarkHost();
 	} else {
 		SteamNetworkingIPAddr connect_addr;
 		SteamNetworkingConfigValue_t opt;
@@ -120,11 +110,11 @@ int main() {
 			connect_addr.m_port = defaultHostPort;
 
 			std::cout << "Attempting to connect. This may take some time.\n";
-			game.connection = game.sockets->ConnectByIPAddress(connect_addr, 1, &opt);
-			if (game.connection == k_HSteamNetConnection_Invalid) {
-				std::cout << "Failed to connect.\n";
+			HSteamNetConnection connection = game->sockets->ConnectByIPAddress(connect_addr, 1, &opt);
+			if(connection == k_HSteamNetConnection_Invalid) {
 				continue;
 			} else {
+				game->AddNewClient(connection);
 				break;
 			}
 		} while (true);
@@ -132,21 +122,20 @@ int main() {
 
 	std::string additionalInfo = "";
 	if (isUserHost) {
-		game.world.SetIsHost(true);
 		additionalInfo += "Host";
 	}
 	else {
-		game.world.SetIsHost(false);
 		additionalInfo += "Client";
 	}
 
-	game.exit = false;
-	game.CreateWindow(600, 400, "Asteroids " + additionalInfo);
-	game.TransitionState<connecting_t>();
+	game->CreateWindow(600, 400, "Asteroids " + additionalInfo);
+	game->TransitionState<connecting_t>();
 
-	while (game.window->isOpen() && !game.exit) {
-		game.Update();
+	while (!game->ShouldAppClose()) {
+		game->Update();
 	}
+
+	delete game;
 
 	return 0;
 }
