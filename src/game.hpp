@@ -167,7 +167,7 @@ public: /* host side */
 	
 		// Must insure the worldSnapshotBuilder is clear (aside from deleted entities)
 		// so we don't have entity-components left over from a previous snapshot
-		worldSnapshotBuilder->ResetEntityUpdateQueue();
+		worldSnapshotBuilder->ResetComponentUpdateQueue();
 
 		// The network pipeline contains the systems
 		// that fetch all networked components

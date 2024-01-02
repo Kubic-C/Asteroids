@@ -1,34 +1,6 @@
 #pragma once
 #include "entity.hpp"
 
-/***
- * Used for all our network IO needs */
-
-/** 1. The IDGAF how it gets there serial/deserial approach
- * State/Snapshot messages may look like this:
- * (u32) entity-component size
- * (u64) entity id: 
- * (u64) component id:
- * (some amount of bytes for the component)
- * (... next entity-component ... )
- * ^^^ above approach becomes stupidly expensive for message size;
- * guarenteed minimum of 20 bytes overhead for ONE entity-component update
- **/
-
- /** 2. Tables (CHOSEN)
- * (u32) entity-component size
- * (u64) component id + (u64) component id 2:
- * (u64) entityID (comp1) (copm2)
- * (u64) entityID (comp1) (copm2)
- * (u64) entityID (comp1) (copm2)
- * (u64) entityID (comp1) (copm2)
- * (u64) entityID (comp1) (copm2)
- * (... next entity-component ... )
- * ^^^ I think maybe some how this could be improved, but pratically this is the best way.
- * Organize entities with the same compnonent types together. The minimum amount of bytes is the same as 
- * the first approach but as more components must be sent, the "byte" growth is reduced.
- **/
-
 typedef bitsery::InputBufferAdapter<std::vector<u8_t>> inputAdapter_t;
 typedef bitsery::OutputBufferAdapter<std::vector<u8_t>> outputAdapter_t;
 typedef bitsery::Deserializer<inputAdapter_t> deserializer_t;
@@ -253,42 +225,44 @@ struct networkSystem_t {};
 
 class worldSnapshotBuilder_t {
 public:
+	/**
+	 * World snapshot are serialized as so:
+	 * Primitive type | Name/Purpose | [] array or none
+	 * 
+	 * u32_t archetypeCount
+	 * // Archetype 1 ex.
+	 * u32_t componentTypeCount
+	 * u32_t componentTypes[]
+	 * u32_t entityCount
+	 * u32_t entityId      ] May repeat
+	 * unkn componentData1 |
+	 * unkn componentData2 ]
+	 * // Archetype 2 ex.
+	 * u32_t componentTypeCount
+	 * u32_t componentTypes[]
+	 * u32_t entityCount
+	 * u32_t entityId      ] May repeat
+	 * unkn componentData1 ]
+	 * 
+	 * // List of destroyed entities
+	 * u32_t entityDestroyCount
+	 * u32_t entityId[]
+	 * 
+	 * // List of destroyed components
+	 * u32_t destroyArchetypeCount
+	 * // Archetype 1 ex.
+	 * u32_t componentTypeCount;
+	 * u32_t componentTypes[]
+	 * u32_t entityCount;
+	 * u32_t entityId[]; // Just a single array 
+	 * 
+	 * Minimum size guaranteed(of empty snapshot): 4 + 4 + 4 = 12 bytes;
+	 * Minimum size guaranteed(of 1 entity 1 component snapshot): 4 + 4 + 4 + 4 + 4 + unkn + 4 + 4 + 4 + 4 + 4 + 4 + 4: 48 bytes 
+	 */
+
 	void BuildMessage(flecs::world& world, message_t& message, serializer_t& ser,  networkEcsContext_t& context) {
 		std::unordered_map<std::vector<u64_t>, std::vector<u64_t>, u64_hasher_t> archetypes;
 		std::unordered_map<std::vector<u64_t>, std::vector<u64_t>, u64_hasher_t> destroyedArchetypes;
-
-		/** >>>COPIED FROM game.cpp<<<
-		  * What is known:
-		  * - Size of serialized components is known on both sides of the connection; their >>>SERIALIZED<<< sizes are the same.
-		  *
-		  * Below is how entity and their components are serialized in messages.
-		  *
-		  * b - bytes
-		  * ukn - unknown byte usage
-		  * ... - repeat above pattern
-		  *
-		  * Byte size | Name
-		  * 4b | Entity archetype count
-		  *  vvv Archetype table 1 vvv
-		  * 4b | Entity component type count
-		  * 4b | Component type 1
-		  * 4b | Component type 2
-		  * 4b | ... May continue ...
-		  * 4b | Entiy count
-		  * 8b | Entity id
-		  * ukn | Component data 1
-		  * ukn | Component data 2
-		  * ukn | Component data 3
-		  * vvv Archetype table 2 vvv
-		  * 4b | Entity component type count
-		  * 4b | Component type 1
-		  * 4b | ... May continue ...
-		  * 4b | Entiy count
-		  * 8b | Entity id
-		  * ukn | Component data 1
-		  * 8b | Entity id
-		  * ukn | Component data 1
-		  */
 
 		// 1. Find how many different archetypes we have, just requires "reversing the map"
 		for(auto& pair : componentUpdates) {
@@ -306,7 +280,7 @@ public:
 			const std::vector<u64_t>& componentTypes = pair.first;
 			message.Serialize(ser, (u32_t)componentTypes.size()); // entity component type count
 			for(u32_t i = 0; i < componentTypes.size(); i++) { // entity component types
-				message.Serialize(ser, componentTypes[i]);
+				message.Serialize(ser, ClearFields(componentTypes[i]));
 			}
 			
 			// Archetype Data
@@ -323,10 +297,10 @@ public:
 		// Delete entities
 		message.Serialize(ser, (u32_t)destroyedEntities.size());
 		for(uint32_t i = 0; i < destroyedEntities.size(); i++) {
-			message.Serialize(ser, destroyedEntities[i]);
+			message.Serialize(ser, ClearFields(destroyedEntities[i]));
 
 			// Reduces message size. Dont include an component destroy update if the entire
-			// entity will just be deleted
+			// entity will just be deleted. TODO OPITIMIZE COMPONENT DESTROY UPDATES
 			if(componentDestroyed.find(destroyedEntities[i]) != componentDestroyed.end()) {
 				componentDestroyed.erase(destroyedEntities[i]);
 			}
@@ -341,7 +315,7 @@ public:
 			const std::vector<u64_t>& componentTypes = pair.first;
 			message.Serialize(ser, (u32_t)componentTypes.size()); // entity component type count
 			for (u32_t i = 0; i < componentTypes.size(); i++) { // entity component types
-				message.Serialize(ser, componentTypes[i]);
+				message.Serialize(ser, ClearFields(componentTypes[i]));
 			}
 
 			// Archetype Data
@@ -357,7 +331,7 @@ public:
 		componentDestroyed.clear();
 	}
 
-	void ResetEntityUpdateQueue() {
+	void ResetComponentUpdateQueue() {
 		componentUpdates.clear();
 	}
 
@@ -390,7 +364,9 @@ public:
 		componentDestroyed[entity].push_back(componentType);
 	}
 private:
-	u64_t ClearFields(u64_t e) {
+	// Allows a shortend version of an entity ID to be sent over
+	// this reduces message size
+	u32_t ClearFields(u64_t e) {
 		return e & ECS_ENTITY_MASK;
 	}
 private:
@@ -404,7 +380,7 @@ struct worldSnapshotBuilderComp_t {
 };
 
 template<typename T>
-void AlertIfDirtyFor(flecs::iter& iter, T* dirtys, worldSnapshotBuilderComp_t* snapshotBuilder) {
+void UpdateIfDirty(flecs::iter& iter, T* dirtys, worldSnapshotBuilderComp_t* snapshotBuilder) {
 	static_assert(std::is_base_of_v<networked_t, T>);
 
 	for(auto i : iter) {
@@ -429,7 +405,7 @@ void UpdateWholeSnapshot(flecs::iter& iter, T* dirtys, worldSnapshotBuilderComp_
 	}
 }
 
-inline void UpdateEntityNetworkDelete(flecs::iter& iter, size_t i, worldSnapshotBuilderComp_t& snapshotBuilder) {
+inline void UpdateEntityNetworkDestroy(flecs::iter& iter, size_t i, worldSnapshotBuilderComp_t& snapshotBuilder) {
 	snapshotBuilder.builder->QueueEntityDestroyedUpdate(iter.entity(i));
 }
 
@@ -446,7 +422,7 @@ void AddNetworkSyncFor(flecs::world& world, networkEcsContext_t& context) {
 	context.RecordDeserialize<T>(world);
 
 	if(world.has<isHost_t>()) {
-		world.system<T, worldSnapshotBuilderComp_t>().term_at(2).singleton().iter(AlertIfDirtyFor<T>);
+		world.system<T, worldSnapshotBuilderComp_t>().term_at(2).singleton().iter(UpdateIfDirty<T>);
 		world.system<T, worldSnapshotBuilderComp_t>().term_at(2).singleton().kind<networkSystem_t>().iter(UpdateWholeSnapshot<T>);
 		world.observer<T, worldSnapshotBuilderComp_t>().term_at(2).singleton().event(flecs::OnRemove).each(UpdateComponentNetworkDestroy<T>); 
 	}
@@ -466,7 +442,7 @@ inline void ImportNetwork(flecs::world& world, networkEcsContext_t& context, std
 
 	/* Observes entities with isNetworked_t. isNetworked is a special component that essentially keeps track of a entities lifetime.
 	   if isNetworked_t is removed from an entity, that entity is considered "dead" and will be removed from all client via a world snapshot .*/
-	world.observer<worldSnapshotBuilderComp_t>().term_at(1).singleton().term<isNetworked_t>().event(flecs::OnRemove).each(UpdateEntityNetworkDelete);
+	world.observer<worldSnapshotBuilderComp_t>().term_at(1).singleton().term<isNetworked_t>().event(flecs::OnRemove).each(UpdateEntityNetworkDestroy);
 
 	world.component<isNetworked_t>();
 

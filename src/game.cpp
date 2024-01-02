@@ -191,20 +191,23 @@ void ServerOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCall
     case k_ESteamNetworkingConnectionState_Connecting:
         if (game->sockets->AcceptConnection(pInfo->m_hConn) != k_EResultOK) {
             game->sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
-            game->TransitionState<connectionFailed_t>();
             break;
         }
 
-        game->TransitionState<connecting_t>();
+        if(game->GetState().Enum() == gameStateEnum_t::connecting) {
+            game->TransitionState<connected_t>();
+        }
+
         break;
     case k_ESteamNetworkingConnectionState_Connected:
         game->AddNewClient(pInfo->m_hConn);
-        game->TransitionState<connected_t>();
         break;
     default:
         break;
     }
 }
+
+struct xyz_t {};
 
 int global_t::Init() {
     if (!LoadResources()) {
@@ -307,6 +310,7 @@ int global_t::Init() {
             .set([&](color_t& color){ if(isUserHost) { color.SetColor(sf::Color::Red); } else { color.SetColor(sf::Color::Green); } })
             .set([](transform_t& transform){ transform.SetPos({300, 200}); });
     } else {
+        
         world.set_entity_range(clientEntityStartRange, 0);
         world.enable_range_check(true);
     }
@@ -339,7 +343,7 @@ void global_t::Update() {
                 break;
             case event.KeyPressed:
                 if(event.key.code == sf::Keyboard::Key::R) {
-                    player.remove<health_t>();
+                    player.destruct();
                 } else if(event.key.code == sf::Keyboard::Key::Q) {
                     player = world.entity()
                         .add<isNetworked_t>()
@@ -363,9 +367,6 @@ void global_t::Update() {
         time.frameTime = now - time.lastFrame;
         time.ticksToDo += time.frameTime * ticksPerSecond;
         time.lastFrame = now;
-
-        if (state)
-            std::cout << "State: " << (int)state->Enum() << std::endl;
 
         while (time.ticksToDo >= 1.0f) {
             now = NowSeconds();
@@ -408,6 +409,10 @@ void global_t::Update() {
     }
 }
 
+u64_t FixFields(u32_t id) {
+    return id;
+}
+
 void global_t::DeserializeWorldSnapshot(flecs::world& world, networkEcsContext_t& context, message_t& message, deserializer_t& des) {
     /**
         * What is known:
@@ -447,7 +452,7 @@ void global_t::DeserializeWorldSnapshot(flecs::world& world, networkEcsContext_t
     u32_t entityArchetypeCount = 0;
     message.Deserialize(des, entityArchetypeCount);
 
-    std::vector<u64_t> entityComponentTypes; // placing outside of the for loop saves calls to malloc and free
+    std::vector<u32_t> entityComponentTypes; // placing outside of the for loop saves calls to malloc and free
     for(u32_t i = 0; i < entityArchetypeCount; i++) {
         entityComponentTypes.clear();
 
@@ -467,12 +472,12 @@ void global_t::DeserializeWorldSnapshot(flecs::world& world, networkEcsContext_t
         u32_t entityCount = 0;
         message.Deserialize(des, entityCount);
         for(u32_t j = 0; j < entityCount; j++) {
-            u64_t entityId = 0;
+            u32_t entityId = 0;
             message.Deserialize(des, entityId);
 
             for(u32_t typeI = 0; typeI < entityComponentTypeCount; typeI++) {
-                u64_t componentType = entityComponentTypes[typeI];
-                flecs::entity entity = world.ensure(entityId);
+                u64_t componentType = FixFields(entityComponentTypes[typeI]);
+                flecs::entity entity = world.ensure(FixFields(entityId)).add<isNetworked_t>();
 
                 context.Deserialize(des, componentType, entity.get_mut(componentType));
             }
@@ -482,10 +487,10 @@ void global_t::DeserializeWorldSnapshot(flecs::world& world, networkEcsContext_t
     u32_t destroyedEntitiesCount = 0;
     message.Deserialize(des, destroyedEntitiesCount);
     for(u64_t i = 0; i < destroyedEntitiesCount; i++) {
-        u64_t id = 0;
+        u32_t id = 0;
         message.Deserialize(des, id);
-        if(world.exists(id))
-            world.entity(id).destruct();
+        if(world.exists(FixFields(id)))
+            world.entity(FixFields(id)).destruct();
         else
             std::cout << "Possible d-sync. Server requested removal of entity(" << id << "). Entity not found.\n";
     }
@@ -509,12 +514,12 @@ void global_t::DeserializeWorldSnapshot(flecs::world& world, networkEcsContext_t
         u32_t entityCount = 0;
         message.Deserialize(des, entityCount);
         for (u32_t j = 0; j < entityCount; j++) {
-            u64_t entityId = 0;
+            u32_t entityId = 0;
             message.Deserialize(des, entityId);
 
             for (u32_t typeI = 0; typeI < entityComponentTypeCount; typeI++) {
-                u64_t componentType = entityComponentTypes[typeI];
-                flecs::entity entity = world.ensure(entityId);
+                u64_t componentType = FixFields(entityComponentTypes[typeI]);
+                flecs::entity entity = world.ensure(FixFields(entityId));
 
                 entity.remove(componentType);
             }

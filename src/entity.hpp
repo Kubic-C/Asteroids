@@ -13,7 +13,7 @@ enum inputFlagBits_t : u8_t {
 
 // is your component networked???
 struct networked_t {
-    bool dirty = false;
+    bool dirty = true;
 };
 
 struct transform_t : public networked_t {
