@@ -144,7 +144,7 @@ public:
 		: shape_t(), verticesCount(0), vertices(), radius(0.0f) {}
 
 	polygon_t(const std::initializer_list<sf::Vector2f>& localVertices)
-		: shape_t(), verticesCount(localVertices.size()) {
+		: shape_t(), verticesCount((u8_t)localVertices.size()) {
 		memcpy(vertices.data(), localVertices.begin(), verticesCount * sizeof(sf::Vector2f));
 		FixVertices();
 	}

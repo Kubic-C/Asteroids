@@ -1,5 +1,5 @@
 
-add_executable(asteroids "main.cpp" "base.hpp" "game.hpp" "game.cpp" "physics.hpp" "entity.hpp")
+add_executable(asteroids "main.cpp" "base.hpp" "game.hpp" "game.cpp" "physics.hpp" "entity.hpp" "network.hpp")
 
 target_link_libraries(asteroids PUBLIC 
 	bitsery 

@@ -3,6 +3,9 @@
 #include <queue>
 #include <algorithm>
 #include <random>
+#include <fstream>
+#include <functional>
+#include <set>
 
 #include <steam/isteamnetworkingsockets.h>
 #include <steam/isteamnetworkingmessages.h>
@@ -21,6 +24,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 
+#include <flecs.h>
+
 typedef uint8_t  u8_t;
 typedef uint16_t u16_t;
 typedef uint32_t u32_t;
@@ -29,6 +34,18 @@ typedef int8_t  i8_t;
 typedef int16_t i16_t;
 typedef int32_t i32_t;
 typedef int64_t i64_t;
+
+namespace bitsery {
+    template<typename S>
+    void serialize(S& s, u64_t& o) {
+        s.value8b(o);
+    }
+
+    template<typename S>
+    void serialize(S& s, u32_t& o) {
+        s.value4b(o);
+    }
+}
 
 constexpr int defaultHostPort = 9999;
 constexpr float ticksPerSecond = 60.0f;
@@ -42,7 +59,7 @@ constexpr u32_t scorePerAsteroid = 10;
 constexpr float windowWidth = 600.0f;
 constexpr float windowHeight = 400.0f;
 constexpr HSteamNetConnection hostPlayerID = 1;
-
+constexpr u32_t clientEntityStartRange = 1000000;
 
 constexpr std::initializer_list<sf::Vector2f> playerVertices = {
     {10.0f, -10.0f},

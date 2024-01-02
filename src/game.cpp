@@ -1,13 +1,6 @@
 #include "game.hpp"
 #include "states.hpp"
 
-player_t::player_t(gameWorld_t* world)
-	: polygon(playerVertices), entity_t(world) {
-	pos = {400.0f, 300.0f};
-	polygon.SetPos(pos);
-    SetColor(sf::Color::Green);
-}
-
 sf::Vector2f GetMouseWorldCoords() {
 	sf::Vector2i mouseScreenCoords = sf::Mouse::getPosition(game->GetWindow());
 
@@ -134,149 +127,6 @@ std::vector<sf::Vector2f> GetRandomPregeneratedConvexShape(float scale) {
     return shape;
 }
 
-void gameWorld_t::CheckCollision() {
-    std::vector<int> bulletsToDestroy;
-    std::vector<int> asteroidsToDestroy;
-
-    for (u32_t asterI = 0; asterI < asteroids.size(); asterI++) {
-        if (asteroids[asterI].IsDestroyed())
-            continue;
-
-        for (int i = 0; i < players.size(); i++) {
-            if (players[i].IsDestroyed()) {
-                continue;
-            }
-
-            collision_manifold_t manifold;
-            if (TestCollision(asteroids[asterI].polygon, players[i].polygon, manifold)) {
-                lives--;
-                players[i].MarkDestroyed();
-                game->PlayNoobSound();
-            }
-        }
-
-        for (u32_t i = 0; i < bullets.size(); i++) {
-            if (bullets[i].IsDestroyed())
-                continue;
-
-            collision_manifold_t manifold;
-            if (TestCollision(asteroids[asterI].polygon, bullets[i].circle, manifold)) {
-                bullets[i].MarkDestroyed();
-                bulletsToDestroy.push_back(i);
-
-                asteroids[asterI].health -= bullets[i].bulletDamage;
-                if (asteroids[asterI].health <= 0.0f) {
-                    asteroidsToDestroy.push_back(asterI);
-                    asteroids[asterI].MarkDestroyed();
-                    score += scorePerAsteroid;
-                    game->PlayDestroySound();
-                    break;
-                }
-            }
-        }
-    }
-
-    std::sort(bulletsToDestroy.begin(), bulletsToDestroy.end());
-    std::sort(asteroidsToDestroy.begin(), asteroidsToDestroy.end());
-
-    int reduceAmount = 0;
-    for (int i : bulletsToDestroy) {
-        bullets.erase(bullets.begin() + (i - reduceAmount));
-
-        reduceAmount++;
-    }
-
-    reduceAmount = 0;
-    for (int i : asteroidsToDestroy) {
-        sf::Vector2f pos = asteroids[i].GetPos();
-        sf::Vector2f vel = asteroids[i].vel * 1.5f;
-        int stage = asteroids[i].GetStage();
-
-        asteroids.erase(asteroids.begin() + (i - reduceAmount));
-        reduceAmount++;
-
-        if (stage > 3) {
-            continue;
-        }
-
-        asteroids_t asteroid1(this);
-        asteroid1.SetPos(pos);
-        asteroid1.AddVelocity(vel);
-        asteroid1.SetStage(stage + 1);
-        asteroid1.GenerateShape();
-
-        asteroids_t asteroid2(this);
-        asteroid2.SetPos(pos);
-        asteroid2.AddVelocity(-vel);
-        asteroid2.SetStage(stage + 1);
-        asteroid2.GenerateShape();
-
-        asteroids.push_back(asteroid1);
-        asteroids.push_back(asteroid2);
-    }
-}
-
-void player_t::Tick(gameStateEnum_t state, float deltaTime) {
-    polygon.SetPos(pos);
-    polygon.SetRot(rot);
-    
-    switch (state) {
-    case gameStateEnum_t::play:
-        rot = (pos - mouse).angle().asRadians();
-
-        if (input & inputFlagBits_t::UP) {
-            vel.y -= playerSpeed;
-        }
-        if (input & inputFlagBits_t::DOWN) {
-            vel.y += playerSpeed;
-        }
-        if (input & inputFlagBits_t::LEFT) {
-            vel.x -= playerSpeed;
-        }
-        if (input & inputFlagBits_t::RIGHT) {
-            vel.x += playerSpeed;
-        }
-
-        lastFired += deltaTime;
-        if (input & inputFlagBits_t::FIRE && lastFired > playerFireRate) {
-            lastFired = 0.0f;
-            isFiring = true;
-        }
-        else {
-            isFiring = false;
-        }
-
-        lastBlink -= deltaTime;
-        if (lastBlink <= 0.0f && IsDestroyed()) {
-            lastBlink = 0.2f;
-            SetColor(sf::Color::Cyan);
-        }
-        else {
-            SetColor(sf::Color::Green);
-        }
-
-        if (destroyed && world->GetTotalLives() != 0) {
-            timeTillRevive -= deltaTime;
-            if (timeTillRevive <= 0.0f) {
-                timeTillRevive = 5.0f;
-                destroyed = false;
-            }
-        }
-        break;
-    case gameStateEnum_t::start: case gameStateEnum_t::gameOver:
-        if (input & inputFlagBits_t::READY) {
-            ready = true;
-        }
-
-        if(ready) {
-            SetColor(sf::Color::Green);
-        } else {
-            SetColor(sf::Color::Red);
-        }
-        break;
-    }
-}
-
 void global_t::TransitionState(gameStateEnum_t state) {
 	switch (state) {
 	case gameStateEnum_t::connecting:
@@ -302,26 +152,178 @@ void global_t::TransitionState(gameStateEnum_t state) {
 	}
 }
 
-void gameWorld_t::Render(sf::RenderWindow& window) {
-    for (u8_t i = 0; i < players.size(); i++) {
-        RenderPolygon(window, players[i].color, players[i].polygon);
+void ClientOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo) {
+    switch (pInfo->m_info.m_eState)
+    {
+    case k_ESteamNetworkingConnectionState_None:
+        break;
+
+    case k_ESteamNetworkingConnectionState_ClosedByPeer:
+    case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
+        game->sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
+        game->TransitionState<connectionFailed_t>();
+        break;
+
+    case k_ESteamNetworkingConnectionState_Connecting:
+        game->TransitionState<connecting_t>();
+        break;
+
+    case k_ESteamNetworkingConnectionState_Connected:
+        game->TransitionState<connected_t>();
+        break;
+
+    default:
+        break;
+    }
+}
+
+void ServerOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo) {
+    switch (pInfo->m_info.m_eState)
+    {
+    case k_ESteamNetworkingConnectionState_None:
+        break;
+    case k_ESteamNetworkingConnectionState_ClosedByPeer:
+    case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
+        game->RemoveClient(pInfo->m_hConn);
+
+        game->sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
+        break;
+    case k_ESteamNetworkingConnectionState_Connecting:
+        if (game->sockets->AcceptConnection(pInfo->m_hConn) != k_EResultOK) {
+            game->sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
+            game->TransitionState<connectionFailed_t>();
+            break;
+        }
+
+        game->TransitionState<connecting_t>();
+        break;
+    case k_ESteamNetworkingConnectionState_Connected:
+        game->AddNewClient(pInfo->m_hConn);
+        game->TransitionState<connected_t>();
+        break;
+    default:
+        break;
+    }
+}
+
+int global_t::Init() {
+    if (!LoadResources()) {
+        std::cout << "Failed to load resources.\n";
+        return false;
     }
 
-    for (asteroids_t& asteroid : asteroids) {
-        RenderPolygon(window, asteroid.color, asteroid.polygon);
+    bool isUserHost = false;
+    do {
+        std::string in;
+        std::cout << "Are you hosting(y/n): ";
+        std::cin >> in;
+        if (in.empty() || in.size() > 1) {
+            std::cout << "Enter a valid response.\n";
+            continue;
+        }
+        if (in[0] == 'y') {
+            isUserHost = true;
+            break;
+        }
+        else if (in[0] == 'n') {
+            isUserHost = false;
+            break;
+        }
+        else {
+            std::cout << "Enter a valid response.\n";
+            continue;
+        }
+
+    } while (true);
+
+    // to prevent freezing, we initialize all data after the neccessary terminal input
+    // is entered
+
+    NetworkInit();
+
+    if (isUserHost) {
+        SteamNetworkingIPAddr listenAddr;
+        listenAddr.SetIPv4(0, defaultHostPort);
+        SteamNetworkingConfigValue_t opt;
+        opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ServerOnSteamNetConnectionStatusChanged);
+        SetListen(sockets->CreateListenSocketIP(listenAddr, 1, &opt));
+    } else {
+        SteamNetworkingIPAddr connect_addr;
+        SteamNetworkingConfigValue_t opt;
+        opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ClientOnSteamNetConnectionStatusChanged);
+
+        do {
+            std::string ipv4;
+            std::cout << "What IP Address would you like to connect to?: ";
+            std::cin >> ipv4;
+
+            connect_addr.ParseString(ipv4.c_str());
+            connect_addr.m_port = defaultHostPort;
+
+            std::cout << "Attempting to connect. This may take some time.\n";
+            HSteamNetConnection connection = sockets->ConnectByIPAddress(connect_addr, 1, &opt);
+            if (connection == k_HSteamNetConnection_Invalid) {
+                continue;
+            } else {
+                AddNewClient(connection);
+                break;
+            }
+        } while (true);
     }
 
-    for (bullet_t& bullet : bullets) {
-        sf::CircleShape shape(bullet.circle.GetRadius());
-        shape.move(bullet.circle.GetPos());
-        shape.setFillColor(bullet.color);
-        window.draw(shape);
+    std::string additionalInfo = "";
+    if (isUserHost) {
+        additionalInfo += "Host";
+    }
+    else {
+        additionalInfo += "Client";
     }
 
-    sf::Text text(game->GetFont());
-    text.setString("Score: " + std::to_string(score) + "\nLives: " + std::to_string(lives));
-    text.setStyle(sf::Text::Style::Bold | sf::Text::Style::Underlined);
-    window.draw(text);
+    CreateWindow(600, 400, "Asteroids " + additionalInfo);
+    TransitionState<connecting_t>();
+
+    if(isUserHost)
+        world.add<isHost_t>();
+    else 
+        world.component<isHost_t>();
+
+    ImportNetwork(world, context, worldSnapshotBuilder, networkPipeline);
+    ImportComponents(world);
+    ImportSystems(world);
+
+    world.set([&](mapSize_t& size){ size.SetSize(window->getSize()); });
+    world.add<sharedLives_t>();
+    world.set([&](gameWindow_t& w){ w.window = window; });
+
+    if(isUserHost) {
+        player = world.entity()
+            .add<isNetworked_t>()
+            .add<playerComp_t>()
+            .add<transform_t>()
+            .add<health_t>()
+            .add<integratable_t>()
+            .add<color_t>()
+            .add<hostPlayer_t>()
+            .set([&](color_t& color){ if(isUserHost) { color.SetColor(sf::Color::Red); } else { color.SetColor(sf::Color::Green); } })
+            .set([](transform_t& transform){ transform.SetPos({300, 200}); });
+    } else {
+        world.set_entity_range(clientEntityStartRange, 0);
+        world.enable_range_check(true);
+    }
+
+    // for debugging purposes
+    std::string json = world.to_json();
+
+    std::ofstream jsonFile("worldEcs.json");
+    if(!jsonFile.is_open()) {
+        // it's non-fatal, carry on with program execution
+        std::cout << "Json file could not be written to\n";
+    } else {
+        jsonFile << json;
+        jsonFile.close();
+    }
+
+    return true;
 }
 
 void global_t::Update() {
@@ -335,49 +337,20 @@ void global_t::Update() {
             case event.Closed:
                 exit = true;
                 break;
-            case event.MouseButtonPressed:
-                if (event.mouseButton.button == sf::Mouse::Button::Left) {
-                    input |= inputFlagBits_t::FIRE;
-                }
-                break;
-            case event.MouseButtonReleased:
-                if (event.mouseButton.button == sf::Mouse::Button::Left) {
-                    input &= ~inputFlagBits_t::FIRE;
-                }
-                break;
-
             case event.KeyPressed:
-                if (event.key.code == sf::Keyboard::A) {
-                    input |= inputFlagBits_t::LEFT;
-                }
-                if (event.key.code == sf::Keyboard::D) {
-                    input |= inputFlagBits_t::RIGHT;
-                }
-                if (event.key.code == sf::Keyboard::W) {
-                    input |= inputFlagBits_t::UP;
-                }
-                if (event.key.code == sf::Keyboard::S) {
-                    input |= inputFlagBits_t::DOWN;
-                }
-                if (event.key.code == sf::Keyboard::R) {
-                    input |= inputFlagBits_t::READY;
-                }
-                break;
-            case event.KeyReleased:
-                if (event.key.code == sf::Keyboard::A) {
-                    input &= ~inputFlagBits_t::LEFT;
-                }
-                if (event.key.code == sf::Keyboard::D) {
-                    input &= ~inputFlagBits_t::RIGHT;
-                }
-                if (event.key.code == sf::Keyboard::W) {
-                    input &= ~inputFlagBits_t::UP;
-                }
-                if (event.key.code == sf::Keyboard::S) {
-                    input &= ~inputFlagBits_t::DOWN;
-                }
-                if (event.key.code == sf::Keyboard::R) {
-                    input &= ~inputFlagBits_t::READY;
+                if(event.key.code == sf::Keyboard::Key::R) {
+                    player.remove<health_t>();
+                } else if(event.key.code == sf::Keyboard::Key::Q) {
+                    player = world.entity()
+                        .add<isNetworked_t>()
+                        .add<playerComp_t>()
+                        .add<transform_t>()
+                        .add<health_t>()
+                        .add<integratable_t>()
+                        .add<color_t>()
+                        .add<hostPlayer_t>()
+                        .set([&](color_t& color) { color.SetColor(sf::Color::Red); })
+                        .set([](transform_t& transform) { transform.SetPos({ 300, 200 }); });
                 }
                 break;
             default:
@@ -385,14 +358,14 @@ void global_t::Update() {
             }
         }
 
-        HandleInput();
-        world.SetMapBoundries((float)window->getSize().x, (float)window->getSize().y);
-
         assert(state);
         float now = NowSeconds();
         time.frameTime = now - time.lastFrame;
         time.ticksToDo += time.frameTime * ticksPerSecond;
         time.lastFrame = now;
+
+        if (state)
+            std::cout << "State: " << (int)state->Enum() << std::endl;
 
         while (time.ticksToDo >= 1.0f) {
             now = NowSeconds();
@@ -400,13 +373,27 @@ void global_t::Update() {
             time.lastTick = now;
 
             state->OnTick();
-            world.Tick(state, time.deltaTime);
+            world.progress(time.deltaTime);
             time.ticksToDo--;
         }
 
         window->clear();
         state->OnUpdate();
-        world.Render(*window);
+        sf::Text eid(res.font);
+        world.each([&](flecs::entity e, transform_t& transform, color_t& color){
+            sf::CircleShape shape(5.0f);
+            shape.setFillColor(color.GetColor());
+            shape.setPosition(transform.GetPos());
+            window->draw(shape);
+
+            eid.setPosition(transform.GetPos());
+            eid.setString(std::to_string(e.id()));
+            window->draw(eid);
+        });
+
+        sf::Text deltaTimeText(res.font, std::to_string(time.deltaTime) + " | NE: " + std::to_string(world.count<isNetworked_t>()));
+        window->draw(deltaTimeText);
+
         window->display();
 
         if (state->Enum() != gameStateEnum_t::connecting) {
@@ -419,4 +406,120 @@ void global_t::Update() {
             messageManager.Update(clients, utils, sockets);
         }
     }
+}
+
+void global_t::DeserializeWorldSnapshot(flecs::world& world, networkEcsContext_t& context, message_t& message, deserializer_t& des) {
+    /**
+        * What is known:
+        * - Size of serialized components is known on both sides of the connection; their >>>SERIALIZED<<< sizes are the same.
+        *  
+        * Below is how entity and their components are serialized in messages.
+        * 
+        * b - bytes
+        * ukn - unknown byte usage
+        * ... - repeat above pattern
+        * 
+        * Byte size | Name
+        * 4b | Entity archetype count
+        *  vvv Archetype table 1 vvv 
+        * 4b | Entity component type count
+        * 4b | Component type 1
+        * 4b | Component type 2
+        * 4b | ... May continue ...
+        * 4b | Entiy count
+        * 8b | Entity id
+        * ukn | Component data 1
+        * ukn | Component data 2
+        * ukn | Component data 3
+        * vvv Archetype table 2 vvv 
+        * 4b | Entity component type count
+        * 4b | Component type 1
+        * 4b | ... May continue ...
+        * 4b | Entiy count
+        * 8b | Entity id
+        * ukn | Component data 1
+        * 8b | Entity id
+        * ukn | Component data 1
+        */
+
+    world.enable_range_check(false);
+
+    u32_t entityArchetypeCount = 0;
+    message.Deserialize(des, entityArchetypeCount);
+
+    std::vector<u64_t> entityComponentTypes; // placing outside of the for loop saves calls to malloc and free
+    for(u32_t i = 0; i < entityArchetypeCount; i++) {
+        entityComponentTypes.clear();
+
+        u32_t entityComponentTypeCount = 0;
+        message.Deserialize(des, entityComponentTypeCount);
+        entityComponentTypes.resize(entityComponentTypeCount);
+        for(u32_t j = 0; j < entityComponentTypeCount; j++) {
+            message.Deserialize(des, entityComponentTypes[j]);
+            if(!world.exists(entityComponentTypes[j])) {
+                // Invalid component type...
+                message.EndDeserialization(des);
+                assert(!("Invalid component type was recieved: " + std::to_string(entityComponentTypes[j])).c_str());
+                return;
+            }
+        }
+
+        u32_t entityCount = 0;
+        message.Deserialize(des, entityCount);
+        for(u32_t j = 0; j < entityCount; j++) {
+            u64_t entityId = 0;
+            message.Deserialize(des, entityId);
+
+            for(u32_t typeI = 0; typeI < entityComponentTypeCount; typeI++) {
+                u64_t componentType = entityComponentTypes[typeI];
+                flecs::entity entity = world.ensure(entityId);
+
+                context.Deserialize(des, componentType, entity.get_mut(componentType));
+            }
+        }
+    }
+
+    u32_t destroyedEntitiesCount = 0;
+    message.Deserialize(des, destroyedEntitiesCount);
+    for(u64_t i = 0; i < destroyedEntitiesCount; i++) {
+        u64_t id = 0;
+        message.Deserialize(des, id);
+        if(world.exists(id))
+            world.entity(id).destruct();
+        else
+            std::cout << "Possible d-sync. Server requested removal of entity(" << id << "). Entity not found.\n";
+    }
+
+    u32_t destroyedArchetypes = 0;
+    message.Deserialize(des, destroyedArchetypes);
+    for(u32_t i = 0; i < destroyedArchetypes; i++) {
+        u32_t entityComponentTypeCount = 0;
+        message.Deserialize(des, entityComponentTypeCount);
+        entityComponentTypes.resize(entityComponentTypeCount);
+        for (u32_t j = 0; j < entityComponentTypeCount; j++) {
+            message.Deserialize(des, entityComponentTypes[j]);
+            if (!world.exists(entityComponentTypes[j])) {
+                // Invalid component type...
+                message.EndDeserialization(des);
+                assert(!("Invalid component type was recieved: " + std::to_string(entityComponentTypes[j])).c_str());
+                return;
+            }
+        }
+
+        u32_t entityCount = 0;
+        message.Deserialize(des, entityCount);
+        for (u32_t j = 0; j < entityCount; j++) {
+            u64_t entityId = 0;
+            message.Deserialize(des, entityId);
+
+            for (u32_t typeI = 0; typeI < entityComponentTypeCount; typeI++) {
+                u64_t componentType = entityComponentTypes[typeI];
+                flecs::entity entity = world.ensure(entityId);
+
+                entity.remove(componentType);
+            }
+        }
+    }
+
+    world.enable_range_check(true);
 }

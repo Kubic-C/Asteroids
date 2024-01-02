@@ -14,7 +14,10 @@ public:
 		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
 		text.setPosition(center);
 
+#ifdef NDEBUG
 		game->PlayMainTrack();
+#endif
+
 	}
 
 	virtual void OnUpdate() override {
@@ -70,31 +73,12 @@ class start_t : public gameState_t {
 public:
 	start_t() 
 		: text(game->GetFont(), "Both players must press R to start.") {
-		
-		text.setCharacterSize(20);
-		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
-		text.setPosition(center);
-
 	}
 
 	virtual void OnUpdate() override {
-		game->GetWindow().draw(text);
-
-		if (game->GetWorld().IsAllReady() && !changedToReady) {
-			changedToReady = true;
-			text.setString("BOTH ARE READY... GET READY TO RUMBLE!");
-			sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
-			text.setPosition(center);
-		}
 	}
 	
 	virtual void OnTick() override {
-		if (game->GetWorld().IsAllReady()) {
-			time -= game->GetDeltaTime();
-			if (time <= 0.0f) {
-				game->TransitionState<play_t>();
-			}
-		}
 	}
 
 	virtual gameStateEnum_t Enum() override { return gameStateEnum_t::start; }
@@ -109,10 +93,6 @@ public:
 	virtual void OnUpdate() override {
 	}
 	virtual void OnTick() override {
-		if(game->GetWorld().IsAllDestroyed()) {
-			game->TransitionState<gameOver_t>();
-			game->GetWorld().GameEnd();
-		}
 	}
 
 	virtual gameStateEnum_t Enum() override { return gameStateEnum_t::play; }
@@ -130,10 +110,6 @@ public:
 		game->GetWindow().draw(text);
 	}
 	virtual void OnTick() override {
-		if(game->GetWorld().IsAllReady()) {
-			game->TransitionState<start_t>();
-			game->GetWorld().Reset();
-		}
 	}
 
 	virtual gameStateEnum_t Enum() override { return gameStateEnum_t::gameOver; }
