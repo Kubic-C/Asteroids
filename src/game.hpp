@@ -3,6 +3,7 @@
 #include "entity.hpp"
 #include "physics.hpp"
 #include "network.hpp"
+#include "physicsEcs.hpp"
 
 sf::Vector2f GetMouseWorldCoords();
 std::vector<sf::Vector2f> GenerateRandomConvexShape(int size, float scale);
@@ -47,30 +48,7 @@ public:
 	virtual void OnTick() = 0;
 	virtual void OnUpdate() = 0;
 	virtual gameStateEnum_t Enum() = 0;
-};
-
-struct aabb_t {
-	aabb_t() {
-		min[0] = 0.0f;
-		min[1] = 0.0f;
-		max[0] = 0.0f;
-		max[1] = 0.0f;
-	}
-
-	aabb_t(float width, float height) {
-		min[0] = 0.0f;
-		min[1] = 0.0f;
-		max[0] = width;
-		max[1] = height;
-	}
-
-	float min[2];
-	float max[2];
-
-	bool IsPointInside(sf::Vector2f v) {
-		return min[0] <= v.x && v.x <= max[0] && min[1] <= v.y && v.y <= max[1];
-	}
-};
+}; 
 
 class global_t;
 inline global_t* game = nullptr;
@@ -119,17 +97,27 @@ public:
 
 	void TransitionState(gameStateEnum_t state);
 
+	struct {
+		flecs::entity player;
+	} prefabs;
+
 public: /* host side */
 	void HostNetworkUpdate(float frameTime) {
-		while (!messageManager.IsIncomingEmpty() && false) {
+		while (!messageManager.IsIncomingEmpty()) {
 			message_t message = messageManager.PopIncoming();
+			messageInput_t input;
 
 			auto des = message.StartDeserialize();
-
+			message.Deserialize(des, input);
 			if (!message.EndDeserialization(des)) {
 				std::cout << "Error occurred when deserializing\n";
 				continue;
 			}
+
+			clients[message.GetConnection()].player.set([&](playerComp_t& comp){
+					comp.SetMouse(input.mouse);
+					comp.SetKeys(input.input);
+				});
 		}
 
 		network.lastUpdateSent += frameTime;
@@ -142,21 +130,43 @@ public: /* host side */
 			auto ser = message.StartSerialize();
 			message.Serialize(ser, state->Enum());
 			worldSnapshotBuilder->BuildMessage(world, message, ser, context);
+			physicsWorldSnapshotBuilder->BuildMessage(*physicsWorld, message, ser);
  			message.EndSerialize(ser);
 
 			messageManager.PushOutgoing(std::move(message));
 		}
 	}
 
+	flecs::entity AddPlayerComponents(flecs::entity e) {
+		e.add<isNetworked_t>()
+			.add<playerComp_t>()
+			.add<transform_t>()
+			.add<health_t>()
+			.add<integratable_t>()
+			.add<color_t>()
+			.add<shapeComp_t>()
+			.set([&](color_t& color) { color.SetColor(sf::Color::Red); })
+			.set([](transform_t& transform) { transform.SetPos({ 300, 200 }); })
+			.set([&](transform_t& transform, shapeComp_t& shape) {
+				shape.shape = physicsWorld->CreateShape<polygon_t>(transform.GetPos(), transform.GetRot(), playerVertices); 
+			});
+	
+		return e;
+	}
+
 	void AddNewClient(HSteamNetConnection connection) {
 		clients[connection] = {};
 		messageManager.AddConnection(connection);
 
-		if(IsHost())
+		if(IsHost()) {
+			clients[connection].player = AddPlayerComponents(world.entity());
+
 			SyncAllClients();
+		}
 	}
 
 	void RemoveClient(HSteamNetConnection connection) {
+		clients[connection].player.destruct();
 		clients.erase(connection);
 	}
 	
@@ -181,6 +191,7 @@ public: /* host side */
 		auto ser = message.StartSerialize();
 		message.Serialize(ser, state->Enum());
 		worldSnapshotBuilder->BuildMessage(world, message, ser, context);
+		physicsWorldSnapshotBuilder->BuildMessage(*physicsWorld, message, ser, true);
 		message.EndSerialize(ser);
 
 		messageManager.PushOutgoing(std::move(message));
@@ -199,6 +210,7 @@ public: /* client side */
 
 			message.Deserialize(des, stateEnum);
 			DeserializeWorldSnapshot(world, context, message, des);
+			DeserializePhysicsSnapshot(*physicsWorld, message, des);
 
 			if(!message.EndDeserialization(des)) {
 				std::cout << "failed to end deserialization\n";
@@ -210,12 +222,15 @@ public: /* client side */
 		}
 
 		network.lastUpdateSent += frameTime;
-		if (network.lastUpdateSent >= timePerInputUpdate && false) {
+		if (network.lastUpdateSent >= timePerInputUpdate) {
 			network.lastUpdateSent = 0.0f;
+
+			const gameKeyboard_t* keyboard = game->world.get<gameKeyboard_t>();
 
 			message_t message;
 			message.SetConnection(GetHostConnection());
 			auto ser = message.StartSerialize();
+			message.Serialize(ser, messageInput_t(keyboard->keys, keyboard->mouse));
 			message.EndSerialize(ser);
 
 			messageManager.PushOutgoing(std::move(message));
@@ -344,16 +359,17 @@ protected: /* HELPER FUNCTIONS FOR INIT */
 
 protected:
 	void DeserializeWorldSnapshot(flecs::world& world, networkEcsContext_t& context, message_t& message, deserializer_t& des);
+	void DeserializePhysicsSnapshot(physicsWorld_t& physicsWorld, message_t& message, deserializer_t& des);
 
 private:
 	flecs::world world;
 	networkEcsContext_t context;
 	std::shared_ptr<worldSnapshotBuilder_t> worldSnapshotBuilder;
+	std::shared_ptr<physicsWorld_t> physicsWorld;
+	std::shared_ptr<physicsWorldSnapshotBuilder_t> physicsWorldSnapshotBuilder;
 	flecs::entity networkPipeline;
 
 	std::unordered_map<HSteamNetConnection, client_t> clients;
-
-	flecs::entity player;
 
 	struct {
 		sf::Music music;

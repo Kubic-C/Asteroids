@@ -124,7 +124,7 @@ public:
     float GetTimeTillRevive() { return timeTillRevive; }
 
     void ResetLastFired() { lastFired = 0.0f; }
-    void ResetLastBlink() { lastBlink = 0.5f; }
+    void ResetLastBlink() { lastBlink = 1.0f; }
     void ResetTimeTillRevive() { timeTillRevive = 5.0f; }
 
     void AddTimer(float deltaTime) {
@@ -201,9 +201,9 @@ private:
     float height;
 
 };
-
+ 
 struct shapeComp_t : public networked_t {
-    u32_t shape;
+    u32_t shape = 0;
 
     template<typename S>
     void serialize(S& s) {
@@ -215,199 +215,16 @@ struct gameWindow_t {
     std::shared_ptr<sf::RenderWindow> window;
 };
 
+struct gameKeyboard_t {
+    uint8_t keys;
+    sf::Vector2f mouse;
+};
+
+struct asteroidTimer_t {
+    float resetTime = timePerAsteroidSpawn;
+    float current = timePerAsteroidSpawn;
+};
+
 struct isHost_t {};
 
-inline void Integrate(flecs::iter& iter, transform_t* transforms, integratable_t* integratables) {
-	for(auto i : iter) {
-		transform_t& transform = transforms[i];
-		integratable_t& integratable = integratables[i];
-		
-        transform.SetPos(transform.GetPos() + integratable.GetLinearVelocity() * iter.delta_time());
-		transform.SetRot(transform.GetRot() + integratable.GetAngularVelocity() * iter.delta_time());
-		
-        if(integratable.IsSameAsLast()) {
-            transform.dirty = false;
-            integratable.dirty = false;
-        }
-        
-	}
-}
-
-inline void IsDead(flecs::iter& iter, health_t* healths) {
-	for(auto i : iter) {
-		if(healths[i].GetHealth() < 0.0f) {
-			healths[i].SetDestroyed(true);
-		}
-	}
-}
-
-inline void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms) {
-	float deltaTime = iter.delta_time();
-    
-    for(auto i : iter) {
-        playerComp_t& player = players[i];
-        integratable_t& integratable = integratables[i];
-        transform_t& transform = transforms[i];
-
-        player.AddTimer(deltaTime);
-
-        if(player.GetMouse() != sf::Vector2f())
-            transform.SetRot((transform.GetPos() - player.GetMouse()).angle().asRadians());
-
-        if (player.IsUpPressed()) {
-            integratable.AddLinearVelocity({0.0f, -playerSpeed});
-        }
-        if (player.IsDownPressed()) {
-            integratable.AddLinearVelocity({ 0.0f, playerSpeed });
-        }
-        if (player.IsLeftPressed()) {
-            integratable.AddLinearVelocity({ -playerSpeed, 0.0f });
-        }
-        if (player.IsRightPressed()) {
-            integratable.AddLinearVelocity({ playerSpeed, 0.0f });
-        }
-
-        if (player.IsFirePressed() && player.GetLastFired() > playerFireRate) {
-            player.ResetLastFired();
-            player.SetIsFiring(true);
-        }
-        else {
-            player.SetIsFiring(false);
-        }
-	}
-}
-
-inline void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors) {
-    for(auto i : iter) {
-        playerComp_t& player = players[i];
-        health_t& health = healths[i];
-        color_t& color = colors[i];
-
-        std::cout << "HAS HEALTH UPDATE\n";
-
-        if (player.GetLastBlink() <= 0.0f && healths->IsDestroyed()) {
-            player.ResetLastBlink();
-            color.SetColor(sf::Color::Cyan);
-        }
-        else {
-            //color.SetColor(sf::Color::Green);
-        }
-    }
-}
-
-inline void PlayerReviveUpdate(flecs::iter& iter, sharedLives_t* lives, playerComp_t* players, health_t* healths) {
-    for(auto i : iter) {
-        playerComp_t& player = players[i];
-        health_t& health = healths[i];
-
-        if (health.IsDestroyed() && lives->lives != 0) {
-            if (player.GetTimeTillRevive() <= 0.0f) {
-                player.ResetTimeTillRevive();
-                health.SetDestroyed(false);
-            }
-        }
-    }
-}
-
-inline void TransformWrap(flecs::iter& iter, mapSize_t* size, transform_t* transforms) {
-    for(auto i : iter) {
-        transform_t& transform = transforms[i];
-        sf::Vector2f pos = transform.GetPos();
-
-        if (pos.x >= size->GetWidth()) {
-            pos.x = 0.0f;
-        } else if (pos.x <= 0.0f) {
-            pos.x = size->GetWidth();
-        }
-
-        if (pos.y >= size->GetHeight()) {
-            pos.y = 0.0f;
-        } else if (pos.y <= 0.0f) {
-            pos.y = size->GetHeight();
-        }
-
-        if(pos != transform.GetPos())
-            transform.SetPos(pos);
-    }
-}
-
-inline void ShapeUpdate(flecs::iter& iter, transform_t* transforms, shapeComp_t* shapes) {
-    for(auto i : iter) {
-        transform_t& transform = transforms[i];
-        shapeComp_t& shape = shapes[i];
-
-
-        // PHYSISICSICSICISI
-        //shape.shape->SetPos(transform.pos);
-        //shape.shape->SetRot(transform.rot);
-    }
-}
-
-inline void HostPlayerInputUpdate(flecs::iter& iter, gameWindow_t* window, playerComp_t* players) {
-    for(auto i : iter) {
-        playerComp_t& player = players[i];
-
-        player.SetMouse((sf::Vector2f)sf::Mouse::getPosition(*window->window));
-        
-        if(!window->window->hasFocus())
-            continue;
-
-        uint8_t keys = 0;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
-            keys |= inputFlagBits_t::LEFT;
-        } else {
-            keys &= ~inputFlagBits_t::LEFT;
-        }
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
-            keys |= inputFlagBits_t::RIGHT;
-        } else {
-            keys &= ~inputFlagBits_t::RIGHT;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
-            keys |= inputFlagBits_t::UP;
-        } else {
-            keys &= ~inputFlagBits_t::UP;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
-            keys |= inputFlagBits_t::DOWN;
-        } else {
-            keys &= ~inputFlagBits_t::DOWN;
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
-            keys |= inputFlagBits_t::READY;
-        } else {
-            keys &= ~inputFlagBits_t::READY;
-        }
-        if(sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
-           keys |= inputFlagBits_t::FIRE;
-        } else {
-            keys &= ~inputFlagBits_t::FIRE;
-        }
-
-        player.SetKeys(keys);
-    }
-}
-
-inline void ImportComponents(flecs::world& world) {
-    world.component<transform_t>().is_a<networked_t>();
-    world.component<health_t>().is_a<networked_t>();
-    world.component<integratable_t>().is_a<networked_t>();
-    world.component<color_t>().is_a<networked_t>();
-    world.component<playerComp_t>().is_a<networked_t>();
-    world.component<asteroidComp_t>().is_a<networked_t>();
-    world.component<sharedLives_t>().is_a<networked_t>();
-    world.component<bulletComp_t>().is_a<networked_t>();
-    world.component<mapSize_t>().is_a<networked_t>();
-    world.component<shapeComp_t>().is_a<networked_t>();
-}
-
-inline void ImportSystems(flecs::world& world) {
-   world.system<transform_t, integratable_t>().iter(Integrate);
-   world.system<health_t>().iter(IsDead);
-   world.system<playerComp_t, integratable_t, transform_t>().iter(PlayerPlayInputUpdate);
-   world.system<playerComp_t, health_t, color_t>().iter(PlayerBlinkUpdate);
-   world.system<sharedLives_t, playerComp_t, health_t>().term_at(1).singleton().iter(PlayerReviveUpdate);
-   world.system<mapSize_t, transform_t>().term_at(1).singleton().iter(TransformWrap);
-   world.system<transform_t, shapeComp_t>().iter(ShapeUpdate);
-   world.system<gameWindow_t, playerComp_t>().term_at(1).singleton().term<hostPlayer_t>().iter(HostPlayerInputUpdate);
-}
+struct deferDelete_t {};

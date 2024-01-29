@@ -5,7 +5,8 @@
 #include <random>
 #include <fstream>
 #include <functional>
-#include <set>
+#include <variant>
+#include <bitset>
 
 #include <steam/isteamnetworkingsockets.h>
 #include <steam/isteamnetworkingmessages.h>
@@ -23,6 +24,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+
+#include <RTree.h>
 
 #include <flecs.h>
 
@@ -50,7 +53,7 @@ namespace bitsery {
 constexpr int defaultHostPort = 9999;
 constexpr float ticksPerSecond = 60.0f;
 constexpr float timePerInputUpdate = 1.0f / 30.0f;
-constexpr float timePerStateUpdate = 1.0f / 30.0f;
+constexpr float timePerStateUpdate = 1.0f / 5.0f;
 constexpr float playerSpeed = 1.0f;
 constexpr float playerFireRate = 0.5f;
 constexpr float timePerAsteroidSpawn = 5.0f;

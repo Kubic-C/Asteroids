@@ -1,5 +1,5 @@
 
-add_executable(asteroids "main.cpp" "base.hpp" "game.hpp" "game.cpp" "physics.hpp" "entity.hpp" "network.hpp")
+add_executable(asteroids "main.cpp" "base.hpp" "game.hpp" "game.cpp" "physics.hpp" "physicsEcs.hpp" "entity.hpp" "network.hpp")
 
 target_link_libraries(asteroids PUBLIC 
 	bitsery 
@@ -7,4 +7,5 @@ target_link_libraries(asteroids PUBLIC
 	sfml-system
 	sfml-graphics
     sfml-audio
-    flecs_static)
+    flecs_static
+	THST)

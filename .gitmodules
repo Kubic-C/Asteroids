@@ -10,3 +10,6 @@
 [submodule "deps/flecs"]
 	path = deps/flecs
 	url = https://github.com/sandermertens/flecs
+[submodule "deps/THST"]
+	path = deps/THST
+	url = https://github.com/tuxalin/THST

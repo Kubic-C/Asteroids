@@ -1,6 +1,317 @@
 #include "game.hpp"
 #include "states.hpp"
 
+
+inline void Integrate(flecs::iter& iter, transform_t* transforms, integratable_t* integratables) {
+    for (auto i : iter) {
+        transform_t& transform = transforms[i];
+        integratable_t& integratable = integratables[i];
+
+        transform.SetPos(transform.GetPos() + integratable.GetLinearVelocity() * iter.delta_time());
+        transform.SetRot(transform.GetRot() + integratable.GetAngularVelocity() * iter.delta_time());
+
+        if (integratable.IsSameAsLast()) {
+            transform.dirty = false;
+            integratable.dirty = false;
+        }
+
+    }
+}
+
+inline void IsDead(flecs::iter& iter, health_t* healths) {
+    for (auto i : iter) {
+        if (healths[i].GetHealth() < 0.0f) {
+            healths[i].SetDestroyed(true);
+        }
+    }
+}
+
+inline void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms) {
+    float deltaTime = iter.delta_time();
+
+    for (auto i : iter) {
+        playerComp_t& player = players[i];
+        integratable_t& integratable = integratables[i];
+        transform_t& transform = transforms[i];
+
+        player.AddTimer(deltaTime);
+
+        if (player.GetMouse() != sf::Vector2f())
+            transform.SetRot((transform.GetPos() - player.GetMouse()).angle().asRadians());
+
+        if (player.IsUpPressed()) {
+            integratable.AddLinearVelocity({ 0.0f, -playerSpeed });
+        }
+        if (player.IsDownPressed()) {
+            integratable.AddLinearVelocity({ 0.0f, playerSpeed });
+        }
+        if (player.IsLeftPressed()) {
+            integratable.AddLinearVelocity({ -playerSpeed, 0.0f });
+        }
+        if (player.IsRightPressed()) {
+            integratable.AddLinearVelocity({ playerSpeed, 0.0f });
+        }
+
+        if (player.IsFirePressed() && player.GetLastFired() > playerFireRate) {
+            player.ResetLastFired();
+            player.SetIsFiring(true);
+
+            if (iter.world().has<isHost_t>())
+                iter.world().entity().set(
+                    [&](transform_t& ctransform, integratable_t& integratable, color_t& color, shapeComp_t& shape) {
+                        physicsWorld_t& world = *iter.world().get<physicsWorldComp_t>()->physicsWorld;
+
+                        ctransform = transform;
+                        color.SetColor(sf::Color::Yellow);
+
+                        sf::Vector2f velocityDir = player.GetMouse() - transform.GetPos();
+                        integratable.AddLinearVelocity(velocityDir);
+
+                        shape.shape = world.CreateShape<circle_t>(5.0f);
+                    }).add<bulletComp_t>().add<isNetworked_t>();
+        }
+        else {
+            player.SetIsFiring(false);
+        }
+    }
+}
+
+inline void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors) {
+    for (auto i : iter) {
+        playerComp_t& player = players[i];
+        health_t& health = healths[i];
+        color_t& color = colors[i];
+
+        if (player.GetLastBlink() <= 0.0f && healths->IsDestroyed()) {
+            player.ResetLastBlink();
+            color.SetColor(sf::Color::Blue);
+        }
+        else if (color.GetColor() != sf::Color::Green) {
+            color.SetColor(sf::Color::Green);
+        }
+    }
+}
+
+inline void PlayerReviveUpdate(flecs::iter& iter, sharedLives_t* lives, playerComp_t* players, health_t* healths) {
+    for (auto i : iter) {
+        playerComp_t& player = players[i];
+        health_t& health = healths[i];
+
+        if (health.IsDestroyed() && lives->lives != 0) {
+            if (player.GetTimeTillRevive() <= 0.0f) {
+                player.ResetTimeTillRevive();
+                health.SetDestroyed(false);
+                lives->lives--;
+            }
+        }
+    }
+}
+
+inline void AsteroidDestroyUpdate(flecs::iter& iter, asteroidComp_t*, health_t* healths) {
+    for(auto i : iter) {
+        health_t& health = healths[i];
+
+        if(health.IsDestroyed()) {
+            iter.entity(i).add<deferDelete_t>();
+        }
+    }
+}
+
+inline void TransformWrap(flecs::iter& iter, mapSize_t* size, transform_t* transforms) {
+    for (auto i : iter) {
+        transform_t& transform = transforms[i];
+        sf::Vector2f pos = transform.GetPos();
+
+        if (pos.x >= size->GetWidth()) {
+            pos.x = 0.0f;
+        }
+        else if (pos.x <= 0.0f) {
+            pos.x = size->GetWidth();
+        }
+
+        if (pos.y >= size->GetHeight()) {
+            pos.y = 0.0f;
+        }
+        else if (pos.y <= 0.0f) {
+            pos.y = size->GetHeight();
+        }
+
+        if (pos != transform.GetPos())
+            transform.SetPos(pos);
+    }
+}
+
+inline void HostPlayerInputUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, playerComp_t* players) {
+    for (auto i : iter) {
+        playerComp_t& player = players[i];
+
+        player.SetMouse(keyboard->mouse);
+        player.SetKeys(keyboard->keys);
+    }
+}
+
+inline void GameKeyboardUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, gameWindow_t* window) {
+    if (!window->window->hasFocus()) {
+        keyboard->keys = 0;
+        return;
+    }
+
+    uint8_t keys = 0;
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+        keys |= inputFlagBits_t::LEFT;
+    }
+    else {
+        keys &= ~inputFlagBits_t::LEFT;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+        keys |= inputFlagBits_t::RIGHT;
+    }
+    else {
+        keys &= ~inputFlagBits_t::RIGHT;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+        keys |= inputFlagBits_t::UP;
+    }
+    else {
+        keys &= ~inputFlagBits_t::UP;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+        keys |= inputFlagBits_t::DOWN;
+    }
+    else {
+        keys &= ~inputFlagBits_t::DOWN;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+        keys |= inputFlagBits_t::READY;
+    }
+    else {
+        keys &= ~inputFlagBits_t::READY;
+    }
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
+        keys |= inputFlagBits_t::FIRE;
+    }
+    else {
+        keys &= ~inputFlagBits_t::FIRE;
+    }
+
+    keyboard->keys = keys;
+    keyboard->mouse = (sf::Vector2f)sf::Mouse::getPosition(*window->window);
+}
+
+inline void AsteroidAddUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorld, mapSize_t* mapSize, asteroidTimer_t* timer) {
+    timer->current -= iter.delta_time();
+    if(timer->current < 0.0f) {
+        timer->current = timer->resetTime;
+        timer->resetTime -= timeToRemovePerAsteroidSpawn;
+        
+        float spawnX = (RandomFloat() * mapSize->GetWidth());
+        float spawnY = (RandomFloat() * mapSize->GetHeight());
+
+        float wallX = 0.0f;
+        float distX = 0.0f;
+        float distToLeft = spawnX;
+        float distToRight = mapSize->GetWidth() - spawnX;
+        if (distToLeft < distToRight) {
+            wallX = mapSize->GetWidth() - 0.01f;
+            distX = distToRight;
+        }
+        else {
+            distX = distToLeft;
+        }
+
+        float wallY = 0.0f;
+        float distY = 0.0f;
+        float distToUp = spawnY;
+        float distToDown = mapSize->GetHeight() - spawnY;
+        if (distToUp < distToDown) {
+            wallY = mapSize->GetHeight() - 0.1f;
+            distY = distToDown;
+        }
+        else {
+            distY = distToUp;
+        }
+
+        if (distX < distY) {
+            spawnX = wallX;
+        }
+        else {
+            spawnY = wallY;
+        }
+
+        iter.world().entity()
+            .add<isNetworked_t>()
+            .add<asteroidComp_t>()
+            .add<transform_t>()
+            .add<health_t>()
+            .add<integratable_t>()
+            .add<color_t>()
+            .add<asteroidComp_t>()
+            .set([&](shapeComp_t& shape, transform_t& transform, integratable_t& integratable, color_t& color){
+                    transform.SetPos({ spawnX, spawnY });
+
+                    sf::Vector2f center = mapSize->GetSize() / 2.0f;
+                    sf::Vector2f velToCenter = (transform.GetPos() - center).normalized();
+                    integratable.AddLinearVelocity(velToCenter * 10.0f);
+
+                    color.SetColor(sf::Color::Red);
+                
+                    shape.shape = physicsWorld->physicsWorld->CreateShape<polygon_t>();
+                    polygon_t& polygon = physicsWorld->physicsWorld->GetPolygon(shape.shape);
+
+                    std::vector<sf::Vector2f> vertices = GenerateRandomConvexShape(8, 8.0f);
+                    polygon.SetVertices(vertices.size(), vertices.data());
+                    polygon.SetPos(transform.GetPos());
+                });
+    }
+}
+
+void ObservePlayerCollision(flecs::iter& iter, size_t i, shapeComp_t&) {
+    flecs::entity entity = iter.entity(i);
+    collisionEvent_t& event = *iter.param<collisionEvent_t>();
+    flecs::entity other = event.entityOther;
+
+    if(other.has<asteroidComp_t>())
+        entity.set([](health_t& health){ health.SetHealth(0.0f); health.SetDestroyed(true); });
+}
+
+void ObserveBulletCollision(flecs::iter& iter, size_t i, shapeComp_t&) {
+    flecs::entity entity = iter.entity(i);
+    collisionEvent_t& event = *iter.param<collisionEvent_t>();
+    flecs::entity other = event.entityOther;
+
+    if(other.has<asteroidComp_t>()) {
+        other.set([&](health_t& health) {
+            health.SetHealth(health.GetHealth() - entity.get<bulletComp_t>()->damage);
+        });
+
+        entity.add<deferDelete_t>();
+    }
+}
+
+void DeferDeleteUpdate(flecs::iter& iter) {
+    for(auto i : iter) {
+        iter.entity(i).destruct();
+    }
+}
+
+inline void ImportSystems(flecs::world& world) {
+    world.system<transform_t, integratable_t>().iter(Integrate);
+    world.system<health_t>().iter(IsDead);
+    world.system<playerComp_t, integratable_t, transform_t>().iter(PlayerPlayInputUpdate);
+    world.system<playerComp_t, health_t, color_t>().iter(PlayerBlinkUpdate);
+    world.system<sharedLives_t, playerComp_t, health_t>().term_at(1).singleton().iter(PlayerReviveUpdate);
+    world.system<mapSize_t, transform_t>().term_at(1).singleton().iter(TransformWrap);
+    world.system<gameKeyboard_t, playerComp_t>().term_at(1).singleton().term<hostPlayer_t>().iter(HostPlayerInputUpdate);
+    world.system<gameKeyboard_t, gameWindow_t>().term_at(1).singleton().term_at(2).singleton().iter(GameKeyboardUpdate);
+    world.system<physicsWorldComp_t, mapSize_t, asteroidTimer_t>().term_at(1).singleton().term_at(2).singleton().term_at(3).singleton().iter(AsteroidAddUpdate);
+    world.system<asteroidComp_t, health_t>().iter(AsteroidDestroyUpdate);
+
+    world.system().term<deferDelete_t>().kind(flecs::PostUpdate).iter(DeferDeleteUpdate);
+
+    world.observer<shapeComp_t>().event<collisionEvent_t>().with<playerComp_t>().each(ObservePlayerCollision);
+    world.observer<shapeComp_t>().event<collisionEvent_t>().with<bulletComp_t>().each(ObserveBulletCollision);
+}
+
 sf::Vector2f GetMouseWorldCoords() {
 	sf::Vector2i mouseScreenCoords = sf::Mouse::getPosition(game->GetWindow());
 
@@ -289,30 +600,41 @@ int global_t::Init() {
         world.add<isHost_t>();
     else 
         world.component<isHost_t>();
+    
+    physicsWorldSnapshotBuilder = std::make_shared<physicsWorldSnapshotBuilder_t>(world);
 
     ImportNetwork(world, context, worldSnapshotBuilder, networkPipeline);
-    ImportComponents(world);
     ImportSystems(world);
+
+    world.import<physicsModule_t>();
 
     world.set([&](mapSize_t& size){ size.SetSize(window->getSize()); });
     world.add<sharedLives_t>();
     world.set([&](gameWindow_t& w){ w.window = window; });
+    world.add<gameKeyboard_t>();
+    
+    physicsWorld = std::make_shared<physicsWorld_t>();
+    world.set([&](physicsWorldComp_t& world){world.physicsWorld = physicsWorld;});
 
-    if(isUserHost) {
-        player = world.entity()
-            .add<isNetworked_t>()
-            .add<playerComp_t>()
-            .add<transform_t>()
-            .add<health_t>()
-            .add<integratable_t>()
-            .add<color_t>()
-            .add<hostPlayer_t>()
-            .set([&](color_t& color){ if(isUserHost) { color.SetColor(sf::Color::Red); } else { color.SetColor(sf::Color::Green); } })
-            .set([](transform_t& transform){ transform.SetPos({300, 200}); });
-    } else {
-        
+    prefabs.player = world.prefab()
+        .add<isNetworked_t>()
+        .add<playerComp_t>()
+        .add<transform_t>()
+        .add<health_t>()
+        .add<integratable_t>()
+        .add<color_t>()
+        .add<shapeComp_t>()
+        .set([&](color_t& color){ color.SetColor(sf::Color::Red); })
+        .set([](transform_t& transform){ transform.SetPos({300, 200}); });
+
+    if(!isUserHost){
         world.set_entity_range(clientEntityStartRange, 0);
         world.enable_range_check(true);
+    } else {
+        // Initial game stuff
+        AddPlayerComponents(world.entity()).add<hostPlayer_t>().set([](color_t& color){ color.SetColor(sf::Color::Green); });
+
+        world.add<asteroidTimer_t>();
     }
 
     // for debugging purposes
@@ -331,81 +653,94 @@ int global_t::Init() {
 }
 
 void global_t::Update() {
-    {
-        sockets->RunCallbacks();
+    sockets->RunCallbacks();
 
-        sf::Event event;
-        if (window->pollEvent(event)) {
-            // handle window events ...
-            switch (event.type) {
-            case event.Closed:
-                exit = true;
-                break;
-            case event.KeyPressed:
-                if(event.key.code == sf::Keyboard::Key::R) {
-                    player.destruct();
-                } else if(event.key.code == sf::Keyboard::Key::Q) {
-                    player = world.entity()
-                        .add<isNetworked_t>()
-                        .add<playerComp_t>()
-                        .add<transform_t>()
-                        .add<health_t>()
-                        .add<integratable_t>()
-                        .add<color_t>()
-                        .add<hostPlayer_t>()
-                        .set([&](color_t& color) { color.SetColor(sf::Color::Red); })
-                        .set([](transform_t& transform) { transform.SetPos({ 300, 200 }); });
-                }
-                break;
-            default:
-                break;
+    sf::Event event;
+    if (window->pollEvent(event)) {
+        // handle window events ...
+        switch (event.type) {
+        case event.Closed:
+            exit = true;
+            break;
+        default:
+            break;
+        }
+    }
+
+    assert(state);
+    float now = NowSeconds();
+    time.frameTime = now - time.lastFrame;
+    time.ticksToDo += time.frameTime * ticksPerSecond;
+    time.lastFrame = now;
+
+    while (time.ticksToDo >= 1.0f) {
+        now = NowSeconds();
+        time.deltaTime = now - time.lastTick;
+        time.lastTick = now;
+
+        state->OnTick();
+        world.progress(time.deltaTime);
+        time.ticksToDo--;
+    }
+
+    window->clear();
+    state->OnUpdate();
+
+    world.each([&](flecs::entity e, shapeComp_t& shape, color_t& color){
+        if(!physicsWorld->DoesShapeExist(shape.shape))
+            return;
+
+        shape_t& physicsShape = physicsWorld->GetShape(shape.shape);
+        switch(physicsShape.GetType()) {
+        case shapeEnum_t::polygon: {
+            polygon_t& polygon = dynamic_cast<polygon_t&>(physicsShape);
+
+            sf::ConvexShape sfShape(polygon.GetVerticeCount());
+            sfShape.setFillColor(color.GetColor());
+            for (u8_t i = 0; i < polygon.GetVerticeCount(); i++) {
+                sfShape.setPoint(i, polygon.GetWorldVertices()[i]);
             }
+
+            window->draw(sfShape);
+        } break;
+        case shapeEnum_t::circle: {
+            circle_t& circle = dynamic_cast<circle_t&>(physicsShape);
+
+            sf::CircleShape sfShape(circle.GetRadius());
+            sfShape.setFillColor(color.GetColor());
+            sfShape.setPosition(circle.GetPos());
+
+            window->draw(sfShape);
+        } break;
         }
+    });
 
-        assert(state);
-        float now = NowSeconds();
-        time.frameTime = now - time.lastFrame;
-        time.ticksToDo += time.frameTime * ticksPerSecond;
-        time.lastFrame = now;
+    sf::Text eid(res.font);
+    world.each([&](flecs::entity e, transform_t& transform, color_t& color) {
+        sf::CircleShape shape(5.0f);
+        shape.setFillColor(color.GetColor());
+        shape.setPosition(transform.GetPos());
+        window->draw(shape);
 
-        while (time.ticksToDo >= 1.0f) {
-            now = NowSeconds();
-            time.deltaTime = now - time.lastTick;
-            time.lastTick = now;
-
-            state->OnTick();
-            world.progress(time.deltaTime);
-            time.ticksToDo--;
-        }
-
-        window->clear();
-        state->OnUpdate();
-        sf::Text eid(res.font);
-        world.each([&](flecs::entity e, transform_t& transform, color_t& color){
-            sf::CircleShape shape(5.0f);
-            shape.setFillColor(color.GetColor());
-            shape.setPosition(transform.GetPos());
-            window->draw(shape);
-
-            eid.setPosition(transform.GetPos());
-            eid.setString(std::to_string(e.id()));
-            window->draw(eid);
+        eid.setPosition(transform.GetPos());
+        eid.setString(std::to_string(e.id()));
+        window->draw(eid);
         });
 
-        sf::Text deltaTimeText(res.font, std::to_string(time.deltaTime) + " | NE: " + std::to_string(world.count<isNetworked_t>()));
-        window->draw(deltaTimeText);
 
-        window->display();
+    sf::Text deltaTimeText(res.font, std::to_string(time.deltaTime) + " | NE: " + std::to_string(world.count<isNetworked_t>()) + " | SC " + std::to_string(world.count<shapeComp_t>()));
+    window->draw(deltaTimeText);
 
-        if (state->Enum() != gameStateEnum_t::connecting) {
-            if (IsHost()) {
-                HostNetworkUpdate(time.frameTime);
-            } else {
-                ClientNetworkUpdate(time.frameTime);
-            }
+    window->display();
 
-            messageManager.Update(clients, utils, sockets);
+    if (state->Enum() != gameStateEnum_t::connecting) {
+        if (IsHost()) {
+            HostNetworkUpdate(time.frameTime);
+        } else {
+            ClientNetworkUpdate(time.frameTime);
         }
+
+        messageManager.Update(clients, utils, sockets);
     }
 }
 
@@ -527,4 +862,46 @@ void global_t::DeserializeWorldSnapshot(flecs::world& world, networkEcsContext_t
     }
 
     world.enable_range_check(true);
+}
+
+void global_t::DeserializePhysicsSnapshot(physicsWorld_t& physicsWorld, message_t& message, deserializer_t& des) {
+    
+    // polygons are deserialized first then circles
+
+    u32_t listSize;
+    message.Deserialize(des, listSize);
+    for(u32_t i = 0; i < listSize; i++) {
+        u32_t shapeId;
+        message.Deserialize(des, shapeId);
+
+        polygon_t* polygon;
+
+        if(physicsWorld.DoesShapeExist(shapeId)) {
+            polygon = &physicsWorld.GetPolygon(shapeId);
+        } else {
+            polygon = &physicsWorld.GetPolygon(physicsWorld.InsertShape<polygon_t>(shapeId));
+        }
+
+        message.Deserialize(des, *polygon);
+        polygon->MarkLocalDirty();
+    }
+
+    message.Deserialize(des, listSize);
+    for (u32_t i = 0; i < listSize; i++) {
+        u32_t shapeId;
+        message.Deserialize(des, shapeId);
+
+        circle_t* circle;
+
+        if (physicsWorld.DoesShapeExist(shapeId)) {
+            circle = &physicsWorld.GetCircle(shapeId);
+        }
+        else {
+            circle = &physicsWorld.GetCircle(physicsWorld.InsertShape<circle_t>(shapeId));
+        }
+
+        message.Deserialize(des, *circle);
+        circle->MarkLocalDirty();
+    }
+
 }

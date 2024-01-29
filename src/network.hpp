@@ -79,9 +79,7 @@ private:
 };
 
 struct client_t {
-	u8_t keys;
-	sf::Vector2f mouse;
-	u32_t playerID;
+	flecs::entity player;
 };
 
 class messageManager_t {
@@ -222,6 +220,12 @@ struct u64_hasher_t {
 
 struct isNetworked_t {};
 struct networkSystem_t {};
+
+// Allows a shortend version of an entity ID to be sent over
+// this reduces message size. It removes any extranous data not needed.
+inline u32_t ClearFields(u64_t e) {
+	return e & ECS_ENTITY_MASK;
+}
 
 class worldSnapshotBuilder_t {
 public:
@@ -364,12 +368,6 @@ public:
 		componentDestroyed[entity].push_back(componentType);
 	}
 private:
-	// Allows a shortend version of an entity ID to be sent over
-	// this reduces message size
-	u32_t ClearFields(u64_t e) {
-		return e & ECS_ENTITY_MASK;
-	}
-private:
 	std::unordered_map<u64_t, std::vector<u64_t>> componentUpdates;
 	std::unordered_map<u64_t, std::vector<u64_t>> componentDestroyed;
 	std::vector<uint64_t> destroyedEntities;
@@ -377,6 +375,46 @@ private:
 
 struct worldSnapshotBuilderComp_t {
 	std::shared_ptr<worldSnapshotBuilder_t> builder;
+};
+
+class physicsWorldSnapshotBuilder_t {
+public:
+	physicsWorldSnapshotBuilder_t(flecs::world& world) {
+		query = world.query<shapeComp_t>();
+	}
+
+	void BuildMessage(physicsWorld_t& physicsWorld, message_t& message, serializer_t& ser, bool forceUpdate = false) {
+		for(auto& pair : shapeUpdates) {
+			pair.second.clear();
+		}
+
+		query.iter([&](flecs::iter& iter, shapeComp_t* shapesArray) {
+			for (auto i : iter) {
+				shape_t& shape = physicsWorld.GetShape(shapesArray[i].shape);
+
+				if(shape.IsNetworkDirty() || forceUpdate) {
+					shapeUpdates[shape.GetType()].push_back(shapesArray[i].shape);
+					shape.ResetNetworkDirty();
+				}
+			}
+		});
+
+		message.Serialize(ser, (u32_t)shapeUpdates[shapeEnum_t::polygon].size());
+		for(u32_t shapeId : shapeUpdates[shapeEnum_t::polygon]) {
+			message.Serialize(ser, shapeId);
+			message.Serialize(ser, physicsWorld.GetPolygon(shapeId));
+		}
+	
+		message.Serialize(ser, (u32_t)shapeUpdates[shapeEnum_t::circle].size());
+		for (u32_t shapeId : shapeUpdates[shapeEnum_t::circle]) {
+			message.Serialize(ser, shapeId);
+			message.Serialize(ser, physicsWorld.GetCircle(shapeId));
+		}
+	}
+
+private:
+	std::unordered_map<shapeEnum_t, std::vector<u32_t>> shapeUpdates;
+	flecs::query<shapeComp_t> query;
 };
 
 template<typename T>
@@ -440,11 +478,12 @@ inline void ImportNetwork(flecs::world& world, networkEcsContext_t& context, std
 		.with<networkSystem_t>()
 		.build();
 
-	/* Observes entities with isNetworked_t. isNetworked is a special component that essentially keeps track of a entities lifetime.
+	world.component<isNetworked_t>();
+
+	/* Observes entities with isNetworked_t. isNetworked is a special component that essentially keeps track of an entities lifetime.
 	   if isNetworked_t is removed from an entity, that entity is considered "dead" and will be removed from all client via a world snapshot .*/
 	world.observer<worldSnapshotBuilderComp_t>().term_at(1).singleton().term<isNetworked_t>().event(flecs::OnRemove).each(UpdateEntityNetworkDestroy);
 
-	world.component<isNetworked_t>();
 
 	/* ALL NETWORKED COMPONENTS MUST BE DECLARED HERE! */
 	AddNetworkSyncFor<transform_t>(world, context);
