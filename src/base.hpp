@@ -49,18 +49,31 @@ namespace bitsery {
         s.value4b(o);
     }
 }
-
-constexpr int defaultHostPort = 9999;
-constexpr float ticksPerSecond = 60.0f;
-constexpr float timePerInputUpdate = 1.0f / 30.0f;
-constexpr float timePerStateUpdate = 1.0f / 5.0f;
-constexpr float playerSpeed = 1.0f;
-constexpr float playerFireRate = 0.5f;
-constexpr float timePerAsteroidSpawn = 5.0f;
-constexpr float timeToRemovePerAsteroidSpawn = 0.01f;
-constexpr u32_t scorePerAsteroid = 10;
+/* Window constants */
 constexpr float windowWidth = 600.0f;
 constexpr float windowHeight = 400.0f;
+
+/* Game constants*/
+constexpr float ticksPerSecond = 60.0f;
+
+constexpr float playerSpeed = 1.0f;
+constexpr float playerFireRate = 1.0f;
+constexpr float playerBulletRecoilMultiplier = 0.5f;
+constexpr float playerBulletSpeedMultiplier = 150.0f;
+constexpr float playerBaseHealth = 1.0f;
+
+constexpr float blinkResetTime = 1.0f;
+constexpr float reviveImmunityTime = 5.0f;
+constexpr int initialLives = 3;
+
+constexpr float timePerAsteroidSpawn = 2.0f;
+constexpr float timeToRemovePerAsteroidSpawn = 0.01f;
+constexpr u32_t scorePerAsteroid = 10;
+
+/* Network related constants */
+constexpr int defaultHostPort = 9999;
+constexpr float timePerInputUpdate = 1.0f / 30.0f;
+constexpr float timePerStateUpdate = 1.0f / 20.0f;
 constexpr HSteamNetConnection hostPlayerID = 1;
 constexpr u32_t clientEntityStartRange = 1000000;
 
@@ -81,6 +94,20 @@ const std::initializer_list<std::vector<sf::Vector2f>> asteroidHulls = {
     { std::vector<sf::Vector2f>{sf::Vector2f(5.40126f, 8.52855f),sf::Vector2f(1.01294f, 6.66399f),sf::Vector2f(3.30232f, 2.1558f),sf::Vector2f(5.8019f, 1.48805f),sf::Vector2f(7.67696f, 4.66222f),sf::Vector2f(6.77728f, 6.86468f),sf::Vector2f(5.91079f, 8.41551f),sf::Vector2f(5.66811f, 8.49583f)} },
     { std::vector<sf::Vector2f>{sf::Vector2f(3.46638f, 8.70434f),sf::Vector2f(2.51958f, 5.72524f),sf::Vector2f(3.0589f, 2.28153f),sf::Vector2f(5.03308f, 2.58745f),sf::Vector2f(5.56972f, 2.95221f),sf::Vector2f(6.56609f, 7.66304f),sf::Vector2f(6.56975f, 8.12644f),sf::Vector2f(5.44032f, 8.37034f)} },
 };
+
+inline std::string FormatString(const char* format, ...) {
+    std::string str = "";
+
+    va_list args;
+    va_start(args, format);
+    int requiredSize = vsnprintf(nullptr, 0, format, args);
+    str.resize(requiredSize + 1);
+    vsnprintf(str.data(), str.size() + 1, format, args);
+    va_end(args);
+
+    return str;
+}
+
 inline auto start_time = std::chrono::high_resolution_clock::now();
 
 inline std::chrono::high_resolution_clock::time_point NowTP() {

@@ -24,7 +24,7 @@ public:
 		text.setPosition(center);
 
 #ifdef NDEBUG
-		game->PlayMainTrack();
+		//game->PlayMainTrack();
 #endif
 	}
 
@@ -112,6 +112,11 @@ public:
 		: text(game->GetFont(), "Both players must press R to start.") {
 	}
 
+	virtual void OnTransition() override {
+		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
+		text.setPosition(center);
+	}
+
 	virtual void OnUpdate() override {
 		game->GetWindow().draw(text);
 	}
@@ -141,15 +146,18 @@ public:
 	class module_t {
 	public:
 		module_t(flecs::world& world) {
-			world.system<health_t>().kind(flecs::OnUpdate).iter(UpdatePlayerDead);
-			world.system().kind(flecs::PostUpdate).iter(IsAllPlayersDead);
-			world.system<health_t>().iter(IsDead);
-			world.system<mapSize_t, transform_t>().term_at(1).singleton().iter(TransformWrap);
+			if(world.has<isHost_t>()) { // Client should not be able to handle State changes...
+				world.system<health_t>().with<playerComp_t>().kind(flecs::OnUpdate).with(flecs::Disabled).optional().iter(UpdatePlayerDead);
+				world.system().kind(flecs::PostUpdate).iter(IsAllPlayersDead);
+				world.system<health_t>().iter(IsDead);
+				world.system<physicsWorldComp_t, mapSize_t, asteroidTimer_t>().term_at(1).singleton().term_at(2).singleton().term_at(3).singleton().iter(AsteroidAddUpdate);
+				world.system<sharedLives_t, playerComp_t, health_t>().term_at(1).singleton().iter(PlayerReviveUpdate);
+				world.system<asteroidComp_t, health_t>().iter(AsteroidDestroyUpdate);
+			}
+
 			world.system<playerComp_t, integratable_t, transform_t>().iter(PlayerPlayInputUpdate);
+			world.system<mapSize_t, transform_t>().term_at(1).singleton().iter(TransformWrap);
 			world.system<playerComp_t, health_t, color_t>().iter(PlayerBlinkUpdate);
-			world.system<sharedLives_t, playerComp_t, health_t>().term_at(1).singleton().iter(PlayerReviveUpdate);
-			world.system<physicsWorldComp_t, mapSize_t, asteroidTimer_t>().term_at(1).singleton().term_at(2).singleton().term_at(3).singleton().iter(AsteroidAddUpdate);
-			world.system<asteroidComp_t, health_t>().iter(AsteroidDestroyUpdate);
 			world.observer<shapeComp_t>().event<collisionEvent_t>().with<playerComp_t>().each(ObservePlayerCollision);
 			world.observer<shapeComp_t>().event<collisionEvent_t>().with<bulletComp_t>().each(ObserveBulletCollision);
 		}
@@ -190,9 +198,10 @@ public:
 	gameOver_t()
 		: text(game->GetFont(), "Game Over. Both players must\npress R to Reset") {
 
-		destroyAsteroids = game->GetWorld().query<asteroidComp_t>();
-		destroyBullets = game->GetWorld().query<bulletComp_t>();
-		resetPlayers = game->GetWorld().query<playerComp_t, integratable_t, health_t>();
+		destroyAsteroids = game->GetWorld().query_builder<asteroidComp_t>().build();
+		destroyBullets = game->GetWorld().query_builder<bulletComp_t>().build();
+		resetPlayers = game->GetWorld().query_builder<playerComp_t, integratable_t, health_t, color_t>()
+			.with(flecs::Disabled).optional().build();
 	}
 
 	virtual void OnTransition() override {
@@ -205,12 +214,23 @@ public:
 		destroyBullets.each([](flecs::entity e, bulletComp_t& asteroid) {
 			e.add<deferDelete_t>();
 		});
-		resetPlayers.each([](playerComp_t& player, integratable_t& integratable, health_t& health) {
+
+		std::vector<flecs::entity> entitiesToEnable;
+		resetPlayers.each([&](flecs::entity e, playerComp_t& player, integratable_t& integratable, health_t& health, color_t& color) {
 			player.SetIsReady(false);
 			integratable.AddLinearVelocity(-integratable.GetLinearVelocity());
 			health.SetDestroyed(false);
 			health.SetHealth(1.0f);
+			color.SetColor(sf::Color::Red);
+
+			if(!e.enabled())
+				entitiesToEnable.push_back(e);
 		});
+
+		for(auto e : entitiesToEnable)
+			e.enable();
+
+		game->GetWorld().get_mut<sharedLives_t>()->lives = initialLives;
 	}
 
 	virtual void OnUpdate() override {
@@ -224,7 +244,7 @@ public:
 protected:
 	flecs::query<asteroidComp_t> destroyAsteroids;
 	flecs::query<bulletComp_t> destroyBullets;
-	flecs::query<playerComp_t, integratable_t, health_t> resetPlayers;
+	flecs::query<playerComp_t, integratable_t, health_t, color_t> resetPlayers;
 	sf::Text text;
 };
 

@@ -95,6 +95,8 @@ public: /* host side */
  			message.EndSerialize(ser);
 
 			messageManager.PushOutgoing(std::move(message));
+
+			time.nups++;
 		}
 	}
 
@@ -195,6 +197,8 @@ public: /* client side */
 			message.EndSerialize(ser);
 
 			messageManager.PushOutgoing(std::move(message));
+
+			time.nups++;
 		}
 	}
 
@@ -319,7 +323,8 @@ protected: /* HELPER FUNCTIONS FOR INIT */
 
 	void CreateWindow(u32_t w, u32_t h, std::string title) {
 		window = std::make_shared<sf::RenderWindow>();
-		window->create(sf::VideoMode({600, 400}), title);
+		window->create(sf::VideoMode({w, h}), title, sf::Style::Titlebar | sf::Style::Close);
+		window->setFramerateLimit(0); // When in host mode, frameratelimit can actually slow down the program thus affecting all clients
 	}
 
 protected:
@@ -353,7 +358,19 @@ private:
 		float deltaTime = 0.0f;
 		float lastTick  = 0.0f;
 		float ticksToDo = 0.0f;
+
+		float nextFrameCount = 0.0f;
+		float fps = 0.0f;
+		float tps = 0.0f;
+		float nups = 0.0f;
 	} time;
+
+	struct {
+		float framesCounted = 0.0f;
+		float fps = 0.0f;
+		float tps = 0.0f;
+		float nups = 0.0f;
+	} stats;
 
 	std::shared_ptr<sf::RenderWindow> window;
 	sf::Sound destroyPlayer;

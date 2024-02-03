@@ -484,7 +484,6 @@ inline void ImportNetwork(flecs::world& world, networkEcsContext_t& context, std
 	   if isNetworked_t is removed from an entity, that entity is considered "dead" and will be removed from all client via a world snapshot .*/
 	world.observer<worldSnapshotBuilderComp_t>().term_at(1).singleton().term<isNetworked_t>().event(flecs::OnRemove).each(UpdateEntityNetworkDestroy);
 
-
 	/* ALL NETWORKED COMPONENTS MUST BE DECLARED HERE! */
 	AddNetworkSyncFor<transform_t>(world, context);
 	AddNetworkSyncFor<health_t>(world, context);

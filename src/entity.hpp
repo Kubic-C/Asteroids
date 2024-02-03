@@ -102,7 +102,6 @@ public:
 
 private:
 	sf::Color color;
-
 };
 
 struct hostPlayer_t {};
@@ -124,8 +123,8 @@ public:
     float GetTimeTillRevive() { return timeTillRevive; }
 
     void ResetLastFired() { lastFired = 0.0f; }
-    void ResetLastBlink() { lastBlink = 1.0f; }
-    void ResetTimeTillRevive() { timeTillRevive = 5.0f; }
+    void ResetLastBlink() { lastBlink = blinkResetTime; }
+    void ResetTimeTillRevive() { timeTillRevive = reviveImmunityTime; }
 
     void AddTimer(float deltaTime) {
         timeTillRevive -= deltaTime;
@@ -177,7 +176,7 @@ struct bulletComp_t : public networked_t {
 
 // lives are shared between all players
 struct sharedLives_t : public networked_t {
-    u32_t lives = 0;
+    u32_t lives = initialLives;
 
     template<typename S>
     void serialize(S& s) {

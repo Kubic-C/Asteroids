@@ -369,7 +369,7 @@ int global_t::Init() {
         additionalInfo += "Client";
     }
 
-    CreateWindow(600, 400, "Asteroids " + additionalInfo);
+    CreateWindow(windowWidth, windowHeight, "Asteroids " + additionalInfo);
 
     // Components must be defined FIRST
 
@@ -395,7 +395,7 @@ int global_t::Init() {
     state = states[unknown];
     TransitionState(gameStateEnum_t::connecting);
     
-
+    world.add<isNetworked_t>();
     world.set([&](mapSize_t& size){ size.SetSize(window->getSize()); });
     world.add<sharedLives_t>();
     world.set([&](gameWindow_t& w){ w.window = window; });
@@ -409,7 +409,7 @@ int global_t::Init() {
         world.enable_range_check(true);
     } else {
         // Initial game stuff
-        AddPlayerComponents(world.entity()).add<hostPlayer_t>().set([](color_t& color){ color.SetColor(sf::Color::Green); });
+        AddPlayerComponents(world.entity()).add<hostPlayer_t>().set([](color_t& color){ color.SetColor(sf::Color::Red); });
 
         world.add<asteroidTimer_t>();
     }
@@ -449,7 +449,6 @@ void global_t::Update() {
     time.frameTime = now - time.lastFrame;
     time.ticksToDo += time.frameTime * ticksPerSecond;
     time.lastFrame = now;
-
     while (time.ticksToDo >= 1.0f) {
         now = NowSeconds();
         time.deltaTime = now - time.lastTick;
@@ -458,6 +457,7 @@ void global_t::Update() {
         state->OnTick();
         world.progress(time.deltaTime);
         time.ticksToDo--;
+        time.tps++;
     }
 
     window->clear();
@@ -468,6 +468,9 @@ void global_t::Update() {
             return;
 
         shape_t& physicsShape = physicsWorld->GetShape(shape.shape);
+
+        sf::Color outline = sf::Color(54, 69, 79);
+
         switch(physicsShape.GetType()) {
         case shapeEnum_t::polygon: {
             polygon_t& polygon = dynamic_cast<polygon_t&>(physicsShape);
@@ -478,6 +481,9 @@ void global_t::Update() {
                 sfShape.setPoint(i, polygon.GetWorldVertices()[i]);
             }
 
+            sfShape.setOutlineColor(outline);
+            sfShape.setOutlineThickness(-2.0f);
+
             window->draw(sfShape);
         } break;
         case shapeEnum_t::circle: {
@@ -487,28 +493,20 @@ void global_t::Update() {
             sfShape.setFillColor(color.GetColor());
             sfShape.setPosition(circle.GetPos());
 
+            sfShape.setOutlineColor(outline);
+            sfShape.setOutlineThickness(-2.0f);
+
             window->draw(sfShape);
         } break;
         }
     });
 
-    sf::Text eid(res.font);
-    world.each([&](flecs::entity e, transform_t& transform, color_t& color) {
-        sf::CircleShape shape(5.0f);
-        shape.setFillColor(color.GetColor());
-        shape.setPosition(transform.GetPos());
-        window->draw(shape);
-
-        eid.setPosition(transform.GetPos());
-        eid.setString(std::to_string(e.id()));
-        window->draw(eid);
-        });
-
-
-    sf::Text deltaTimeText(res.font, std::to_string(time.deltaTime) + " | NE: " + std::to_string(world.count<isNetworked_t>()) + " | SC " + std::to_string(world.count<shapeComp_t>()));
+    u32_t lives = world.get<sharedLives_t>()->lives;
+    sf::Text deltaTimeText(res.font, FormatString("FPS: %4.f|TPS: %2.f|NUPS: %2.f|Lives: %u", stats.fps, stats.tps, stats.nups, lives));
     window->draw(deltaTimeText);
 
     window->display();
+    time.fps++;
 
     if (state->Enum() != gameStateEnum_t::connecting) {
         if (IsHost()) {
@@ -518,6 +516,18 @@ void global_t::Update() {
         }
 
         messageManager.Update(clients, utils, sockets);
+    }
+
+    if(time.nextFrameCount < NowSeconds()) {
+        time.nextFrameCount = NowSeconds() + 1.0f;
+        
+        stats.nups = time.nups;
+        stats.fps = time.fps;
+        stats.tps = time.tps;
+
+        time.nups = 0;
+        time.fps = 0;
+        time.tps = 0;
     }
 }
 

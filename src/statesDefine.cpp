@@ -95,20 +95,23 @@ void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratabl
 
         player.AddTimer(deltaTime);
 
+        sf::Vector2f backwards = (transform.GetPos() - player.GetMouse()).normalized();
+        sf::Vector2f left = backwards.perpendicular();
+
         if (player.GetMouse() != sf::Vector2f())
-            transform.SetRot((transform.GetPos() - player.GetMouse()).angle().asRadians());
+            transform.SetRot(backwards.angle().asRadians());
 
         if (player.IsUpPressed()) {
-            integratable.AddLinearVelocity({ 0.0f, -playerSpeed });
+            integratable.AddLinearVelocity(-backwards * playerSpeed);
         }
         if (player.IsDownPressed()) {
-            integratable.AddLinearVelocity({ 0.0f, playerSpeed });
+            integratable.AddLinearVelocity(backwards * playerSpeed);
         }
         if (player.IsLeftPressed()) {
-            integratable.AddLinearVelocity({ -playerSpeed, 0.0f });
+            integratable.AddLinearVelocity(left * playerSpeed * 0.5f);
         }
         if (player.IsRightPressed()) {
-            integratable.AddLinearVelocity({ playerSpeed, 0.0f });
+            integratable.AddLinearVelocity(-left * playerSpeed * 0.5f);
         }
 
         if (player.IsFirePressed() && player.GetLastFired() > playerFireRate) {
@@ -123,8 +126,9 @@ void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratabl
                         ctransform = transform;
                         color.SetColor(sf::Color::Yellow);
 
-                        sf::Vector2f velocityDir = player.GetMouse() - transform.GetPos();
+                        sf::Vector2f velocityDir = (player.GetMouse() - transform.GetPos()).normalized() * playerBulletSpeedMultiplier;
                         integratable.AddLinearVelocity(velocityDir);
+                        integratables[i].AddLinearVelocity(-velocityDir * playerBulletRecoilMultiplier);
 
                         shape.shape = world.CreateShape<circle_t>(5.0f);
                     }).add<bulletComp_t>().add<isNetworked_t>();
@@ -141,9 +145,12 @@ void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healt
         health_t& health = healths[i];
         color_t& color = colors[i];
 
-        if (player.GetLastBlink() <= 0.0f && healths->IsDestroyed()) {
-            player.ResetLastBlink();
+        if (player.GetLastBlink() <= 0.0f && health.IsDestroyed()) {
             color.SetColor(sf::Color::Blue);
+
+            if(player.GetLastBlink() <= -0.5f) {
+                player.ResetLastBlink();
+            }
         }
         else if (color.GetColor() != sf::Color::Green) {
             color.SetColor(sf::Color::Green);
@@ -156,13 +163,20 @@ void PlayerReviveUpdate(flecs::iter& iter, sharedLives_t* lives, playerComp_t* p
         playerComp_t& player = players[i];
         health_t& health = healths[i];
 
-        if (health.IsDestroyed() && lives->lives != 0) {
-            if (player.GetTimeTillRevive() <= 0.0f) {
-                player.ResetTimeTillRevive();
-                health.SetDestroyed(false);
-                lives->lives--;
+        if (health.IsDestroyed()) {
+            if(lives->lives > 0) {
+                if (player.GetTimeTillRevive() <= 0.0f) {
+                    player.ResetTimeTillRevive();
+                    health.SetDestroyed(false);
+                    health.SetHealth(1.0f);
+
+                    lives->lives--;
+                    lives->dirty = true;
+                }
+            } else {
+                iter.entity(i).disable();
             }
-        }
+        } 
     }
 }
 
@@ -272,8 +286,10 @@ void ObservePlayerCollision(flecs::iter& iter, size_t i, shapeComp_t&) {
     collisionEvent_t& event = *iter.param<collisionEvent_t>();
     flecs::entity other = event.entityOther;
 
-    if (other.has<asteroidComp_t>())
-        entity.set([](health_t& health) { health.SetHealth(0.0f); health.SetDestroyed(true); });
+    if (other.has<asteroidComp_t>()) {
+        entity.set([](health_t& health) { health.SetHealth(0.0f); });
+        game->PlayNoobSound();
+    }
 }
 
 void ObserveBulletCollision(flecs::iter& iter, size_t i, shapeComp_t&) {
@@ -284,7 +300,9 @@ void ObserveBulletCollision(flecs::iter& iter, size_t i, shapeComp_t&) {
     if (other.has<asteroidComp_t>()) {
         other.set([&](health_t& health) {
             health.SetHealth(health.GetHealth() - entity.get<bulletComp_t>()->damage);
-            });
+        });
+
+        game->PlayDestroySound();
 
         entity.add<deferDelete_t>();
     }
