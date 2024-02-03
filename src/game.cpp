@@ -1,8 +1,7 @@
 #include "game.hpp"
-#include "states.hpp"
+#include "statesDefine.hpp"
 
-
-inline void Integrate(flecs::iter& iter, transform_t* transforms, integratable_t* integratables) {
+void Integrate(flecs::iter& iter, transform_t* transforms, integratable_t* integratables) {
     for (auto i : iter) {
         transform_t& transform = transforms[i];
         integratable_t& integratable = integratables[i];
@@ -18,130 +17,13 @@ inline void Integrate(flecs::iter& iter, transform_t* transforms, integratable_t
     }
 }
 
-inline void IsDead(flecs::iter& iter, health_t* healths) {
-    for (auto i : iter) {
-        if (healths[i].GetHealth() < 0.0f) {
-            healths[i].SetDestroyed(true);
-        }
-    }
-}
-
-inline void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms) {
-    float deltaTime = iter.delta_time();
-
-    for (auto i : iter) {
-        playerComp_t& player = players[i];
-        integratable_t& integratable = integratables[i];
-        transform_t& transform = transforms[i];
-
-        player.AddTimer(deltaTime);
-
-        if (player.GetMouse() != sf::Vector2f())
-            transform.SetRot((transform.GetPos() - player.GetMouse()).angle().asRadians());
-
-        if (player.IsUpPressed()) {
-            integratable.AddLinearVelocity({ 0.0f, -playerSpeed });
-        }
-        if (player.IsDownPressed()) {
-            integratable.AddLinearVelocity({ 0.0f, playerSpeed });
-        }
-        if (player.IsLeftPressed()) {
-            integratable.AddLinearVelocity({ -playerSpeed, 0.0f });
-        }
-        if (player.IsRightPressed()) {
-            integratable.AddLinearVelocity({ playerSpeed, 0.0f });
-        }
-
-        if (player.IsFirePressed() && player.GetLastFired() > playerFireRate) {
-            player.ResetLastFired();
-            player.SetIsFiring(true);
-
-            if (iter.world().has<isHost_t>())
-                iter.world().entity().set(
-                    [&](transform_t& ctransform, integratable_t& integratable, color_t& color, shapeComp_t& shape) {
-                        physicsWorld_t& world = *iter.world().get<physicsWorldComp_t>()->physicsWorld;
-
-                        ctransform = transform;
-                        color.SetColor(sf::Color::Yellow);
-
-                        sf::Vector2f velocityDir = player.GetMouse() - transform.GetPos();
-                        integratable.AddLinearVelocity(velocityDir);
-
-                        shape.shape = world.CreateShape<circle_t>(5.0f);
-                    }).add<bulletComp_t>().add<isNetworked_t>();
-        }
-        else {
-            player.SetIsFiring(false);
-        }
-    }
-}
-
-inline void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors) {
-    for (auto i : iter) {
-        playerComp_t& player = players[i];
-        health_t& health = healths[i];
-        color_t& color = colors[i];
-
-        if (player.GetLastBlink() <= 0.0f && healths->IsDestroyed()) {
-            player.ResetLastBlink();
-            color.SetColor(sf::Color::Blue);
-        }
-        else if (color.GetColor() != sf::Color::Green) {
-            color.SetColor(sf::Color::Green);
-        }
-    }
-}
-
-inline void PlayerReviveUpdate(flecs::iter& iter, sharedLives_t* lives, playerComp_t* players, health_t* healths) {
-    for (auto i : iter) {
-        playerComp_t& player = players[i];
-        health_t& health = healths[i];
-
-        if (health.IsDestroyed() && lives->lives != 0) {
-            if (player.GetTimeTillRevive() <= 0.0f) {
-                player.ResetTimeTillRevive();
-                health.SetDestroyed(false);
-                lives->lives--;
-            }
-        }
-    }
-}
-
-inline void AsteroidDestroyUpdate(flecs::iter& iter, asteroidComp_t*, health_t* healths) {
+void DeferDeleteUpdate(flecs::iter& iter) {
     for(auto i : iter) {
-        health_t& health = healths[i];
-
-        if(health.IsDestroyed()) {
-            iter.entity(i).add<deferDelete_t>();
-        }
+        iter.entity(i).destruct();
     }
 }
 
-inline void TransformWrap(flecs::iter& iter, mapSize_t* size, transform_t* transforms) {
-    for (auto i : iter) {
-        transform_t& transform = transforms[i];
-        sf::Vector2f pos = transform.GetPos();
-
-        if (pos.x >= size->GetWidth()) {
-            pos.x = 0.0f;
-        }
-        else if (pos.x <= 0.0f) {
-            pos.x = size->GetWidth();
-        }
-
-        if (pos.y >= size->GetHeight()) {
-            pos.y = 0.0f;
-        }
-        else if (pos.y <= 0.0f) {
-            pos.y = size->GetHeight();
-        }
-
-        if (pos != transform.GetPos())
-            transform.SetPos(pos);
-    }
-}
-
-inline void HostPlayerInputUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, playerComp_t* players) {
+void HostPlayerInputUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, playerComp_t* players) {
     for (auto i : iter) {
         playerComp_t& player = players[i];
 
@@ -150,7 +32,7 @@ inline void HostPlayerInputUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, p
     }
 }
 
-inline void GameKeyboardUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, gameWindow_t* window) {
+void GameKeyboardUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, gameWindow_t* window) {
     if (!window->window->hasFocus()) {
         keyboard->keys = 0;
         return;
@@ -198,118 +80,12 @@ inline void GameKeyboardUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, game
     keyboard->mouse = (sf::Vector2f)sf::Mouse::getPosition(*window->window);
 }
 
-inline void AsteroidAddUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorld, mapSize_t* mapSize, asteroidTimer_t* timer) {
-    timer->current -= iter.delta_time();
-    if(timer->current < 0.0f) {
-        timer->current = timer->resetTime;
-        timer->resetTime -= timeToRemovePerAsteroidSpawn;
-        
-        float spawnX = (RandomFloat() * mapSize->GetWidth());
-        float spawnY = (RandomFloat() * mapSize->GetHeight());
-
-        float wallX = 0.0f;
-        float distX = 0.0f;
-        float distToLeft = spawnX;
-        float distToRight = mapSize->GetWidth() - spawnX;
-        if (distToLeft < distToRight) {
-            wallX = mapSize->GetWidth() - 0.01f;
-            distX = distToRight;
-        }
-        else {
-            distX = distToLeft;
-        }
-
-        float wallY = 0.0f;
-        float distY = 0.0f;
-        float distToUp = spawnY;
-        float distToDown = mapSize->GetHeight() - spawnY;
-        if (distToUp < distToDown) {
-            wallY = mapSize->GetHeight() - 0.1f;
-            distY = distToDown;
-        }
-        else {
-            distY = distToUp;
-        }
-
-        if (distX < distY) {
-            spawnX = wallX;
-        }
-        else {
-            spawnY = wallY;
-        }
-
-        iter.world().entity()
-            .add<isNetworked_t>()
-            .add<asteroidComp_t>()
-            .add<transform_t>()
-            .add<health_t>()
-            .add<integratable_t>()
-            .add<color_t>()
-            .add<asteroidComp_t>()
-            .set([&](shapeComp_t& shape, transform_t& transform, integratable_t& integratable, color_t& color){
-                    transform.SetPos({ spawnX, spawnY });
-
-                    sf::Vector2f center = mapSize->GetSize() / 2.0f;
-                    sf::Vector2f velToCenter = (transform.GetPos() - center).normalized();
-                    integratable.AddLinearVelocity(velToCenter * 10.0f);
-
-                    color.SetColor(sf::Color::Red);
-                
-                    shape.shape = physicsWorld->physicsWorld->CreateShape<polygon_t>();
-                    polygon_t& polygon = physicsWorld->physicsWorld->GetPolygon(shape.shape);
-
-                    std::vector<sf::Vector2f> vertices = GenerateRandomConvexShape(8, 8.0f);
-                    polygon.SetVertices(vertices.size(), vertices.data());
-                    polygon.SetPos(transform.GetPos());
-                });
-    }
-}
-
-void ObservePlayerCollision(flecs::iter& iter, size_t i, shapeComp_t&) {
-    flecs::entity entity = iter.entity(i);
-    collisionEvent_t& event = *iter.param<collisionEvent_t>();
-    flecs::entity other = event.entityOther;
-
-    if(other.has<asteroidComp_t>())
-        entity.set([](health_t& health){ health.SetHealth(0.0f); health.SetDestroyed(true); });
-}
-
-void ObserveBulletCollision(flecs::iter& iter, size_t i, shapeComp_t&) {
-    flecs::entity entity = iter.entity(i);
-    collisionEvent_t& event = *iter.param<collisionEvent_t>();
-    flecs::entity other = event.entityOther;
-
-    if(other.has<asteroidComp_t>()) {
-        other.set([&](health_t& health) {
-            health.SetHealth(health.GetHealth() - entity.get<bulletComp_t>()->damage);
-        });
-
-        entity.add<deferDelete_t>();
-    }
-}
-
-void DeferDeleteUpdate(flecs::iter& iter) {
-    for(auto i : iter) {
-        iter.entity(i).destruct();
-    }
-}
-
 inline void ImportSystems(flecs::world& world) {
+    // Global systems. 
     world.system<transform_t, integratable_t>().iter(Integrate);
-    world.system<health_t>().iter(IsDead);
-    world.system<playerComp_t, integratable_t, transform_t>().iter(PlayerPlayInputUpdate);
-    world.system<playerComp_t, health_t, color_t>().iter(PlayerBlinkUpdate);
-    world.system<sharedLives_t, playerComp_t, health_t>().term_at(1).singleton().iter(PlayerReviveUpdate);
-    world.system<mapSize_t, transform_t>().term_at(1).singleton().iter(TransformWrap);
     world.system<gameKeyboard_t, playerComp_t>().term_at(1).singleton().term<hostPlayer_t>().iter(HostPlayerInputUpdate);
     world.system<gameKeyboard_t, gameWindow_t>().term_at(1).singleton().term_at(2).singleton().iter(GameKeyboardUpdate);
-    world.system<physicsWorldComp_t, mapSize_t, asteroidTimer_t>().term_at(1).singleton().term_at(2).singleton().term_at(3).singleton().iter(AsteroidAddUpdate);
-    world.system<asteroidComp_t, health_t>().iter(AsteroidDestroyUpdate);
-
     world.system().term<deferDelete_t>().kind(flecs::PostUpdate).iter(DeferDeleteUpdate);
-
-    world.observer<shapeComp_t>().event<collisionEvent_t>().with<playerComp_t>().each(ObservePlayerCollision);
-    world.observer<shapeComp_t>().event<collisionEvent_t>().with<bulletComp_t>().each(ObserveBulletCollision);
 }
 
 sf::Vector2f GetMouseWorldCoords() {
@@ -438,29 +214,20 @@ std::vector<sf::Vector2f> GetRandomPregeneratedConvexShape(float scale) {
     return shape;
 }
 
-void global_t::TransitionState(gameStateEnum_t state) {
-	switch (state) {
-	case gameStateEnum_t::connecting:
-		TransitionState<connecting_t>();
-		break;
-	case gameStateEnum_t::connectionFailed:
-		TransitionState<connectionFailed_t>();
-		break;
-	case gameStateEnum_t::connected:
-		TransitionState<connected_t>();
-		break;
-	case gameStateEnum_t::start:
-		TransitionState<start_t>();
-		break;
-	case gameStateEnum_t::play:
-		TransitionState<play_t>();
-		break;
-	case gameStateEnum_t::gameOver:
-		TransitionState<gameOver_t>();
-		break;
-	default:
-		break;
-	}
+void global_t::TransitionState(gameStateEnum_t stateEnum) {
+	if(state->Enum() == stateEnum) {
+        return;
+    }
+
+    gameState_t& prevState = *state;
+    gameState_t& newState = *states[stateEnum];
+
+    prevState.moduleEntity.disable();
+    prevState.OnDeTransition();
+    newState.OnTransition();
+    newState.moduleEntity.enable();
+    state = states[stateEnum]; // cant get the addr of newState because the state var is std::shared_ptr
+
 }
 
 void ClientOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo) {
@@ -472,15 +239,15 @@ void ClientOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCall
     case k_ESteamNetworkingConnectionState_ClosedByPeer:
     case k_ESteamNetworkingConnectionState_ProblemDetectedLocally:
         game->sockets->CloseConnection(pInfo->m_hConn, 0, nullptr, false);
-        game->TransitionState<connectionFailed_t>();
+        game->TransitionState(gameStateEnum_t::connectionFailed);
         break;
 
     case k_ESteamNetworkingConnectionState_Connecting:
-        game->TransitionState<connecting_t>();
+        game->TransitionState(gameStateEnum_t::connecting);
         break;
 
     case k_ESteamNetworkingConnectionState_Connected:
-        game->TransitionState<connected_t>();
+        game->TransitionState(gameStateEnum_t::connected);
         break;
 
     default:
@@ -506,7 +273,7 @@ void ServerOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCall
         }
 
         if(game->GetState().Enum() == gameStateEnum_t::connecting) {
-            game->TransitionState<connected_t>();
+            game->TransitionState(gameStateEnum_t::connected);
         }
 
         break;
@@ -518,7 +285,16 @@ void ServerOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCall
     }
 }
 
-struct xyz_t {};
+template<typename T>
+void InitState(std::array<std::shared_ptr<gameState_t>, stateCount>& states, flecs::world& world) {
+
+    std::shared_ptr<T> state = std::make_shared<T>();
+    gameStateEnum_t stateEnum = state->Enum();
+
+    states[stateEnum] = std::dynamic_pointer_cast<gameState_t>(state);
+    states[stateEnum]->moduleEntity = world.import<T::module_t>();
+    states[stateEnum]->moduleEntity.disable();
+}
 
 int global_t::Init() {
     if (!LoadResources()) {
@@ -594,19 +370,31 @@ int global_t::Init() {
     }
 
     CreateWindow(600, 400, "Asteroids " + additionalInfo);
-    TransitionState<connecting_t>();
 
-    if(isUserHost)
+    // Components must be defined FIRST
+
+    if (isUserHost)
         world.add<isHost_t>();
-    else 
+    else
         world.component<isHost_t>();
-    
-    physicsWorldSnapshotBuilder = std::make_shared<physicsWorldSnapshotBuilder_t>(world);
 
+    world.import<physicsModule_t>();
+    physicsWorldSnapshotBuilder = std::make_shared<physicsWorldSnapshotBuilder_t>(world);
     ImportNetwork(world, context, worldSnapshotBuilder, networkPipeline);
     ImportSystems(world);
 
-    world.import<physicsModule_t>();
+    // Systems second..
+
+    InitState<connecting_t>(states, world);
+    InitState<connectionFailed_t>(states, world);
+    InitState<connected_t>(states, world);
+    InitState<start_t>(states, world);
+    InitState<play_t>(states, world);
+    InitState<gameOver_t>(states, world);
+    InitState<unknown_t>(states, world);
+    state = states[unknown];
+    TransitionState(gameStateEnum_t::connecting);
+    
 
     world.set([&](mapSize_t& size){ size.SetSize(window->getSize()); });
     world.add<sharedLives_t>();
@@ -615,17 +403,6 @@ int global_t::Init() {
     
     physicsWorld = std::make_shared<physicsWorld_t>();
     world.set([&](physicsWorldComp_t& world){world.physicsWorld = physicsWorld;});
-
-    prefabs.player = world.prefab()
-        .add<isNetworked_t>()
-        .add<playerComp_t>()
-        .add<transform_t>()
-        .add<health_t>()
-        .add<integratable_t>()
-        .add<color_t>()
-        .add<shapeComp_t>()
-        .set([&](color_t& color){ color.SetColor(sf::Color::Red); })
-        .set([](transform_t& transform){ transform.SetPos({300, 200}); });
 
     if(!isUserHost){
         world.set_entity_range(clientEntityStartRange, 0);

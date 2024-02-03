@@ -1,9 +1,6 @@
 #pragma once
-#include "base.hpp"
-#include "entity.hpp"
-#include "physics.hpp"
-#include "network.hpp"
 #include "physicsEcs.hpp"
+#include "state.hpp"
 
 sf::Vector2f GetMouseWorldCoords();
 std::vector<sf::Vector2f> GenerateRandomConvexShape(int size, float scale);
@@ -27,28 +24,6 @@ template<typename S>
 void serialize(S& s, messageHeader_t header) {
 	s.value1b(header);
 }
-
-enum class gameStateEnum_t: u8_t {
-	connecting = 0,
-	connectionFailed,
-	connected,
-	start,
-	play,
-	gameOver,
-	unknown
-};
-
-template<typename S>
-void serialize(S& s, gameStateEnum_t& state) {
-	s.value1b(state);
-}
-
-class gameState_t {
-public:
-	virtual void OnTick() = 0;
-	virtual void OnUpdate() = 0;
-	virtual gameStateEnum_t Enum() = 0;
-}; 
 
 class global_t;
 inline global_t* game = nullptr;
@@ -80,20 +55,6 @@ public:
 	int Init();
 
 	void Update();
-
-	template<typename T>
-	void TransitionState() {
-		if (dynamic_cast<T*>(state) != nullptr) {
-			// Don't transition to the new state if we are already in that state
-			return;
-		}
-
-		if (state) {
-			delete state;
-		}
-
-		state = new T;
-	}
 
 	void TransitionState(gameStateEnum_t state);
 
@@ -249,6 +210,10 @@ public: /* client side */
 	}
 
 public: /* mmm OOP boiler plate */
+	flecs::world& GetWorld() {
+		return world;
+	}
+
 	sf::RenderWindow& GetWindow() {
 		return *window;
 	}
@@ -395,7 +360,8 @@ private:
 	sf::Sound getNoobPlayer;
 
 	bool exit;
-	gameState_t* state;
+	std::array<std::shared_ptr<gameState_t>, stateCount> states;
+	std::shared_ptr<gameState_t> state;
 	messageManager_t messageManager;
 
 	HSteamListenSocket listen;

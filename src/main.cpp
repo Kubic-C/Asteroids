@@ -1,4 +1,4 @@
-#include "states.hpp"
+#include "game.hpp"
 
 /** TODO
  * Add game state:

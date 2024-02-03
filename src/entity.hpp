@@ -50,7 +50,7 @@ public:
     }
 
 private:
-	float health = 0.0f;
+	float health = 1.0f;
     bool destroyed = false;
 };
 
@@ -135,6 +135,9 @@ public:
 
     void SetIsFiring(bool fire) { isFiring = fire; }
     bool IsFiring() { return isFiring; }
+
+    void SetIsReady(bool ready) { this->ready = ready; dirty = true;}
+    bool IsReady() { return ready; }
 
     template<typename S>
     void serialize(S& s) {
