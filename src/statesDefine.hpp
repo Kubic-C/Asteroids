@@ -132,7 +132,7 @@ private:
 void UpdatePlayerDead(flecs::iter& iter, health_t* health);
 void IsAllPlayersDead(flecs::iter& iter);
 void IsDead(flecs::iter& iter, health_t* healths);
-void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms);
+void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms, health_t* healths);
 void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors);
 void PlayerReviveUpdate(flecs::iter& iter, sharedLives_t* lives, playerComp_t* players, health_t* healths);
 void AsteroidDestroyUpdate(flecs::iter& iter, asteroidComp_t*, health_t* healths);
@@ -151,11 +151,11 @@ public:
 				world.system().kind(flecs::PostUpdate).iter(IsAllPlayersDead);
 				world.system<health_t>().iter(IsDead);
 				world.system<physicsWorldComp_t, mapSize_t, asteroidTimer_t>().term_at(1).singleton().term_at(2).singleton().term_at(3).singleton().iter(AsteroidAddUpdate);
-				world.system<sharedLives_t, playerComp_t, health_t>().term_at(1).singleton().iter(PlayerReviveUpdate);
 				world.system<asteroidComp_t, health_t>().iter(AsteroidDestroyUpdate);
+				world.system<sharedLives_t, playerComp_t, health_t>().term_at(1).singleton().iter(PlayerReviveUpdate);
 			}
 
-			world.system<playerComp_t, integratable_t, transform_t>().iter(PlayerPlayInputUpdate);
+			world.system<playerComp_t, integratable_t, transform_t, health_t>().iter(PlayerPlayInputUpdate);
 			world.system<mapSize_t, transform_t>().term_at(1).singleton().iter(TransformWrap);
 			world.system<playerComp_t, health_t, color_t>().iter(PlayerBlinkUpdate);
 			world.observer<shapeComp_t>().event<collisionEvent_t>().with<playerComp_t>().each(ObservePlayerCollision);
@@ -228,7 +228,7 @@ public:
 		});
 
 		for(auto e : entitiesToEnable)
-			e.enable();
+			game->EnableEntity(e);
 
 		game->GetWorld().get_mut<sharedLives_t>()->lives = initialLives;
 	}

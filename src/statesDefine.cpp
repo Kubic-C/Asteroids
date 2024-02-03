@@ -85,7 +85,7 @@ void IsDead(flecs::iter& iter, health_t* healths) {
     }
 }
 
-void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms) {
+void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms, health_t* healths) {
     float deltaTime = iter.delta_time();
 
     for (auto i : iter) {
@@ -93,7 +93,7 @@ void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratabl
         integratable_t& integratable = integratables[i];
         transform_t& transform = transforms[i];
 
-        player.AddTimer(deltaTime);
+        player.AddTimer(deltaTime, healths[i].IsDestroyed());
 
         sf::Vector2f backwards = (transform.GetPos() - player.GetMouse()).normalized();
         sf::Vector2f left = backwards.perpendicular();
@@ -170,11 +170,12 @@ void PlayerReviveUpdate(flecs::iter& iter, sharedLives_t* lives, playerComp_t* p
                     health.SetDestroyed(false);
                     health.SetHealth(1.0f);
 
+                    printf("Lost a life: %u\n", lives->lives);
                     lives->lives--;
                     lives->dirty = true;
                 }
             } else {
-                iter.entity(i).disable();
+                game->DisableEntity(iter.entity(i));
             }
         } 
     }

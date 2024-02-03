@@ -221,6 +221,14 @@ struct u64_hasher_t {
 struct isNetworked_t {};
 struct networkSystem_t {};
 
+namespace bitsery {
+	template<typename S>
+	void serialize(S& s, std::pair<u32_t, u8_t>& pair) {
+		s.value4b(pair.first);
+		s.value1b(pair.second);
+	}
+}
+
 // Allows a shortend version of an entity ID to be sent over
 // this reduces message size. It removes any extranous data not needed.
 inline u32_t ClearFields(u64_t e) {
@@ -329,6 +337,13 @@ public:
 			}
 		}
 
+		// Enabled or Disabled entity
+
+		message.Serialize(ser, (u32_t)enabledOrDisabledEntities.size());
+		for(u32_t i = 0; i < enabledOrDisabledEntities.size(); i++) {
+			message.Serialize(ser, enabledOrDisabledEntities[i]);
+		}
+
 		// clean up
 		componentUpdates.clear();
 		destroyedEntities.clear();
@@ -367,15 +382,22 @@ public:
 	void QueueComponentDestroyedUpdate(flecs::entity entity, u64_t componentType) {
 		componentDestroyed[entity].push_back(componentType);
 	}
+
+	void QueueEnableOrDisableUpdate(flecs::entity entity, bool enable) {
+		enabledOrDisabledEntities.push_back(std::pair(ClearFields(entity.id()), (u8_t)enable));
+	}
 private:
 	std::unordered_map<u64_t, std::vector<u64_t>> componentUpdates;
 	std::unordered_map<u64_t, std::vector<u64_t>> componentDestroyed;
 	std::vector<uint64_t> destroyedEntities;
+	std::vector<std::pair<u32_t, u8_t>> enabledOrDisabledEntities;
 };
 
 struct worldSnapshotBuilderComp_t {
 	std::shared_ptr<worldSnapshotBuilder_t> builder;
 };
+
+// TOOD, add sync of disabled/enabled entities
 
 class physicsWorldSnapshotBuilder_t {
 public:

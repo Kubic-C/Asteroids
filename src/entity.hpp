@@ -126,10 +126,11 @@ public:
     void ResetLastBlink() { lastBlink = blinkResetTime; }
     void ResetTimeTillRevive() { timeTillRevive = reviveImmunityTime; }
 
-    void AddTimer(float deltaTime) {
-        timeTillRevive -= deltaTime;
+    void AddTimer(float deltaTime, bool isDead) {
         lastBlink -= deltaTime;
         lastFired += deltaTime;
+        if(isDead)
+            timeTillRevive -= deltaTime;
     }
 
     void SetIsFiring(bool fire) { isFiring = fire; }

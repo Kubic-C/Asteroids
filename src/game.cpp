@@ -230,6 +230,17 @@ void global_t::TransitionState(gameStateEnum_t stateEnum) {
 
 }
 
+void global_t::EnableEntity(flecs::entity e) {
+    e.enable();
+    worldSnapshotBuilder->QueueEnableOrDisableUpdate(e, true);
+}
+
+void global_t::DisableEntity(flecs::entity e) {
+    e.disable();
+    worldSnapshotBuilder->QueueEnableOrDisableUpdate(e, false);
+}
+
+
 void ClientOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo) {
     switch (pInfo->m_info.m_eState)
     {
@@ -536,39 +547,6 @@ u64_t FixFields(u32_t id) {
 }
 
 void global_t::DeserializeWorldSnapshot(flecs::world& world, networkEcsContext_t& context, message_t& message, deserializer_t& des) {
-    /**
-        * What is known:
-        * - Size of serialized components is known on both sides of the connection; their >>>SERIALIZED<<< sizes are the same.
-        *  
-        * Below is how entity and their components are serialized in messages.
-        * 
-        * b - bytes
-        * ukn - unknown byte usage
-        * ... - repeat above pattern
-        * 
-        * Byte size | Name
-        * 4b | Entity archetype count
-        *  vvv Archetype table 1 vvv 
-        * 4b | Entity component type count
-        * 4b | Component type 1
-        * 4b | Component type 2
-        * 4b | ... May continue ...
-        * 4b | Entiy count
-        * 8b | Entity id
-        * ukn | Component data 1
-        * ukn | Component data 2
-        * ukn | Component data 3
-        * vvv Archetype table 2 vvv 
-        * 4b | Entity component type count
-        * 4b | Component type 1
-        * 4b | ... May continue ...
-        * 4b | Entiy count
-        * 8b | Entity id
-        * ukn | Component data 1
-        * 8b | Entity id
-        * ukn | Component data 1
-        */
-
     world.enable_range_check(false);
 
     u32_t entityArchetypeCount = 0;
@@ -645,6 +623,19 @@ void global_t::DeserializeWorldSnapshot(flecs::world& world, networkEcsContext_t
 
                 entity.remove(componentType);
             }
+        }
+    }
+
+    u32_t enabledOrDisabledCount = 0;
+    message.Deserialize(des, enabledOrDisabledCount);
+    for(u32_t i = 0; i < enabledOrDisabledCount; i++) {
+        std::pair<u32_t, u8_t> enabledOrDisabledEntity;
+        message.Deserialize(des, enabledOrDisabledEntity);
+
+        if(enabledOrDisabledEntity.second) {
+            world.ensure(FixFields(enabledOrDisabledEntity.first)).enable();
+        } else {
+            world.ensure(FixFields(enabledOrDisabledEntity.first)).disable();
         }
     }
 
