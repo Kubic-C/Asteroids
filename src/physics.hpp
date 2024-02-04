@@ -152,6 +152,8 @@ public:
 	void SetRot(float rot) { MarkLocalDirty(); this->rot = rot; }
 	
 	sf::Vector2f GetPos() const { return pos; }
+	sf::Vector2f GetWeightedPos() const { return pos + GetCentroid();}
+	virtual sf::Vector2f GetCentroid() const { return {0.0f, 0.0f}; }
 	void SetPos(sf::Vector2f pos) { MarkLocalDirty(); this->pos = pos; }
 
 	bool IsNetworkDirty() { return localFlags[NETWORK_DIRTY]; }
@@ -236,6 +238,8 @@ public:
 		FixVertices();
 	}
 
+	virtual sf::Vector2f GetCentroid() const override { return centroid; }
+
 	virtual shapeEnum_t GetType() const { return shapeEnum_t::polygon; }
 
 	float GetRadius() const override { return radius; }
@@ -280,10 +284,6 @@ public:
 
 	u8_t GetVerticeCount() const {
 		return verticesCount;
-	}
-
-	sf::Vector2f GetCentroid() const {
-		return centroid;
 	}
 
 	vertices_t GetWorldVertices() {

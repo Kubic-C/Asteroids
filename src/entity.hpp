@@ -8,7 +8,8 @@ enum inputFlagBits_t : u8_t {
     LEFT = 1 << 2,
     DOWN = 1 << 3,
     READY = 1 << 4,
-    FIRE = 1 << 5
+    FIRE = 1 << 5,
+    PLACE_TURRET = 1 << 6
 };
 
 // is your component networked???
@@ -18,21 +19,27 @@ struct networked_t {
 
 struct transform_t : public networked_t {
 public:
-    sf::Vector2f GetPos() { return pos; }
-    void SetPos(sf::Vector2f pos) { this->pos = pos; dirty = true; }
+    sf::Vector2f GetUnweightedPos() { return pos; }
+    sf::Vector2f GetPos() { return pos + origin; }
+    void SetPos(sf::Vector2f pos) { this->pos = pos - origin; dirty = true; }
 
     float GetRot() { return rot; }
     void SetRot(float rot) { this->rot = rot; dirty = true; }
+
+    sf::Vector2f GetOrigin() { return origin; } 
+    void SetOrigin(sf::Vector2f origin) { this->origin = origin; dirty = true; }
 
     template<typename S>
     void serialize(S& s) {
         s.object(pos);
         s.value4b(rot);
+        s.object(origin);
     }
 
 private:
 	sf::Vector2f pos = {0.0f, 0.0f};
 	float rot = 0.0f;
+    sf::Vector2f origin = {0.0f, 0.0f};
 };
 
 struct health_t : public networked_t {
@@ -114,6 +121,7 @@ public:
     bool IsRightPressed() { return keys & inputFlagBits_t::RIGHT; }
     bool IsReadyPressed() { return keys & inputFlagBits_t::READY; }
     bool IsFirePressed() { return keys & inputFlagBits_t::FIRE; }
+    bool IsTurretPlacePressed() { return keys & inputFlagBits_t::PLACE_TURRET; }
     void SetKeys(u8_t keys) { this->keys = keys; dirty = true; }
     sf::Vector2f GetMouse() { return mouse; }
     void SetMouse(sf::Vector2f mouse) { this->mouse = mouse; dirty = true; }
@@ -121,14 +129,17 @@ public:
     float GetLastFired() { return lastFired; }
     float GetLastBlink() { return lastBlink; }
     float GetTimeTillRevive() { return timeTillRevive; }
+    float GetTurretPlaceCooldown() { return turretCooldown; }
 
     void ResetLastFired() { lastFired = 0.0f; }
     void ResetLastBlink() { lastBlink = blinkResetTime; }
     void ResetTimeTillRevive() { timeTillRevive = reviveImmunityTime; }
+    void ResetTurretPlaceCooldown() { turretCooldown = turretPlaceCooldown; }
 
     void AddTimer(float deltaTime, bool isDead) {
         lastBlink -= deltaTime;
         lastFired += deltaTime;
+        turretCooldown -= deltaTime;
         if(isDead)
             timeTillRevive -= deltaTime;
     }
@@ -154,11 +165,12 @@ private:
 	float timeTillRevive = 5.0f;
 	float lastBlink = 0.0f;
 	float lastFired = 0.0f;
+    float turretCooldown = 0.0f;
 
 };
 
 struct asteroidComp_t : public networked_t {
-	u8_t stage = 1;
+	u8_t stage = initialAsteroidStage;
 
     template<typename S>
     void serialize(S& s) {
@@ -185,6 +197,22 @@ struct sharedLives_t : public networked_t {
     }
 };
 
+struct score_t : public networked_t {
+public:
+    void RemoveScore(i32_t amount) { score -= amount; dirty = true; }
+    void AddScore(i32_t amount) { score += amount; dirty = true; }
+    i32_t GetScore() const { return score; }
+    void ResetScore() { score = 0; dirty = true;}
+
+    template<typename S>
+    void serialize(S& s) {
+        s.value4b(score);
+    }
+
+private:
+    i32_t score = 0;
+};
+
 struct mapSize_t : public networked_t {
 public:
     void SetSize(float width, float height) { this->width = width; this->height = height; dirty = true; }
@@ -205,6 +233,25 @@ private:
 
 };
  
+struct turretComp_t : public networked_t {
+public:
+    void AddTimer(float deltaTime) {
+        lastFired -= deltaTime;
+    }
+
+    float GetLastFired() { return lastFired; }
+    void ResetLastFired() { lastFired = playerFireRate; }
+
+
+    template<typename S>
+    void serialize(S& s) {
+        s.value4b(lastFired);
+    }
+
+private:
+    float lastFired = 0.0f;
+};
+
 struct shapeComp_t : public networked_t {
     u32_t shape = 0;
 
@@ -229,5 +276,9 @@ struct asteroidTimer_t {
 };
 
 struct isHost_t {};
+
+struct timedDelete_t {
+    float timer = 0.0f;
+};
 
 struct deferDelete_t {};

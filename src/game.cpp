@@ -41,38 +41,38 @@ void GameKeyboardUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, gameWindow_
     uint8_t keys = 0;
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
         keys |= inputFlagBits_t::LEFT;
-    }
-    else {
+    } else {
         keys &= ~inputFlagBits_t::LEFT;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
         keys |= inputFlagBits_t::RIGHT;
-    }
-    else {
+    } else {
         keys &= ~inputFlagBits_t::RIGHT;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
         keys |= inputFlagBits_t::UP;
-    }
-    else {
+    } else {
         keys &= ~inputFlagBits_t::UP;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
         keys |= inputFlagBits_t::DOWN;
-    }
-    else {
+    } else {
         keys &= ~inputFlagBits_t::DOWN;
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
         keys |= inputFlagBits_t::READY;
-    }
-    else {
+    } else {
         keys &= ~inputFlagBits_t::READY;
     }
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
+        keys |= inputFlagBits_t::PLACE_TURRET;
+    } else {
+        keys &= ~inputFlagBits_t::PLACE_TURRET;
+    }
+
     if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left)) {
         keys |= inputFlagBits_t::FIRE;
-    }
-    else {
+    } else {
         keys &= ~inputFlagBits_t::FIRE;
     }
 
@@ -80,11 +80,21 @@ void GameKeyboardUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, gameWindow_
     keyboard->mouse = (sf::Vector2f)sf::Mouse::getPosition(*window->window);
 }
 
+void TimedDeleteUpdate(flecs::iter& iter, timedDelete_t* timers) {
+    for(auto i : iter) {
+        timers[i].timer -= iter.delta_time();
+        if(timers[i].timer <= 0.0f) {
+            iter.entity(i).add<deferDelete_t>();
+        }
+    }
+}
+
 inline void ImportSystems(flecs::world& world) {
     // Global systems. 
     world.system<transform_t, integratable_t>().iter(Integrate);
     world.system<gameKeyboard_t, playerComp_t>().term_at(1).singleton().term<hostPlayer_t>().iter(HostPlayerInputUpdate);
     world.system<gameKeyboard_t, gameWindow_t>().term_at(1).singleton().term_at(2).singleton().iter(GameKeyboardUpdate);
+    world.system<timedDelete_t>().iter(TimedDeleteUpdate);
     world.system().term<deferDelete_t>().kind(flecs::PostUpdate).iter(DeferDeleteUpdate);
 }
 
@@ -313,10 +323,12 @@ int global_t::Init() {
         return false;
     }
 
+    bool quickPlay = false;
+
     bool isUserHost = false;
     do {
         std::string in;
-        std::cout << "Are you hosting(y/n): ";
+        std::cout << "Are you hosting(y/n/q): ";
         std::cin >> in;
         if (in.empty() || in.size() > 1) {
             std::cout << "Enter a valid response.\n";
@@ -330,12 +342,25 @@ int global_t::Init() {
             isUserHost = false;
             break;
         }
+        else if (in[0] == 'q') {
+            isUserHost = true;
+            quickPlay = true;
+            break;
+        }
         else {
             std::cout << "Enter a valid response.\n";
             continue;
         }
 
     } while (true);
+
+    std::cout << "No one likes tutorials, but knowing the controls is useful:\n";
+    std::cout << "\t-Press W to move towards your mouse cursor\n";
+    std::cout << "\t-Press S to move away from your mouse cursor\n";
+    std::cout << "\t-Press A to move to the left of your mouse cursor\n";
+    std::cout << "\t-Press D to move to the right of your mouse cursor\n";
+    std::cout << "\t-Left click on the mouse to fire\n";
+    std::cout << "\t-Press H when you have " << turretPrice << " score to place down a turret\n";
 
     // to prevent freezing, we initialize all data after the neccessary terminal input
     // is entered
@@ -404,13 +429,17 @@ int global_t::Init() {
     InitState<gameOver_t>(states, world);
     InitState<unknown_t>(states, world);
     state = states[unknown];
-    TransitionState(gameStateEnum_t::connecting);
-    
+    if(!quickPlay)
+        TransitionState(gameStateEnum_t::connecting);
+    else
+        TransitionState(play);
+
     world.add<isNetworked_t>();
     world.set([&](mapSize_t& size){ size.SetSize(window->getSize()); });
     world.add<sharedLives_t>();
     world.set([&](gameWindow_t& w){ w.window = window; });
     world.add<gameKeyboard_t>();
+    world.add<score_t>();
     
     physicsWorld = std::make_shared<physicsWorld_t>();
     world.set([&](physicsWorldComp_t& world){world.physicsWorld = physicsWorld;});
@@ -474,13 +503,13 @@ void global_t::Update() {
     window->clear();
     state->OnUpdate();
 
+    sf::Color outlineColor = sf::Color(54, 69, 79);
+
     world.each([&](flecs::entity e, shapeComp_t& shape, color_t& color){
         if(!physicsWorld->DoesShapeExist(shape.shape))
             return;
 
         shape_t& physicsShape = physicsWorld->GetShape(shape.shape);
-
-        sf::Color outline = sf::Color(54, 69, 79);
 
         switch(physicsShape.GetType()) {
         case shapeEnum_t::polygon: {
@@ -492,7 +521,7 @@ void global_t::Update() {
                 sfShape.setPoint(i, polygon.GetWorldVertices()[i]);
             }
 
-            sfShape.setOutlineColor(outline);
+            sfShape.setOutlineColor(outlineColor);
             sfShape.setOutlineThickness(-2.0f);
 
             window->draw(sfShape);
@@ -504,7 +533,7 @@ void global_t::Update() {
             sfShape.setFillColor(color.GetColor());
             sfShape.setPosition(circle.GetPos());
 
-            sfShape.setOutlineColor(outline);
+            sfShape.setOutlineColor(outlineColor);
             sfShape.setOutlineThickness(-2.0f);
 
             window->draw(sfShape);
@@ -512,8 +541,41 @@ void global_t::Update() {
         }
     });
 
+    world.each([&](flecs::entity e, turretComp_t& turret, transform_t& transform) {
+        sf::CircleShape base;
+        base.setPosition(transform.GetPos());
+        base.setFillColor(sf::Color::Yellow);
+        base.setRadius(20.0f);
+        base.setOutlineColor(outlineColor);
+        base.setOutlineThickness(-2.0f);
+        base.setOrigin(base.getGeometricCenter());
+
+        sf::RectangleShape rectangle;
+        rectangle.setSize(sf::Vector2f(20.0f, 10.0f));
+        rectangle.setFillColor(sf::Color::Magenta);
+        rectangle.setRotation(sf::radians(transform.GetRot()));
+        rectangle.setPosition(transform.GetPos());
+        rectangle.setOrigin(rectangle.getGeometricCenter());
+        rectangle.setOutlineColor(outlineColor);
+        rectangle.setOutlineThickness(-2.0f);
+
+    #ifndef NDEBUG
+        //sf::RectangleShape outline;
+        //outline.setFillColor(sf::Color::Transparent);
+        //outline.setOutlineColor(sf::Color::Red);
+        //outline.setOutlineThickness(-2.5f);
+        //outline.setPosition(transform.GetPos() - sf::Vector2f(turretRange, turretRange));
+        //outline.setSize(sf::Vector2f(turretRange, turretRange) * 2.0f);
+        //window->draw(outline);
+    #endif
+
+        window->draw(base);
+        window->draw(rectangle);
+    });
+
     u32_t lives = world.get<sharedLives_t>()->lives;
-    sf::Text deltaTimeText(res.font, FormatString("FPS: %4.f|TPS: %2.f|NUPS: %2.f|Lives: %u", stats.fps, stats.tps, stats.nups, lives));
+    i32_t score = world.get<score_t>()->GetScore();
+    sf::Text deltaTimeText(res.font, FormatString("FPS: %4.f|TPS: %2.f|NUPS: %2.f\nLives: %u\nScore:%li", stats.fps, stats.tps, stats.nups, lives, score));
     window->draw(deltaTimeText);
 
     window->display();

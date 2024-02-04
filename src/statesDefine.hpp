@@ -24,7 +24,7 @@ public:
 		text.setPosition(center);
 
 #ifdef NDEBUG
-		//game->PlayMainTrack();
+		game->PlayMainTrack();
 #endif
 	}
 
@@ -135,9 +135,10 @@ void IsDead(flecs::iter& iter, health_t* healths);
 void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms, health_t* healths);
 void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors);
 void PlayerReviveUpdate(flecs::iter& iter, sharedLives_t* lives, playerComp_t* players, health_t* healths);
-void AsteroidDestroyUpdate(flecs::iter& iter, asteroidComp_t*, health_t* healths);
+void AsteroidDestroyUpdate(flecs::iter& iter, asteroidComp_t* asteroids, transform_t* transforms, integratable_t* integratables, health_t* healths);
 void TransformWrap(flecs::iter& iter, mapSize_t* size, transform_t* transforms);
 void AsteroidAddUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorld, mapSize_t* mapSize, asteroidTimer_t* timer);
+void TurretPlayUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorld, transform_t* transforms, turretComp_t* turrets);
 void ObservePlayerCollision(flecs::iter& iter, size_t i, shapeComp_t&);
 void ObserveBulletCollision(flecs::iter& iter, size_t i, shapeComp_t&);
 
@@ -151,12 +152,13 @@ public:
 				world.system().kind(flecs::PostUpdate).iter(IsAllPlayersDead);
 				world.system<health_t>().iter(IsDead);
 				world.system<physicsWorldComp_t, mapSize_t, asteroidTimer_t>().term_at(1).singleton().term_at(2).singleton().term_at(3).singleton().iter(AsteroidAddUpdate);
-				world.system<asteroidComp_t, health_t>().iter(AsteroidDestroyUpdate);
+				world.system<asteroidComp_t, transform_t, integratable_t, health_t>().iter(AsteroidDestroyUpdate);
 				world.system<sharedLives_t, playerComp_t, health_t>().term_at(1).singleton().iter(PlayerReviveUpdate);
+				world.system<physicsWorldComp_t, transform_t, turretComp_t>().term_at(1).singleton().iter(TurretPlayUpdate);
+				world.system<mapSize_t, transform_t>().term_at(1).singleton().iter(TransformWrap);
 			}
 
 			world.system<playerComp_t, integratable_t, transform_t, health_t>().iter(PlayerPlayInputUpdate);
-			world.system<mapSize_t, transform_t>().term_at(1).singleton().iter(TransformWrap);
 			world.system<playerComp_t, health_t, color_t>().iter(PlayerBlinkUpdate);
 			world.observer<shapeComp_t>().event<collisionEvent_t>().with<playerComp_t>().each(ObservePlayerCollision);
 			world.observer<shapeComp_t>().event<collisionEvent_t>().with<bulletComp_t>().each(ObserveBulletCollision);
@@ -202,6 +204,7 @@ public:
 		destroyBullets = game->GetWorld().query_builder<bulletComp_t>().build();
 		resetPlayers = game->GetWorld().query_builder<playerComp_t, integratable_t, health_t, color_t>()
 			.with(flecs::Disabled).optional().build();
+		destroyTurrets = game->GetWorld().query_builder<turretComp_t>().build();
 	}
 
 	virtual void OnTransition() override {
@@ -212,6 +215,9 @@ public:
 			e.add<deferDelete_t>();
 		});
 		destroyBullets.each([](flecs::entity e, bulletComp_t& asteroid) {
+			e.add<deferDelete_t>();
+		});
+		destroyTurrets.each([](flecs::entity e, turretComp_t& turret) {
 			e.add<deferDelete_t>();
 		});
 
@@ -231,6 +237,8 @@ public:
 			game->EnableEntity(e);
 
 		game->GetWorld().get_mut<sharedLives_t>()->lives = initialLives;
+		game->GetWorld().get_mut<score_t>()->ResetScore();
+		game->GetWorld().get_mut<asteroidTimer_t>()->resetTime = timePerAsteroidSpawn;
 	}
 
 	virtual void OnUpdate() override {
@@ -245,6 +253,7 @@ protected:
 	flecs::query<asteroidComp_t> destroyAsteroids;
 	flecs::query<bulletComp_t> destroyBullets;
 	flecs::query<playerComp_t, integratable_t, health_t, color_t> resetPlayers;
+	flecs::query<turretComp_t> destroyTurrets;
 	sf::Text text;
 };
 

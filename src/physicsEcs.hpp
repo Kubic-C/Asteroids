@@ -24,7 +24,7 @@ inline void ShapeSet(flecs::iter& iter, physicsWorldComp_t* physicsWorld, transf
 
         shape_t& shape = physicsWorld->physicsWorld->GetShape(shapeId);
 
-        shape.SetPos(transform.GetPos());
+        shape.SetPos(transform.GetUnweightedPos());
         shape.SetRot(transform.GetRot());
 
         physicsWorld->physicsWorld->InsertShapeIntoTree(shapeId, iter.entity(i));
@@ -102,7 +102,8 @@ inline void TransformSet(flecs::iter& iter, physicsWorldComp_t* physicsWorld, tr
 
         shape_t& shape = physicsWorld->physicsWorld->GetShape(shapeId);
 
-        transform.SetPos(shape.GetPos());
+        transform.SetOrigin(shape.GetCentroid());
+        transform.SetPos(shape.GetWeightedPos());
         transform.SetRot(shape.GetRot());
     }
 }
@@ -123,14 +124,19 @@ inline void OnShapeDestroy(flecs::iter& iter, shapeComp_t* shapes) {
 }
 
 struct physicsModule_t {
+    inline static flecs::entity treeClear;
     inline static flecs::entity prePhysics;
     inline static flecs::entity mainPhysics;
     inline static flecs::entity postPhysics;
 
 	physicsModule_t(flecs::world& world) {
-		prePhysics = world.entity()
+        treeClear = world.entity()
             .add(flecs::Phase)
             .depends_on(flecs::OnUpdate);
+
+		prePhysics = world.entity()
+            .add(flecs::Phase)
+            .depends_on(treeClear);
 	    
         mainPhysics = world.entity()
             .add(flecs::Phase)
@@ -140,9 +146,9 @@ struct physicsModule_t {
             .add(flecs::Phase)
             .depends_on(mainPhysics);
 
+        world.system<physicsWorldComp_t>().term_at(1).singleton().kind(treeClear).iter(TreeClear);
         world.system<physicsWorldComp_t, transform_t, shapeComp_t>().term_at(1).singleton().kind(prePhysics).iter(ShapeSet);
         world.system<physicsWorldComp_t, shapeComp_t>().term_at(1).singleton().kind(mainPhysics).iter(ShapeCollide);
-        world.system<physicsWorldComp_t>().term_at(1).singleton().kind(postPhysics).iter(TreeClear);
         world.system<physicsWorldComp_t, transform_t, shapeComp_t>().term_at(1).singleton().kind(postPhysics).iter(TransformSet);
     }
 };

@@ -61,10 +61,6 @@ public:
 	void EnableEntity(flecs::entity e);
 	void DisableEntity(flecs::entity e);
 
-	struct {
-		flecs::entity player;
-	} prefabs;
-
 public: /* host side */
 	void HostNetworkUpdate(float frameTime) {
 		while (!messageManager.IsIncomingEmpty()) {

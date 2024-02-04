@@ -3,6 +3,7 @@ project("Asteroids" VERSION "0.0.0")
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release") 
 	message("BUILDING FOR RELEASE")
+	# explicitly link to runtime libraries and not debug libraries
 	add_compile_options("/MD")
 	add_link_options("/MD")
 endif()

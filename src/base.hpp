@@ -66,9 +66,17 @@ constexpr float blinkResetTime = 1.0f;
 constexpr float reviveImmunityTime = 5.0f;
 constexpr int initialLives = 3;
 
+constexpr i32_t turretPrice = 100;
+constexpr u32_t maxTurrets = 20;
+constexpr float turretPlaceCooldown = 1.0f;
+constexpr float turretRange = 100.0f;
+
 constexpr float timePerAsteroidSpawn = 2.0f;
 constexpr float timeToRemovePerAsteroidSpawn = 0.01f;
 constexpr u32_t scorePerAsteroid = 10;
+constexpr u32_t initialAsteroidStage = 4;
+constexpr float asteroidScalar = 8.0f;
+constexpr float asteroidDestroySpeedMultiplier = 1.5f;
 
 /* Network related constants */
 constexpr int defaultHostPort = 9999;

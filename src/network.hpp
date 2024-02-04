@@ -517,6 +517,8 @@ inline void ImportNetwork(flecs::world& world, networkEcsContext_t& context, std
 	AddNetworkSyncFor<bulletComp_t>(world, context);
 	AddNetworkSyncFor<mapSize_t>(world, context);
 	AddNetworkSyncFor<shapeComp_t>(world, context);
+	AddNetworkSyncFor<turretComp_t>(world, context);
+	AddNetworkSyncFor<score_t>(world, context);
 }
 
 // *** NON ECS RELATED NETWORK MESSAGES ***
