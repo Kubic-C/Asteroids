@@ -405,7 +405,7 @@ int global_t::Init() {
         additionalInfo += "Client";
     }
 
-    CreateWindow(windowWidth, windowHeight, "Asteroids " + additionalInfo);
+    CreateWindow((u32_t)windowWidth, (u32_t)windowHeight, "Asteroids " + additionalInfo);
 
     // Components must be defined FIRST
 

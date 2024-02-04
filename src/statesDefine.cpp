@@ -226,7 +226,7 @@ void CreateChildAsteroids(flecs::world& world, transform_t& parentTransform, int
                 asteroid.stage = parentStage - 1;
 
                 std::vector<sf::Vector2f> vertices = GenerateRandomConvexShape(8, ((float)asteroid.stage / (float)initialAsteroidStage) * asteroidScalar);
-                polygon.SetVertices(vertices.size(), vertices.data());
+                polygon.SetVertices((u8_t)vertices.size(), vertices.data());
                 polygon.SetPos(transform.GetPos());
             });
     }
@@ -336,7 +336,7 @@ void AsteroidAddUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorld, mapS
                 polygon_t& polygon = physicsWorld->physicsWorld->GetPolygon(shape.shape);
 
                 std::vector<sf::Vector2f> vertices = GenerateRandomConvexShape(8, asteroidScalar);
-                polygon.SetVertices(vertices.size(), vertices.data());
+                polygon.SetVertices((u8_t)vertices.size(), vertices.data());
                 polygon.SetPos(transform.GetPos());
             });
     }

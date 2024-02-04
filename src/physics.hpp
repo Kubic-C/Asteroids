@@ -233,7 +233,7 @@ public:
 	}
 
 	polygon_t(sf::Vector2f pos, float rot, const std::initializer_list<sf::Vector2f>& localVertices)
-		: shape_t(pos, rot), verticesCount(localVertices.size()) {
+		: shape_t(pos, rot), verticesCount((u8_t)localVertices.size()) {
 		memcpy(vertices.data(), localVertices.begin(), verticesCount * sizeof(sf::Vector2f));
 		FixVertices();
 	}
@@ -560,7 +560,7 @@ public:
 		if(range <= list.size())
 			throw std::runtime_error("Attempt to set max range beneath current max range.");
 		
-		u32_t startIndex = list.size();
+		u32_t startIndex = (u32_t)list.size();
 		list.resize(range);
 		for(u32_t i = startIndex; i < list.size(); i++) {
 			list[i].emplace<freeIndex_t>(i + 1, i - 1);
@@ -593,7 +593,7 @@ public:
 			return elementIndex;
 		} else {
 			list.emplace_back().emplace<T>(std::forward<params>(args)...);
-			return list.size() - 1;
+			return (u32_t)list.size() - 1;
 		}
 	} 
 
