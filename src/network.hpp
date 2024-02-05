@@ -482,7 +482,7 @@ void AddNetworkSyncFor(flecs::world& world, networkEcsContext_t& context) {
 	context.RecordDeserialize<T>(world);
 
 	if(world.has<isHost_t>()) {
-		world.system<T, worldSnapshotBuilderComp_t>().term_at(2).singleton().iter(UpdateIfDirty<T>);
+		world.system<T, worldSnapshotBuilderComp_t>().term_at(2).singleton().kind(flecs::PostUpdate).iter(UpdateIfDirty<T>);
 		world.system<T, worldSnapshotBuilderComp_t>().term_at(2).singleton().kind<networkSystem_t>().iter(UpdateWholeSnapshot<T>);
 		world.observer<T, worldSnapshotBuilderComp_t>().term_at(2).singleton().event(flecs::OnRemove).each(UpdateComponentNetworkDestroy<T>); 
 	}
