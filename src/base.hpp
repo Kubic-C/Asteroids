@@ -120,7 +120,7 @@ inline std::string FormatString(const char* format, ...) {
     va_list args;
     va_start(args, format);
     int requiredSize = vsnprintf(nullptr, 0, format, args);
-    str.resize(requiredSize + 1);
+    str.resize(requiredSize);
     vsnprintf(str.data(), str.size() + 1, format, args);
     va_end(args);
 

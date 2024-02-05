@@ -6,13 +6,13 @@ struct {
     int readyCount = 0;
 } internalReadyContext;
 
-void UpdatePlayerReady(flecs::iter& iter, playerComp_t* players, color_t* colors) {
+void UpdatePlayerReady(flecs::iter& iter, playerComp_t* players, color_t* colors, playerColor_t* playerColors) {
     for (auto i : iter) {
         if (players[i].IsReadyPressed() || players[i].IsReady()) {
             if(!players[i].IsReady()) // avoid making player marked 'dirty'
                 players[i].SetIsReady(true);
 
-            colors[i].SetColor(sf::Color::Green);
+            colors[i].SetColor(playerColors[i].GetColor());
             internalReadyContext.readyCount++;
         }
     }
@@ -156,11 +156,12 @@ void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratabl
     }
 }
 
-void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors) {
+void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors, playerColor_t* playerColors) {
     for (auto i : iter) {
         playerComp_t& player = players[i];
         health_t& health = healths[i];
         color_t& color = colors[i];
+        playerColor_t& playerColor = playerColors[i];
 
         if (player.GetLastBlink() <= 0.0f && health.IsDestroyed()) {
             color.SetColor(sf::Color::Blue);
@@ -168,9 +169,8 @@ void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healt
             if(player.GetLastBlink() <= -0.5f) {
                 player.ResetLastBlink();
             }
-        }
-        else if (color.GetColor() != sf::Color::Green) {
-            color.SetColor(sf::Color::Green);
+        } else if (color.GetColor() != playerColor.GetColor()) {
+            color.SetColor(playerColor.GetColor());
         }
     }
 }

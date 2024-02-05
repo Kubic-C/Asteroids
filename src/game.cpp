@@ -327,8 +327,8 @@ bool global_t::TryConnect(std::string ipAddress) {
     if (connection == k_HSteamNetConnection_Invalid) {
         ::exit(EXIT_FAILURE);
     } else {
+        game->AddNewClient(connection);
         game->SetNetworkActive(true);
-        AddNewClient(connection);
         return true;
     }
 }
@@ -364,7 +364,8 @@ void global_t::LoadRestOfState() {
         world.add<sharedLives_t>();
         world.add<score_t>();
 
-        AddPlayerComponents(world.entity()).add<hostPlayer_t>().set([](color_t& color) { color.SetColor(sf::Color::Red); });
+        AddNewClient(hostPlayerID);
+        clients[hostPlayerID].player.add<hostPlayer_t>();
     } else {
         world.set_entity_range(clientEntityStartRange, 0);
         world.enable_range_check(true);
@@ -517,7 +518,7 @@ void global_t::Update() {
     window->display();
     time.fps++;
 
-    if (networkActive) {
+    if (networkActive && clients.size() > 0) {
         if (IsHost()) {
             HostNetworkUpdate(time.frameTime);
         } else {

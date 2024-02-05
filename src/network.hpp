@@ -511,6 +511,7 @@ inline void ImportNetwork(flecs::world& world, networkEcsContext_t& context, std
 	AddNetworkSyncFor<health_t>(world, context);
 	AddNetworkSyncFor<integratable_t>(world, context);
 	AddNetworkSyncFor<color_t>(world, context);
+	AddNetworkSyncFor<playerColor_t>(world, context);
 	AddNetworkSyncFor<playerComp_t>(world, context);
 	AddNetworkSyncFor<asteroidComp_t>(world, context);
 	AddNetworkSyncFor<sharedLives_t>(world, context);
@@ -522,6 +523,26 @@ inline void ImportNetwork(flecs::world& world, networkEcsContext_t& context, std
 }
 
 // *** NON ECS RELATED NETWORK MESSAGES ***
+
+enum class messageHeader_t : u8_t {
+	input,
+	playerInfo,
+	state
+};
+
+template<typename S>
+void serialize(S& s, messageHeader_t& header) {
+	s.value1b(header);
+}
+
+struct playerInfo_t {
+	sf::Color playerColor = sf::Color::Green;
+
+	template<typename S>
+	void serialize(S& s) {
+		s.object(playerColor);
+	}
+};
 
 struct messageInput_t {
 	messageInput_t() : input(0) {}

@@ -72,7 +72,7 @@ public:
 			return;
 		}
 		
-		CreateMainMenu(gui);
+		CreatePlayerInfoMenu(gui);
 
 #ifdef NDEBUG
 		game->PlayMainTrack();
@@ -80,6 +80,23 @@ public:
 	}
 
 	void OnDeTransition() override {
+		if(!game->IsHost()) {
+			messageManager_t& messageManager = game->GetMessageManager();
+
+			message_t message;
+			message.SetConnection(game->GetHostConnection());
+
+			auto ser = message.StartSerialize();
+			message.Serialize(ser, messageHeader_t::playerInfo);
+			message.Serialize(ser, playerInfo);
+			message.EndSerialize(ser);
+
+			messageManager.PushOutgoing(std::move(message));
+		} else {
+			game->GetClient(hostPlayerID).player.set([&](playerColor_t& color){
+				color.SetColor(playerInfo.playerColor);
+			});
+		}
 	}
 
 	void OnUpdate() override {}
@@ -112,6 +129,84 @@ private:
 		game->TransitionState(connecting);
 	}
 public:
+	void CreatePlayerInfoMenu(tgui::BackendGui& gui) {
+		auto horiBarBottom = tgui::HorizontalLayout::create();
+		horiBarBottom->setHeight("25%");
+		horiBarBottom->setPosition("0%", "70%");
+		horiBarBottom->setWidth("100%");
+		gui.add(horiBarBottom);
+
+		auto panel = tgui::Panel::create();
+		panel->getRenderer()->setBackgroundColor(sf::Color::Green);
+		horiBarBottom->add(panel);
+
+		auto continueButton = tgui::Button::create();
+		continueButton->setText("Continue");
+		continueButton->setHeight("20%");
+		continueButton->onPress([&]() {
+			gui.removeAllWidgets();
+			CreateMainMenu(gui);
+			});
+		horiBarBottom->add(continueButton);
+
+		auto horiBarTop = tgui::HorizontalLayout::create();
+		horiBarTop->setHeight("25%");
+		horiBarTop->setPosition("0%", "50%");
+		horiBarTop->setWidth("100%");
+		gui.add(horiBarTop);
+
+		horiBarTop->addSpace(0.05f);
+		auto rSlider = tgui::Slider::create();
+		rSlider->getRenderer()->setTrackColor(sf::Color::Red);
+		rSlider->getRenderer()->setTrackColorHover(sf::Color::Red);
+		rSlider->setMinimum(0);
+		rSlider->setMaximum(255);
+		rSlider->setStep(1);
+		rSlider->setValue(0);
+		rSlider->onValueChange([&](tgui::Panel::Ptr panel, float value) {
+			playerInfo.playerColor.r = value;	
+
+			sf::Color color = panel->getRenderer()->getBackgroundColor();
+			color.r = value;
+			panel->getRenderer()->setBackgroundColor(color);
+		}, panel);
+		horiBarTop->add(rSlider, 0.2f);
+
+		auto gSlider = tgui::Slider::create();
+		gSlider->getRenderer()->setTrackColor(sf::Color::Green);
+		gSlider->getRenderer()->setTrackColorHover(sf::Color::Green);
+		gSlider->setMinimum(0);
+		gSlider->setMaximum(255);
+		gSlider->setStep(1);
+		gSlider->setValue(255);
+		gSlider->onValueChange([&](tgui::Panel::Ptr panel, float value) {
+			playerInfo.playerColor.g = value;
+
+			sf::Color color = panel->getRenderer()->getBackgroundColor();
+			color.g = value;
+			panel->getRenderer()->setBackgroundColor(color);
+		}, panel);
+		horiBarTop->add(gSlider, 0.2f);
+
+		auto bSlider = tgui::Slider::create();
+		bSlider->getRenderer()->setTrackColor(sf::Color::Blue);
+		bSlider->getRenderer()->setTrackColorHover(sf::Color::Blue);
+		bSlider->setMinimum(0);
+		bSlider->setMaximum(255);
+		bSlider->setStep(1);
+		bSlider->setValue(0);
+		bSlider->onValueChange([&](tgui::Panel::Ptr panel, float value) {
+			playerInfo.playerColor.b = value;
+			
+			sf::Color color = panel->getRenderer()->getBackgroundColor();
+			color.b = value;
+			panel->getRenderer()->setBackgroundColor(color);
+		}, panel);
+		horiBarTop->add(bSlider, 0.2f);
+		horiBarTop->addSpace(0.05f);
+
+	}
+
 	void CreateMainMenu(tgui::BackendGui& gui) {
 		gui.removeAllWidgets();
 		gui.setTextSize(32);
@@ -172,6 +267,9 @@ public:
 		connectButton->onPress(OnConnectClick, ipAddress);
 		gui.add(connectButton);
 	}
+
+private:
+	playerInfo_t playerInfo;
 };
 
 class connecting_t : public gameState_t {
@@ -226,7 +324,7 @@ public:
 	virtual void OnTick() override {
 		timeLeft -= game->GetDeltaTime();
 		if (timeLeft <= 0.0f) {
-			game->RemoveClient(game->GetClientConnection());
+			game->RemoveClient(game->GetHostConnection());
 			timeLeft = 1.0f;
 			game->TransitionState(initialGame);
 		}
@@ -262,7 +360,7 @@ public:
 private:
 };
 
-void UpdatePlayerReady(flecs::iter& iter, playerComp_t* players, color_t* colors);
+void UpdatePlayerReady(flecs::iter& iter, playerComp_t* players, color_t* colors, playerColor_t* playerColors);
 void IsAllPlayersReady(flecs::iter& iter);
 void OrientPlayers(flecs::iter& iter, transform_t* transforms);
 
@@ -272,7 +370,7 @@ public:
 	public:
 		module_t(flecs::world& world) {
 			if(world.has<isHost_t>()) {
-				world.system<playerComp_t, color_t>().kind(flecs::OnUpdate).iter(UpdatePlayerReady);
+				world.system<playerComp_t, color_t, playerColor_t>().kind(flecs::OnUpdate).iter(UpdatePlayerReady);
 				world.system().kind(flecs::PostUpdate).iter(IsAllPlayersReady);
 				world.system<transform_t>().with<playerComp_t>().iter(OrientPlayers);
 			}
@@ -304,7 +402,7 @@ void UpdatePlayerDead(flecs::iter& iter, health_t* health);
 void IsAllPlayersDead(flecs::iter& iter);
 void IsDead(flecs::iter& iter, health_t* healths);
 void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms, health_t* healths);
-void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors);
+void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors, playerColor_t* playerColors);
 void PlayerReviveUpdate(flecs::iter& iter, sharedLives_t* lives, playerComp_t* players, health_t* healths);
 void AsteroidDestroyUpdate(flecs::iter& iter, asteroidComp_t* asteroids, transform_t* transforms, integratable_t* integratables, health_t* healths);
 void TransformWrap(flecs::iter& iter, mapSize_t* size, transform_t* transforms);
@@ -330,7 +428,7 @@ public:
 			}
 
 			world.system<playerComp_t, integratable_t, transform_t, health_t>().iter(PlayerPlayInputUpdate);
-			world.system<playerComp_t, health_t, color_t>().iter(PlayerBlinkUpdate);
+			world.system<playerComp_t, health_t, color_t, playerColor_t>().iter(PlayerBlinkUpdate);
 			world.observer<shapeComp_t>().event<collisionEvent_t>().with<playerComp_t>().each(ObservePlayerCollision);
 			world.observer<shapeComp_t>().event<collisionEvent_t>().with<bulletComp_t>().each(ObserveBulletCollision);
 		}
@@ -338,8 +436,20 @@ public:
 
 	play_t() {}
 
-	virtual void OnUpdate() override {
+	void OnTransition() override {
+		CreateStats(game->GetGUI());
 	}
+
+	void OnDeTransition() override {
+		game->GetGUI().removeAllWidgets();
+	}
+
+	virtual void OnUpdate() override {
+		i32_t score = game->GetWorld().get<score_t>()->GetScore();
+		u32_t lives = game->GetWorld().get<sharedLives_t>()->lives;
+		text->setText(FormatString("Lives: %li\nScore:%u", lives, score));
+	}
+
 	virtual void OnTick() override {
 	}
 
@@ -351,6 +461,15 @@ public:
 	int GetDeadCount() { return deadCount; }
 
 private:
+	void CreateStats(tgui::BackendGui& gui) {
+		game->GetGUI().removeAllWidgets();
+		text = tgui::Label::create();
+		text->getRenderer()->setTextColor(sf::Color::White);
+		gui.add(text);
+	}
+
+private:
+	tgui::Label::Ptr text;
 	int deadCount = 0;
 };
 
@@ -361,7 +480,7 @@ public:
 		module_t(flecs::world& world) {
 			// re-using systems from the start module
 			if (world.has<isHost_t>()) {
-				world.system<playerComp_t, color_t>().kind(flecs::OnUpdate).iter(UpdatePlayerReady);
+				world.system<playerComp_t, color_t, playerColor_t>().kind(flecs::OnUpdate).iter(UpdatePlayerReady);
 				world.system().kind(flecs::PostUpdate).iter(IsAllPlayersReady);
 				world.system<transform_t>().with<playerComp_t>().iter(OrientPlayers);
 			}

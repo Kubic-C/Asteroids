@@ -111,6 +111,20 @@ private:
 	sf::Color color;
 };
 
+struct playerColor_t : public networked_t {
+public:
+    void SetColor(sf::Color color) { this->color = color; dirty = true; }
+    sf::Color GetColor() { return color; }
+
+    template<typename S>
+    void serialize(S& s) {
+        s.object(color);
+    }
+
+private:
+    sf::Color color;
+};
+
 struct hostPlayer_t {};
 
 struct playerComp_t : public networked_t {

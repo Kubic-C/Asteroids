@@ -15,16 +15,6 @@ inline float RandomFloat() {
 	return randFloat;
 }
 
-enum class messageHeader_t: u8_t {
-	input,
-	state
-};
-
-template<typename S>
-void serialize(S& s, messageHeader_t header) {
-	s.value1b(header);
-}
-
 class global_t;
 inline global_t* game = nullptr;
 
@@ -41,7 +31,6 @@ public:
 		state = nullptr;
 
 		listen = k_HSteamListenSocket_Invalid;
-		connection = k_HSteamNetConnection_Invalid;
 		input = 0;
 
 		sockets = nullptr;
@@ -67,19 +56,35 @@ public: /* host side */
 	void HostNetworkUpdate(float frameTime) {
 		while (!messageManager.IsIncomingEmpty()) {
 			message_t message = messageManager.PopIncoming();
-			messageInput_t input;
+			messageHeader_t header;
 
 			auto des = message.StartDeserialize();
-			message.Deserialize(des, input);
+			message.Deserialize(des, header);
+			switch(header) {
+			case messageHeader_t::input: {
+				messageInput_t input;
+				message.Deserialize(des, input);
+				clients[message.GetConnection()].player.set([&](playerComp_t& comp){
+					comp.SetMouse(input.mouse);
+					comp.SetKeys(input.input);
+				});
+			} break;
+			case messageHeader_t::playerInfo: {
+				playerInfo_t playerInfo;
+				message.Deserialize(des, playerInfo);
+				clients[message.GetConnection()].player.set([&](playerColor_t& color) {
+					color.SetColor(playerInfo.playerColor);
+					});
+			} break;
+			default:
+				break;
+			}
+
 			if (!message.EndDeserialization(des)) {
 				std::cout << "Error occurred when deserializing\n";
 				continue;
 			}
 
-			clients[message.GetConnection()].player.set([&](playerComp_t& comp){
-					comp.SetMouse(input.mouse);
-					comp.SetKeys(input.input);
-				});
 		}
 
 		network.lastUpdateSent += frameTime;
@@ -90,6 +95,7 @@ public: /* host side */
 			message.SetFlags(SEND_ALL);
 
 			auto ser = message.StartSerialize();
+			message.Serialize(ser, messageHeader_t::state);
 			message.Serialize(ser, state->Enum());
 			worldSnapshotBuilder->BuildMessage(world, message, ser, context);
 			physicsWorldSnapshotBuilder->BuildMessage(*physicsWorld, message, ser);
@@ -108,6 +114,7 @@ public: /* host side */
 			.add<health_t>()
 			.add<integratable_t>()
 			.add<color_t>()
+			.add<playerColor_t>()
 			.add<shapeComp_t>()
 			.set([&](color_t& color) { color.SetColor(sf::Color::Red); })
 			.set([](transform_t& transform) { transform.SetPos({ 300, 200 }); })
@@ -120,7 +127,9 @@ public: /* host side */
 
 	void AddNewClient(HSteamNetConnection connection) {
 		clients[connection] = {};
-		messageManager.AddConnection(connection);
+
+		if(connection != hostPlayerID)
+			messageManager.AddConnection(connection);
 
 		if(IsHost()) {
 			clients[connection].player = AddPlayerComponents(world.entity());
@@ -154,6 +163,7 @@ public: /* host side */
 		message.SetFlags(SEND_ALL);
 
 		auto ser = message.StartSerialize();
+		message.Serialize(ser, messageHeader_t::state);
 		message.Serialize(ser, state->Enum());
 		worldSnapshotBuilder->BuildMessage(world, message, ser, context);
 		physicsWorldSnapshotBuilder->BuildMessage(*physicsWorld, message, ser, true);
@@ -171,20 +181,28 @@ public: /* client side */
 	void ClientNetworkUpdate(float frameTime) {
 		while (!messageManager.IsIncomingEmpty()) {
 			message_t message = messageManager.PopIncoming();
-			gameStateEnum_t stateEnum = gameStateEnum_t::unknown;
+			messageHeader_t header;
 
 			auto des = message.StartDeserialize();
+			message.Deserialize(des, header);
+			switch(header) {
+			case messageHeader_t::state: {
+				gameStateEnum_t stateEnum = gameStateEnum_t::unknown;
+				message.Deserialize(des, stateEnum);
+				DeserializeWorldSnapshot(world, context, message, des);
+				DeserializePhysicsSnapshot(*physicsWorld, message, des);
 
-			message.Deserialize(des, stateEnum);
-			DeserializeWorldSnapshot(world, context, message, des);
-			DeserializePhysicsSnapshot(*physicsWorld, message, des);
+				if (stateEnum != state->Enum()) {
+					TransitionState(stateEnum);
+				}
+			} break;
+			default:
+				::exit(EXIT_FAILURE);
+				break;
+			}
 
 			if(!message.EndDeserialization(des)) {
 				std::cout << "failed to end deserialization\n";
-			}
-
-			if (stateEnum != state->Enum()) {
-				TransitionState(stateEnum);
 			}
 		}
 
@@ -196,7 +214,9 @@ public: /* client side */
 
 			message_t message;
 			message.SetConnection(GetHostConnection());
+
 			auto ser = message.StartSerialize();
+			message.Serialize(ser, messageHeader_t::input);
 			message.Serialize(ser, messageInput_t(keyboard->keys, keyboard->mouse));
 			message.EndSerialize(ser);
 
@@ -283,10 +303,6 @@ public: /* mmm OOP boiler plate */
 		return listen != k_HSteamListenSocket_Invalid;
 	}
 
-	HSteamNetConnection GetClientConnection() {
-		return connection;
-	}
-
 	bool ShouldAppClose() {
 		return !window->isOpen() || exit;
 	}
@@ -297,6 +313,14 @@ public: /* mmm OOP boiler plate */
 
 	float GetFrameTime() {
 		return time.frameTime;
+	}
+
+	messageManager_t& GetMessageManager() {
+		return messageManager;
+	}
+
+	client_t& GetClient(HSteamNetConnection connection) {
+		return clients[connection];
 	}
 
 public:
@@ -414,6 +438,5 @@ private:
 
 	bool networkActive = false;
 	HSteamListenSocket listen;
-	HSteamNetConnection connection;
 	uint8_t input;
 };
