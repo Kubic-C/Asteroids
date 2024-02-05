@@ -2,7 +2,8 @@
 #include "base.hpp"
 
 enum gameStateEnum_t : u8_t {
-	connecting = 0,
+	initialGame = 0,
+	connecting,
 	connectionFailed,
 	connected,
 	start,

@@ -62,6 +62,8 @@ public:
 	void DisableEntity(flecs::entity e);
 
 public: /* host side */
+	void StartHosting();
+
 	void HostNetworkUpdate(float frameTime) {
 		while (!messageManager.IsIncomingEmpty()) {
 			message_t message = messageManager.PopIncoming();
@@ -128,7 +130,8 @@ public: /* host side */
 	}
 
 	void RemoveClient(HSteamNetConnection connection) {
-		clients[connection].player.destruct();
+		if(clients[connection].player.is_alive())
+			clients[connection].player.destruct();
 		clients.erase(connection);
 	}
 	
@@ -163,6 +166,8 @@ public: /* host side */
 	}
 
 public: /* client side */
+	bool TryConnect(std::string ipAddress);
+
 	void ClientNetworkUpdate(float frameTime) {
 		while (!messageManager.IsIncomingEmpty()) {
 			message_t message = messageManager.PopIncoming();
@@ -213,6 +218,10 @@ public: /* client side */
 	}
 
 public: /* mmm OOP boiler plate */
+	tgui::Gui& GetGUI() {
+		return *gui;
+	}
+
 	flecs::world& GetWorld() {
 		return world;
 	}
@@ -249,6 +258,11 @@ public: /* mmm OOP boiler plate */
 		return *state;
 	}
 
+	template<typename T>
+	T& GetCastState() {
+		return dynamic_cast<T&>(*state);
+	}
+
 	bool IsHost() {
 		return IsListenSocketValid();
 	}
@@ -257,8 +271,20 @@ public: /* mmm OOP boiler plate */
 		listen = socket;
 	}
 
+	void SetNetworkActive(bool active) {
+		networkActive = active;
+	}
+
+	bool IsNetworkActive() {
+		return networkActive;
+	}
+
 	bool IsListenSocketValid() {
 		return listen != k_HSteamListenSocket_Invalid;
+	}
+
+	HSteamNetConnection GetClientConnection() {
+		return connection;
 	}
 
 	bool ShouldAppClose() {
@@ -277,21 +303,24 @@ public:
 	ISteamNetworkingSockets* sockets;
 	ISteamNetworkingUtils* utils;
 
+	// When whether we are a client or host is known, call this function
+	void LoadRestOfState();
+
 protected: /* HELPER FUNCTIONS FOR INIT */
 	bool LoadResources() {
-		if (!res.music.openFromFile("./arcadeMusic.mp3")) {
+		if (!res.music.openFromFile("./res/arcadeMusic.mp3")) {
 			return false;
 		}
 
 		res.music.setLoop(true);
 		std::cout << "Loaded Music\n";
 
-		if (!res.destroySound.loadFromFile("./destroySound.mp3")) {
+		if (!res.destroySound.loadFromFile("./res/destroySound.mp3")) {
 			return false;
 		}
 		destroyPlayer.setBuffer(res.destroySound);
 
-		if (!res.getNoobSound.loadFromFile("./getNoob.mp3")) {
+		if (!res.getNoobSound.loadFromFile("./res/getNoob.mp3")) {
 			return false;
 		}
 		getNoobPlayer.setBuffer(res.getNoobSound);
@@ -299,7 +328,7 @@ protected: /* HELPER FUNCTIONS FOR INIT */
 
 		std::cout << "Loaded Sounds\n";
 
-		if (!res.font.loadFromFile("./times.ttf")) {
+		if (!res.font.loadFromFile("./res/times.ttf")) {
 			return false;
 		}
 
@@ -324,6 +353,8 @@ protected: /* HELPER FUNCTIONS FOR INIT */
 		window = std::make_shared<sf::RenderWindow>();
 		window->create(sf::VideoMode({w, h}), title, sf::Style::Titlebar | sf::Style::Close);
 		window->setFramerateLimit(0); // When in host mode, frameratelimit can actually slow down the program thus affecting all clients
+	
+		gui = std::make_shared<tgui::Gui>(*window);
 	}
 
 protected:
@@ -371,6 +402,7 @@ private:
 		float nups = 0.0f;
 	} stats;
 
+	std::shared_ptr<tgui::Gui> gui;
 	std::shared_ptr<sf::RenderWindow> window;
 	sf::Sound destroyPlayer;
 	sf::Sound getNoobPlayer;
@@ -380,6 +412,7 @@ private:
 	std::shared_ptr<gameState_t> state;
 	messageManager_t messageManager;
 
+	bool networkActive = false;
 	HSteamListenSocket listen;
 	HSteamNetConnection connection;
 	uint8_t input;

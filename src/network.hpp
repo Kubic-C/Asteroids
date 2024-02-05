@@ -89,7 +89,6 @@ protected:
 		EResult result = sockets->SendMessageToConnection(connection, payload, size, k_nSteamNetworkingSend_Unreliable, nullptr);
 		if (result != k_EResultOK) {
 			std::cout << "Failed to send:" << result << '\n';
-			exit(EXIT_FAILURE);
 		}
 	}
 
@@ -115,8 +114,7 @@ public:
 
 					Send(sockets, pair.first, message.Data(), message.Size());
 				}
-			}
-			else {
+			} else {
 				Send(sockets, message.GetConnection(), message.Data(), message.Size());
 			}
 
@@ -477,6 +475,8 @@ inline void UpdateComponentNetworkDestroy(flecs::iter& iter, size_t i, T& compon
 template<typename T>
 void AddNetworkSyncFor(flecs::world& world, networkEcsContext_t& context) {
     world.component<T>().is_a<networked_t>();
+
+	std::cout << typeid(T).name() << " " << world.component<T>().id() << '\n'; 
 
 	context.RecordSerialize<T>(world);
 	context.RecordDeserialize<T>(world);

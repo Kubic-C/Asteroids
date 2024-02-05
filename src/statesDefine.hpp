@@ -1,6 +1,179 @@
 #pragma once
 #include "game.hpp"
 
+/*
+if (isUserHost) {
+		SteamNetworkingIPAddr listenAddr;
+		listenAddr.SetIPv4(0, defaultHostPort);
+		SteamNetworkingConfigValue_t opt;
+		opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ServerOnSteamNetConnectionStatusChanged);
+		SetListen(sockets->CreateListenSocketIP(listenAddr, 1, &opt));
+	} else {
+		SteamNetworkingIPAddr connect_addr;
+		SteamNetworkingConfigValue_t opt;
+		opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ClientOnSteamNetConnectionStatusChanged);
+
+		do {
+			std::string ipv4;
+			std::cout << "What IP Address would you like to connect to?: ";
+			std::cin >> ipv4;
+
+			connect_addr.ParseString(ipv4.c_str());
+			connect_addr.m_port = defaultHostPort;
+
+			std::cout << "Attempting to connect. This may take some time.\n";
+			HSteamNetConnection connection = sockets->ConnectByIPAddress(connect_addr, 1, &opt);
+			if (connection == k_HSteamNetConnection_Invalid) {
+				continue;
+			} else {
+				AddNewClient(connection);
+				break;
+			}
+		} while (true);
+	}
+*/
+
+/*
+	if(!isUserHost){
+		world.set_entity_range(clientEntityStartRange, 0);
+		world.enable_range_check(true);
+	} else {
+		// Initial game stuff
+		AddPlayerComponents(world.entity()).add<hostPlayer_t>().set([](color_t& color){ color.SetColor(sf::Color::Red); });
+
+		world.add<asteroidTimer_t>();
+	}
+*/
+
+// Get all necessary information such as:
+// - Are we hosting or playing solo
+// - If not what IP are we connecting to
+class initialGame_t : public gameState_t {
+public:
+	// Hosting:
+	//	- Remember to add isHost_t to flecs world
+	//  - Game needs to be marked as host as well
+	// Quickplay:
+	//  - Same as hosting but we transition straight to the play_t state
+	// Client:
+	//	- Connect to the given IP
+
+	class module_t {
+	public:
+		module_t(flecs::world& world) {}
+	};
+
+	void OnTransition() override {
+		tgui::Gui& gui = game->GetGUI();
+
+		if(game->IsNetworkActive() && !game->IsHost()) {
+			game->SetNetworkActive(false);
+			CreateClientMenu(gui);
+			return;
+		}
+		
+		CreateMainMenu(gui);
+
+#ifdef NDEBUG
+		game->PlayMainTrack();
+#endif
+	}
+
+	void OnDeTransition() override {
+	}
+
+	void OnUpdate() override {}
+	void OnTick() override {}
+
+	gameStateEnum_t Enum() { return initialGame; }
+private:
+	static void OnHostButtonClick() {
+		game->StartHosting();
+		game->LoadRestOfState();
+		game->GetGUI().removeAllWidgets();
+		game->TransitionState(connecting);
+	}
+
+	static void OnClientButtonClick() {
+		game->LoadRestOfState();
+		game->GetCastState<initialGame_t>().CreateClientMenu(game->GetGUI());
+	}
+
+	static void OnQuickplayClick() {
+		game->StartHosting();
+		game->LoadRestOfState();
+		game->GetGUI().removeAllWidgets();
+		game->TransitionState(start);
+	}
+
+	static void OnConnectClick(tgui::EditBox::Ptr editBox) {
+		game->TryConnect((std::string)editBox->getText());
+		game->GetGUI().removeAllWidgets();
+		game->TransitionState(connecting);
+	}
+public:
+	void CreateMainMenu(tgui::BackendGui& gui) {
+		gui.removeAllWidgets();
+		gui.setTextSize(32);
+
+		auto vertBar = tgui::VerticalLayout::create();
+		vertBar->setHeight("50%");
+		vertBar->setPosition("50%", "50%");
+		vertBar->setOrigin(0.5f, 0.5f);
+		gui.add(vertBar);
+
+		auto label = tgui::Label::create("ECS Asteroids by Kubic0x43");
+		label->getRenderer()->setTextColor(sf::Color::White);
+		label->setPosition("50%f", 0.0f);
+		label->setWidth("100%");
+		label->setOrigin(-0.1f, 0.0f);
+		vertBar->add(label, 0.2);
+
+		auto horiBar = tgui::HorizontalLayout::create();
+		horiBar->setHeight("50%");
+		vertBar->add(horiBar, 0.1);
+
+		float spacing = 0.05f;
+		horiBar->addSpace(spacing);
+		auto hostButton = tgui::Button::create("Host");
+		horiBar->setTextSize(24);
+		hostButton->onPress(&OnHostButtonClick);
+		horiBar->add(hostButton, 0.2);
+		horiBar->addSpace(spacing);
+
+		auto clientButton = tgui::Button::copy(hostButton);
+		clientButton->setText("Client");
+		clientButton->onPress(&OnClientButtonClick);
+		horiBar->add(clientButton, 0.2);
+		horiBar->addSpace(spacing);
+
+		auto quickplayButton = tgui::Button::copy(hostButton);
+		quickplayButton->setText("Quickplay");
+		quickplayButton->onPress(&OnQuickplayClick);
+		horiBar->add(quickplayButton, 0.2);
+		horiBar->addSpace(spacing);
+	}
+
+	void CreateClientMenu(tgui::BackendGui& gui) {
+		gui.removeAllWidgets();
+
+		auto ipAddress = tgui::EditBox::create();
+		ipAddress->setSize("50%", "10%");
+		ipAddress->setPosition("50%", "50%");
+		ipAddress->setOrigin(0.5f, 0.5f);
+		ipAddress->setDefaultText("Enter IP Adress");
+		gui.add(ipAddress);
+
+		auto connectButton = tgui::Button::create();
+		connectButton->setSize("50%", "10%");
+		connectButton->setPosition("50%", "60%");
+		connectButton->setOrigin(0.5f, 0.5f);
+		connectButton->setText("Connect");
+		connectButton->onPress(OnConnectClick, ipAddress);
+		gui.add(connectButton);
+	}
+};
+
 class connecting_t : public gameState_t {
 public:
 	class module_t {
@@ -22,10 +195,6 @@ public:
 	virtual void OnTransition() override {
 		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
 		text.setPosition(center);
-
-#ifdef NDEBUG
-		game->PlayMainTrack();
-#endif
 	}
 
 	virtual void OnUpdate() override {
@@ -48,7 +217,7 @@ public:
 	};
 
 	connectionFailed_t()
-		: timeLeft(5.0f), text(game->GetFont(), "Connection Failed!") {}
+		: timeLeft(1.0f), text(game->GetFont(), "Connection Failed!") {}
 
 	virtual void OnUpdate() override {
 		game->GetWindow().draw(text);
@@ -57,7 +226,9 @@ public:
 	virtual void OnTick() override {
 		timeLeft -= game->GetDeltaTime();
 		if (timeLeft <= 0.0f) {
-			game->MarkExit();
+			game->RemoveClient(game->GetClientConnection());
+			timeLeft = 1.0f;
+			game->TransitionState(initialGame);
 		}
 	}
 
@@ -211,6 +382,7 @@ public:
 		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
 		text.setPosition(center);
 
+		game->GetWorld().defer_begin();
 		destroyAsteroids.each([](flecs::entity e, asteroidComp_t& asteroid) {
 			e.add<deferDelete_t>();
 		});
@@ -232,13 +404,16 @@ public:
 			if(!e.enabled())
 				entitiesToEnable.push_back(e);
 		});
+		game->GetWorld().defer_end();
 
 		for(auto e : entitiesToEnable)
 			game->EnableEntity(e);
 
 		game->GetWorld().get_mut<sharedLives_t>()->lives = initialLives;
 		game->GetWorld().get_mut<score_t>()->ResetScore();
-		game->GetWorld().get_mut<asteroidTimer_t>()->resetTime = timePerAsteroidSpawn;
+
+		if(game->GetWorld().has<isHost_t>())
+			game->GetWorld().get_mut<asteroidTimer_t>()->resetTime = timePerAsteroidSpawn;
 	}
 
 	virtual void OnUpdate() override {

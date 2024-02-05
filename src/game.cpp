@@ -39,32 +39,32 @@ void GameKeyboardUpdate(flecs::iter& iter, gameKeyboard_t* keyboard, gameWindow_
     }
 
     uint8_t keys = 0;
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) {
         keys |= inputFlagBits_t::LEFT;
     } else {
         keys &= ~inputFlagBits_t::LEFT;
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) {
         keys |= inputFlagBits_t::RIGHT;
     } else {
         keys &= ~inputFlagBits_t::RIGHT;
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W)) {
         keys |= inputFlagBits_t::UP;
     } else {
         keys &= ~inputFlagBits_t::UP;
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S)) {
         keys |= inputFlagBits_t::DOWN;
     } else {
         keys &= ~inputFlagBits_t::DOWN;
     }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::R)) {
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::R)) {
         keys |= inputFlagBits_t::READY;
     } else {
         keys &= ~inputFlagBits_t::READY;
     }
-    if(sf::Keyboard::isKeyPressed(sf::Keyboard::H)) {
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::H)) {
         keys |= inputFlagBits_t::PLACE_TURRET;
     } else {
         keys &= ~inputFlagBits_t::PLACE_TURRET;
@@ -250,7 +250,6 @@ void global_t::DisableEntity(flecs::entity e) {
     worldSnapshotBuilder->QueueEnableOrDisableUpdate(e, false);
 }
 
-
 void ClientOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCallback_t* pInfo) {
     switch (pInfo->m_info.m_eState)
     {
@@ -306,6 +305,34 @@ void ServerOnSteamNetConnectionStatusChanged(SteamNetConnectionStatusChangedCall
     }
 }
 
+void global_t::StartHosting() {
+    SteamNetworkingIPAddr listenAddr;
+    listenAddr.SetIPv4(0, defaultHostPort);
+    SteamNetworkingConfigValue_t opt;
+    opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ServerOnSteamNetConnectionStatusChanged);
+    SetListen(sockets->CreateListenSocketIP(listenAddr, 1, &opt));
+
+    game->SetNetworkActive(true);
+}
+
+bool global_t::TryConnect(std::string ipAddress) {
+    SteamNetworkingIPAddr connect_addr;
+    SteamNetworkingConfigValue_t opt;
+    opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ClientOnSteamNetConnectionStatusChanged);
+
+    connect_addr.ParseString(ipAddress.c_str());
+    connect_addr.m_port = defaultHostPort;
+
+    HSteamNetConnection connection = sockets->ConnectByIPAddress(connect_addr, 1, &opt);
+    if (connection == k_HSteamNetConnection_Invalid) {
+        ::exit(EXIT_FAILURE);
+    } else {
+        game->SetNetworkActive(true);
+        AddNewClient(connection);
+        return true;
+    }
+}
+
 template<typename T>
 void InitState(std::array<std::shared_ptr<gameState_t>, stateCount>& states, flecs::world& world) {
 
@@ -317,154 +344,61 @@ void InitState(std::array<std::shared_ptr<gameState_t>, stateCount>& states, fle
     states[stateEnum]->moduleEntity.disable();
 }
 
-int global_t::Init() {
-    if (!LoadResources()) {
-        std::cout << "Failed to load resources.\n";
-        return false;
-    }
-
-    bool quickPlay = false;
-
-    bool isUserHost = false;
-    do {
-        std::string in;
-        std::cout << "Are you hosting(y/n/q): ";
-        std::cin >> in;
-        if (in.empty() || in.size() > 1) {
-            std::cout << "Enter a valid response.\n";
-            continue;
-        }
-        if (in[0] == 'y') {
-            isUserHost = true;
-            break;
-        }
-        else if (in[0] == 'n') {
-            isUserHost = false;
-            break;
-        }
-        else if (in[0] == 'q') {
-            isUserHost = true;
-            quickPlay = true;
-            break;
-        }
-        else {
-            std::cout << "Enter a valid response.\n";
-            continue;
-        }
-
-    } while (true);
-
-    std::cout << "No one likes tutorials, but knowing the controls is useful:\n";
-    std::cout << "\t-Press W to move towards your mouse cursor\n";
-    std::cout << "\t-Press S to move away from your mouse cursor\n";
-    std::cout << "\t-Press A to move to the left of your mouse cursor\n";
-    std::cout << "\t-Press D to move to the right of your mouse cursor\n";
-    std::cout << "\t-Left click on the mouse to fire\n";
-    std::cout << "\t-Press H when you have " << turretPrice << " score to place down a turret\n";
-
-    // to prevent freezing, we initialize all data after the neccessary terminal input
-    // is entered
-
-    NetworkInit();
-
-    if (isUserHost) {
-        SteamNetworkingIPAddr listenAddr;
-        listenAddr.SetIPv4(0, defaultHostPort);
-        SteamNetworkingConfigValue_t opt;
-        opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ServerOnSteamNetConnectionStatusChanged);
-        SetListen(sockets->CreateListenSocketIP(listenAddr, 1, &opt));
-    } else {
-        SteamNetworkingIPAddr connect_addr;
-        SteamNetworkingConfigValue_t opt;
-        opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ClientOnSteamNetConnectionStatusChanged);
-
-        do {
-            std::string ipv4;
-            std::cout << "What IP Address would you like to connect to?: ";
-            std::cin >> ipv4;
-
-            connect_addr.ParseString(ipv4.c_str());
-            connect_addr.m_port = defaultHostPort;
-
-            std::cout << "Attempting to connect. This may take some time.\n";
-            HSteamNetConnection connection = sockets->ConnectByIPAddress(connect_addr, 1, &opt);
-            if (connection == k_HSteamNetConnection_Invalid) {
-                continue;
-            } else {
-                AddNewClient(connection);
-                break;
-            }
-        } while (true);
-    }
-
-    std::string additionalInfo = "";
-    if (isUserHost) {
-        additionalInfo += "Host";
-    }
-    else {
-        additionalInfo += "Client";
-    }
-
-    CreateWindow((u32_t)windowWidth, (u32_t)windowHeight, "Asteroids " + additionalInfo);
-
-    // Components must be defined FIRST
-
-    if (isUserHost)
+void global_t::LoadRestOfState() {
+    if(IsHost()) {
         world.add<isHost_t>();
-    else
-        world.component<isHost_t>();
+    }
 
-    world.import<physicsModule_t>();
-    physicsWorldSnapshotBuilder = std::make_shared<physicsWorldSnapshotBuilder_t>(world);
     ImportNetwork(world, context, worldSnapshotBuilder, networkPipeline);
-    ImportSystems(world);
-
-    // Systems second..
-
     InitState<connecting_t>(states, world);
     InitState<connectionFailed_t>(states, world);
     InitState<connected_t>(states, world);
     InitState<start_t>(states, world);
     InitState<play_t>(states, world);
     InitState<gameOver_t>(states, world);
-    InitState<unknown_t>(states, world);
-    state = states[unknown];
-    if(!quickPlay)
-        TransitionState(gameStateEnum_t::connecting);
-    else
-        TransitionState(play);
 
-    world.add<isNetworked_t>();
-    world.set([&](mapSize_t& size){ size.SetSize(window->getSize()); });
-    world.add<sharedLives_t>();
-    world.set([&](gameWindow_t& w){ w.window = window; });
-    world.add<gameKeyboard_t>();
-    world.add<score_t>();
-    
-    physicsWorld = std::make_shared<physicsWorld_t>();
-    world.set([&](physicsWorldComp_t& world){world.physicsWorld = physicsWorld;});
+    if(IsHost()) {
+        world.add<asteroidTimer_t>();
+        world.add<isNetworked_t>();
+        world.set([&](mapSize_t& size) { size.SetSize(window->getSize()); });
+        world.add<sharedLives_t>();
+        world.add<score_t>();
 
-    if(!isUserHost){
+        AddPlayerComponents(world.entity()).add<hostPlayer_t>().set([](color_t& color) { color.SetColor(sf::Color::Red); });
+    } else {
         world.set_entity_range(clientEntityStartRange, 0);
         world.enable_range_check(true);
-    } else {
-        // Initial game stuff
-        AddPlayerComponents(world.entity()).add<hostPlayer_t>().set([](color_t& color){ color.SetColor(sf::Color::Red); });
-
-        world.add<asteroidTimer_t>();
     }
 
-    // for debugging purposes
-    std::string json = world.to_json();
+    world.set([&](gameWindow_t& w) { w.window = window; });
+    world.add<gameKeyboard_t>();
+}
 
-    std::ofstream jsonFile("worldEcs.json");
-    if(!jsonFile.is_open()) {
-        // it's non-fatal, carry on with program execution
-        std::cout << "Json file could not be written to\n";
-    } else {
-        jsonFile << json;
-        jsonFile.close();
+int global_t::Init() {
+    if (!LoadResources()) {
+        std::cout << "Failed to load resources.\n";
+        return false;
     }
+   
+    NetworkInit();
+    CreateWindow((u32_t)windowWidth, (u32_t)windowHeight, "Asteroids BY Kubic0x43");
+    
+    // Components must be defined FIRST
+    world.component<isHost_t>();
+
+    // Systems second..
+    physicsWorldSnapshotBuilder = std::make_shared<physicsWorldSnapshotBuilder_t>(world);
+    world.import<physicsModule_t>();
+    physicsWorld = std::make_shared<physicsWorld_t>();
+    world.set([&](physicsWorldComp_t& world) {world.physicsWorld = physicsWorld; });
+
+    ImportSystems(world);
+    
+    // Start the game
+    InitState<initialGame_t>(states, world);
+    InitState<unknown_t>(states, world);
+    state = states[unknown];
+    TransitionState(gameStateEnum_t::initialGame);
 
     return true;
 }
@@ -472,9 +406,10 @@ int global_t::Init() {
 void global_t::Update() {
     sockets->RunCallbacks();
 
+    // WINDOW EVENT
+
     sf::Event event;
-    if (window->pollEvent(event)) {
-        // handle window events ...
+    while (window->pollEvent(event)) {
         switch (event.type) {
         case event.Closed:
             exit = true;
@@ -482,9 +417,12 @@ void global_t::Update() {
         default:
             break;
         }
+
+        gui->handleEvent(event);
     }
 
-    assert(state);
+    // TICK
+
     float now = NowSeconds();
     time.frameTime = now - time.lastFrame;
     time.ticksToDo += time.frameTime * ticksPerSecond;
@@ -500,11 +438,12 @@ void global_t::Update() {
         time.tps++;
     }
 
+    // UPDATE
+
     window->clear();
     state->OnUpdate();
 
     sf::Color outlineColor = sf::Color(54, 69, 79);
-
     world.each([&](flecs::entity e, shapeComp_t& shape, color_t& color){
         if(!physicsWorld->DoesShapeExist(shape.shape))
             return;
@@ -540,7 +479,6 @@ void global_t::Update() {
         } break;
         }
     });
-
     world.each([&](flecs::entity e, turretComp_t& turret, transform_t& transform) {
         sf::CircleShape base;
         base.setPosition(transform.GetPos());
@@ -573,15 +511,13 @@ void global_t::Update() {
         window->draw(rectangle);
     });
 
-    u32_t lives = world.get<sharedLives_t>()->lives;
-    i32_t score = world.get<score_t>()->GetScore();
-    sf::Text deltaTimeText(res.font, FormatString("FPS: %4.f|TPS: %2.f|NUPS: %2.f\nLives: %u\nScore:%li", stats.fps, stats.tps, stats.nups, lives, score));
-    window->draw(deltaTimeText);
+    /* GUI DRAW */
+    gui->draw();
 
     window->display();
     time.fps++;
 
-    if (state->Enum() != gameStateEnum_t::connecting) {
+    if (networkActive) {
         if (IsHost()) {
             HostNetworkUpdate(time.frameTime);
         } else {
@@ -591,6 +527,7 @@ void global_t::Update() {
         messageManager.Update(clients, utils, sockets);
     }
 
+    // Stats
     if(time.nextFrameCount < NowSeconds()) {
         time.nextFrameCount = NowSeconds() + 1.0f;
         
@@ -743,5 +680,4 @@ void global_t::DeserializePhysicsSnapshot(physicsWorld_t& physicsWorld, message_
         message.Deserialize(des, *circle);
         circle->MarkLocalDirty();
     }
-
 }

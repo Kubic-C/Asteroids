@@ -13,3 +13,6 @@
 [submodule "deps/THST"]
 	path = deps/THST
 	url = https://github.com/tuxalin/THST
+[submodule "deps/TGUI"]
+	path = deps/TGUI
+	url = https://github.com/texus/TGUI

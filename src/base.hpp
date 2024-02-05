@@ -1,4 +1,5 @@
 #pragma once
+// STD
 #include <iostream>
 #include <queue>
 #include <algorithm>
@@ -8,11 +9,13 @@
 #include <variant>
 #include <bitset>
 
+// Networking
 #include <steam/isteamnetworkingsockets.h>
 #include <steam/isteamnetworkingmessages.h>
 #include <steam/isteamnetworkingutils.h>
 #include <steam/steamnetworkingsockets.h>
 
+// Serialization
 #include <bitsery/bitsery.h>
 #include <bitsery/adapter/buffer.h>
 #include <bitsery/traits/vector.h>
@@ -22,13 +25,21 @@
 #include <bitsery/traits/array.h>
 #include <bitsery/ext/inheritance.h>
 
+// User I/O
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
 
+// Spatial Partitioning for physics
 #include <RTree.h>
 
+// ECS
 #include <flecs.h>
 
+// GUI
+#include <TGUI/TGUI.hpp>
+#include <TGUI/Backend/SFML-Graphics.hpp>
+
+// I am extremely lazy
 typedef uint8_t  u8_t;
 typedef uint16_t u16_t;
 typedef uint32_t u32_t;
