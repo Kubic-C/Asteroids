@@ -500,7 +500,6 @@ private:
 void updatePlayerDead(flecs::iter& iter, HealthComponent* health);
 void isAllPlayersDead(flecs::iter& iter);
 void isDead(flecs::iter& iter, HealthComponent* healths);
-
 void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::IntegratableComponent* integratables, ae::TransformComponent* transforms, HealthComponent* healths);
 void playerBlinkUpdate(flecs::iter& iter, PlayerComponent* players, HealthComponent* healths, ColorComponent* colors, PlayerColorComponent* playerColors);
 void playerReviveUpdate(flecs::iter& iter, SharedLivesComponent* lives, PlayerComponent* players, HealthComponent* healths);
@@ -549,11 +548,6 @@ public:
 		text->setText(ae::formatString("Lives: %li\nScore:%u", lives, score));
 	}
 
-public:
-	void AddDeadCount() { deadCount++; }
-	void ResetDeadCount() { deadCount = 0; }
-	int GetDeadCount() { return deadCount; }
-
 private:
 	void createStats(tgui::BackendGui& gui) {
 		gui.removeAllWidgets();
@@ -564,7 +558,6 @@ private:
 
 private:
 	tgui::Label::Ptr text;
-	int deadCount = 0;
 };
 
 struct HostGameOverStateModule {
@@ -579,7 +572,6 @@ public:
 class GameOverState : public ae::State {
 public:
 	GameOverState() {
-
 		destroyAsteroids = ae::getEntityWorld().query_builder<AsteroidComponent>().build();
 		destroyBullets = ae::getEntityWorld().query_builder<BulletComponent>().build();
 		resetPlayers = ae::getEntityWorld().query_builder<PlayerComponent, ae::IntegratableComponent, HealthComponent, ColorComponent>()
@@ -588,6 +580,8 @@ public:
 	}
 
 	void onEntry() override {
+		ae::log("Game over!\n");
+
 		createGameOverMenu(ae::getGui());
 
 		ae::getEntityWorld().defer_begin();
@@ -602,7 +596,12 @@ public:
 		});
 
 		std::vector<flecs::entity> entitiesToEnable;
-		resetPlayers.each([&](flecs::entity e, PlayerComponent& player, ae::IntegratableComponent& integratable, HealthComponent& health, ColorComponent& color) {
+		resetPlayers.each([&](
+				flecs::entity e, 
+				PlayerComponent& player, 
+				ae::IntegratableComponent& integratable, 
+				HealthComponent& health, 
+				ColorComponent& color) {
 			player.setIsReady(false);
 			integratable.addLinearVelocity(-integratable.getLinearVelocity());
 			health.setDestroyed(false);
@@ -619,14 +618,23 @@ public:
 		});
 		ae::getEntityWorld().defer_end();
 
+		resetPlayers.each([&](
+			flecs::entity e,
+			PlayerComponent& player,
+			ae::IntegratableComponent& integratable,
+			HealthComponent& health,
+			ColorComponent& color) {
+				ae::log("E(%llu), Health: %f", (u64)e, health.getHealth());
+			});
+
 		for(const auto& e : entitiesToEnable)
 			ae::getEntityWorldNetworkManager().enable(e);
 
-		ae::getEntityWorld().get_mut<SharedLivesComponent>()->lives = initialLives;
-		ae::getEntityWorld().get_mut<ScoreComponent>()->resetScore();
-
-		if(ae::getNetworkManager().hasNetworkInterface<ServerInterface>())
+		if(ae::getNetworkManager().hasNetworkInterface<ServerInterface>()) {
+			ae::getEntityWorld().get_mut<SharedLivesComponent>()->lives = initialLives;
+			ae::getEntityWorld().get_mut<ScoreComponent>()->resetScore();
 			ae::getEntityWorld().get_mut<AsteroidTimerComponent>()->resetTime = timePerAsteroidSpawn;
+		}
 	}
 
 protected:

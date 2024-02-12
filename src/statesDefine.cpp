@@ -26,11 +26,6 @@ void updatePlayerReady(flecs::iter& iter, PlayerComponent* players, ColorCompone
 
 void isAllPlayersReady(flecs::iter& iter) {
     if (internalReadyContext.readyCount == (int)iter.world().count<PlayerComponent>()) {
-        iter.world().each([](flecs::entity entity, PlayerComponent& player){
-            player.setIsReady(false);
-            entity.modified<PlayerComponent>();
-        });
-
         internalReadyContext.readyCount = 0;
         ae::transitionState<PlayState>();
     } else {
@@ -69,12 +64,16 @@ void orientPlayers(flecs::iter& iter, ae::TransformComponent* transforms) {
 
 // ============= PLAY STATE =============
 
+inline struct InternalDeadCount {
+    int deadCount = 0;
+} internalDeadCount;
+
 void updatePlayerDead(flecs::iter& iter, HealthComponent* health) {
     PlayState& playState = ae::getCurrentState<PlayState>();
 
     for(auto i : iter) {
         if(health[i].isDestroyed()) {
-            playState.AddDeadCount();            
+            internalDeadCount.deadCount++;
         }
     }
 }
@@ -82,11 +81,11 @@ void updatePlayerDead(flecs::iter& iter, HealthComponent* health) {
 void isAllPlayersDead(flecs::iter& iter) {
     PlayState& playState = ae::getCurrentState<PlayState>();
 
-    if(playState.GetDeadCount() == iter.world().count<PlayerComponent>()) {
-        playState.ResetDeadCount();
+    if(internalDeadCount.deadCount == iter.world().count<PlayerComponent>()) {
+        internalDeadCount.deadCount = 0;
         ae::transitionState<GameOverState>();
     } else {
-        playState.ResetDeadCount();
+        internalDeadCount.deadCount = 0;
     }
 }
 
@@ -209,6 +208,7 @@ void playerReviveUpdate(flecs::iter& iter, SharedLivesComponent* lives, PlayerCo
 
                     lives->lives--;
                     iter.world().modified<SharedLivesComponent>();
+                    iter.entity(i).modified<HealthComponent>();
                 }
             } else {
                ae::getEntityWorldNetworkManager().disable(iter.entity(i));
@@ -292,8 +292,10 @@ void transformWrap(flecs::iter& iter, MapSizeComponent* size, ae::TransformCompo
         ae::TransformComponent& transform = transforms[i];
         sf::Vector2f pos = wrap(size, transform.getPos());
 
-        if (pos != transform.getPos())
+        if (pos != transform.getPos()) {
             transform.setPos(pos);
+            iter.entity(i).modified<ae::TransformComponent>();   
+        }
     }
 }
 
@@ -439,6 +441,9 @@ void observePlayerCollision(flecs::iter& iter, size_t i, ae::ShapeComponent&) {
     flecs::entity entity = iter.entity(i);
     ae::CollisionEvent& event = *iter.param<ae::CollisionEvent>();
     flecs::entity other = event.entityOther;
+
+    if(entity.get<HealthComponent>()->isDestroyed())
+        return;
 
     if (other.has<AsteroidComponent>()) {
         entity.set([](HealthComponent& health) { health.setHealth(0.0f); });

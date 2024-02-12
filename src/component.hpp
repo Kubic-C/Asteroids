@@ -4,10 +4,10 @@
 
 struct HealthComponent : public ae::NetworkedComponent {
 public:
-    float getHealth() { return health; }
+    float getHealth() const { return health; }
     void setHealth(float health) { this->health = health;}
 
-    bool isDestroyed() { return destroyed; }
+    bool isDestroyed() const { return destroyed; }
     void setDestroyed(bool destroyed) { this->destroyed = destroyed; }
 
     template<typename S>
