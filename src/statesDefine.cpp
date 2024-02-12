@@ -6,22 +6,33 @@ struct {
     int readyCount = 0;
 } internalReadyContext;
 
-void UpdatePlayerReady(flecs::iter& iter, playerComp_t* players, color_t* colors, playerColor_t* playerColors) {
+void updatePlayerReady(flecs::iter& iter, PlayerComponent* players, ColorComponent* colors, PlayerColorComponent* playerColors) {
     for (auto i : iter) {
-        if (players[i].IsReadyPressed() || players[i].IsReady()) {
-            if(!players[i].IsReady()) // avoid making player marked 'dirty'
-                players[i].SetIsReady(true);
+        flecs::entity entity = iter.entity(i);
+        
+        if (players[i].isReadyPressed() || players[i].isReady()) {
+            if(!players[i].isReady()) {// avoid making player marked 'dirty'
+                players[i].setIsReady(true);
+                entity.modified<PlayerComponent>();
+            }
 
-            colors[i].SetColor(playerColors[i].GetColor());
+            colors[i].setColor(playerColors[i].getColor());
             internalReadyContext.readyCount++;
+
+            entity.modified<ColorComponent>();
         }
     }
 }
 
-void IsAllPlayersReady(flecs::iter& iter) {
-    if (internalReadyContext.readyCount == (int)iter.world().count<playerComp_t>()) {
+void isAllPlayersReady(flecs::iter& iter) {
+    if (internalReadyContext.readyCount == (int)iter.world().count<PlayerComponent>()) {
+        iter.world().each([](flecs::entity entity, PlayerComponent& player){
+            player.setIsReady(false);
+            entity.modified<PlayerComponent>();
+        });
+
         internalReadyContext.readyCount = 0;
-        game->TransitionState(play);
+        ae::transitionState<PlayState>();
     } else {
         internalReadyContext.readyCount = 0;
     }
@@ -33,263 +44,276 @@ struct {
 
 float PI = 3.14159265359f;
 
-void OrientPlayers(flecs::iter& iter, transform_t* transforms) {
-    sf::Vector2f middle = (sf::Vector2f)game->GetWindow().getSize() / 2.0f;
+void orientPlayers(flecs::iter& iter, ae::TransformComponent* transforms) {
+    sf::Vector2f middle = (sf::Vector2f)ae::getWindow().getSize() / 2.0f;
 
     float radii = 50.0f;
-    float anglePerTurn = 2.0f * PI / iter.world().count<playerComp_t>();
+    float anglePerTurn = 2.0f * PI / iter.world().count<PlayerComponent>();
     
     internalOrientcontext.curAngle += iter.delta_time();
 
     for(int i = 0; i < iter.count(); i++, internalOrientcontext.curAngle += anglePerTurn) {        
         sf::Vector2f location = {
-            fastCos(internalOrientcontext.curAngle),
-            fastSin(internalOrientcontext.curAngle),
+            ae::fastCos(internalOrientcontext.curAngle),
+            ae::fastSin(internalOrientcontext.curAngle),
         };
 
         location = location * radii + middle;
     
-        transforms[i].SetPos(location);
-        transforms[i].SetRot((location - middle).angle().asRadians());
+        transforms[i].setPos(location);
+        transforms[i].setRot((location - middle).angle().asRadians());
+
+        iter.entity(i).modified<ae::TransformComponent>();
     }
 }
 
 // ============= PLAY STATE =============
 
-void UpdatePlayerDead(flecs::iter& iter, health_t* health) {
-    play_t& playState = dynamic_cast<play_t&>(game->GetState());
+void updatePlayerDead(flecs::iter& iter, HealthComponent* health) {
+    PlayState& playState = ae::getCurrentState<PlayState>();
 
     for(auto i : iter) {
-        if(health[i].IsDestroyed()) {
+        if(health[i].isDestroyed()) {
             playState.AddDeadCount();            
         }
     }
 }
 
-void IsAllPlayersDead(flecs::iter& iter) {
-    play_t& playState = dynamic_cast<play_t&>(game->GetState());
+void isAllPlayersDead(flecs::iter& iter) {
+    PlayState& playState = ae::getCurrentState<PlayState>();
 
-    if(playState.GetDeadCount() == iter.world().count<playerComp_t>()) {
+    if(playState.GetDeadCount() == iter.world().count<PlayerComponent>()) {
         playState.ResetDeadCount();
-        game->TransitionState(gameOver);
+        ae::transitionState<GameOverState>();
     } else {
         playState.ResetDeadCount();
     }
 }
 
-void IsDead(flecs::iter& iter, health_t* healths) {
+void isDead(flecs::iter& iter, HealthComponent* healths) {
     for (auto i : iter) {
-        if (healths[i].GetHealth() <= 0.0f) {
-            healths[i].SetDestroyed(true);
+        flecs::entity entity = iter.entity(i);
+
+        if (healths[i].getHealth() <= 0.0f) {
+            healths[i].setDestroyed(true);
+            entity.modified<HealthComponent>();
         }
     }
 }
 
-void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms, health_t* healths) {
+void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::IntegratableComponent* integratables, ae::TransformComponent* transforms, HealthComponent* healths) {
     float deltaTime = iter.delta_time();
-    score_t* score = iter.world().get_mut<score_t>();
+    ScoreComponent* score = iter.world().get_mut<ScoreComponent>();
 
     for (auto i : iter) {
-        playerComp_t& player = players[i];
-        integratable_t& integratable = integratables[i];
-        transform_t& transform = transforms[i];
+        PlayerComponent& player = players[i];
+        ae::IntegratableComponent& integratable = integratables[i];
+        ae::TransformComponent& transform = transforms[i];
 
-        player.AddTimer(deltaTime, healths[i].IsDestroyed());
+        player.addTimer(deltaTime, healths[i].isDestroyed());
 
-        sf::Vector2f backwards = (transform.GetPos() - player.GetMouse()).normalized();
+        sf::Vector2f backwards = (transform.getPos() - player.getMouse()).normalized();
         sf::Vector2f left = backwards.perpendicular();
 
-        if (player.GetMouse() != sf::Vector2f())
-            transform.SetRot(backwards.angle().asRadians());
+        if (player.getMouse() != sf::Vector2f())
+            transform.setRot(backwards.angle().asRadians());
 
-        if (player.IsUpPressed()) {
-            integratable.AddLinearVelocity(-backwards * playerSpeed);
+        if (player.isUpPressed()) {
+            integratable.addLinearVelocity(-backwards * playerSpeed);
         }
-        if (player.IsDownPressed()) {
-            integratable.AddLinearVelocity(backwards * playerSpeed);
+        if (player.isDownPressed()) {
+            integratable.addLinearVelocity(backwards * playerSpeed);
         }
-        if (player.IsLeftPressed()) {
-            integratable.AddLinearVelocity(left * playerSpeed * 0.5f);
+        if (player.isLeftPressed()) {
+            integratable.addLinearVelocity(left * playerSpeed * 0.5f);
         }
-        if (player.IsRightPressed()) {
-            integratable.AddLinearVelocity(-left * playerSpeed * 0.5f);
+        if (player.isRightPressed()) {
+            integratable.addLinearVelocity(-left * playerSpeed * 0.5f);
         }
 
-        if (player.IsTurretPlacePressed() && 
-            player.GetTurretPlaceCooldown() <= 0.0f && 
-            iter.world().count<turretComp_t>() + 1 <= maxTurrets &&
-            (score->GetScore() - turretPrice >= 0)) {
-            score->RemoveScore(turretPrice);
-            player.ResetTurretPlaceCooldown();
+         // make sure to only place turrets down and fire host side
+        if(ae::getNetworkManager().hasNetworkInterface<ServerInterface>()) {
+            if (player.isTurretPlacePressed() &&  // IS IT PLACE BUTTON PRESSED?
+                player.getTurretPlaceCooldown() <= 0.0f &&  // IS THE PLACE COOLDOWN DOWN?
+                iter.world().count<TurretComponent>() + 1 <= maxTurrets && // DOES PLACING ONE MORE SURPASS maxTurrets?
+                (score->getScore() - turretPrice >= 0)) {
 
-            if(iter.world().has<isHost_t>()) {
-                iter.world().entity().set([&](transform_t& turretTranform, turretComp_t& turret) {
-                    turretTranform.SetPos(transform.GetPos());
-                }).add<isNetworked_t>();
+                score->removeScore(turretPrice);
+                player.resetTurretPlaceCooldown();
+                ae::getEntityWorldNetworkManager().entity().set([&](ae::TransformComponent& turretTranform, TurretComponent& turret) {
+                    turretTranform.setPos(transform.getPos());
+                });
+
+                iter.entity(i).modified<PlayerComponent>();
+                iter.world().modified<ScoreComponent>();
             }
-        }
 
-        if (player.IsFirePressed() && player.GetLastFired() > playerFireRate) {
-            player.ResetLastFired();
-            player.SetIsFiring(true);
+            if (player.isFirePressed() && player.getLastFired() > playerFireRate) {
+                player.resetLastFired();
+                player.setIsFiring(true);
 
-            if (iter.world().has<isHost_t>())
-                iter.world().entity().set(
-                    [&](transform_t& ctransform, integratable_t& integratable, color_t& color, shapeComp_t& shape, timedDelete_t& timer) {
-                        physicsWorld_t& world = *iter.world().get<physicsWorldComp_t>()->physicsWorld;
+                ae::getEntityWorldNetworkManager().entity().set(
+                    [&](ae::TransformComponent& ctransform, ae::IntegratableComponent& integratable, ColorComponent& color, ae::ShapeComponent& shape, ae::TimedDeleteComponent& timer) {
+                        ae::PhysicsWorld& world = ae::getPhysicsWorld();
 
                         ctransform = transform;
-                        color.SetColor(sf::Color::Yellow);
+                        color.setColor(sf::Color::Yellow);
 
-                        sf::Vector2f velocityDir = (player.GetMouse() - transform.GetPos()).normalized() * playerBulletSpeedMultiplier;
-                        integratable.AddLinearVelocity(velocityDir);
-                        integratables[i].AddLinearVelocity(-velocityDir * playerBulletRecoilMultiplier);
+                        sf::Vector2f velocityDir = (player.getMouse() - transform.getPos()).normalized() * playerBulletSpeedMultiplier;
+                        integratable.addLinearVelocity(velocityDir);
+                        integratables[i].addLinearVelocity(-velocityDir * playerBulletRecoilMultiplier);
 
-                        timer.timer = 1.0f;
+                        timer.setTime(1.0f);
 
-                        shape.shape = world.CreateShape<circle_t>(5.0f);
-                    }).add<bulletComp_t>().add<isNetworked_t>();
-        }
-        else {
-            player.SetIsFiring(false);
-        }
-    }
-}
+                        shape.shape = world.createShape<ae::Circle>(5.0f);
+                    }).add<BulletComponent>();
 
-void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors, playerColor_t* playerColors) {
-    for (auto i : iter) {
-        playerComp_t& player = players[i];
-        health_t& health = healths[i];
-        color_t& color = colors[i];
-        playerColor_t& playerColor = playerColors[i];
-
-        if (player.GetLastBlink() <= 0.0f && health.IsDestroyed()) {
-            color.SetColor(sf::Color::Blue);
-
-            if(player.GetLastBlink() <= -0.5f) {
-                player.ResetLastBlink();
+                iter.entity(i).modified<PlayerComponent>();
+            } else {
+                player.setIsFiring(false);
             }
-        } else if (color.GetColor() != playerColor.GetColor()) {
-            color.SetColor(playerColor.GetColor());
         }
     }
 }
 
-void PlayerReviveUpdate(flecs::iter& iter, sharedLives_t* lives, playerComp_t* players, health_t* healths) {
+void playerBlinkUpdate(flecs::iter& iter, PlayerComponent* players, HealthComponent* healths, ColorComponent* colors, PlayerColorComponent* playerColors) {
     for (auto i : iter) {
-        playerComp_t& player = players[i];
-        health_t& health = healths[i];
+        PlayerComponent& player = players[i];
+        HealthComponent& health = healths[i];
+        ColorComponent& color = colors[i];
+        PlayerColorComponent& playerColor = playerColors[i];
 
-        if (health.IsDestroyed()) {
+        if (player.getLastBlink() <= 0.0f && health.isDestroyed()) {
+            color.setColor(sf::Color::Blue);
+
+            if(player.getLastBlink() <= -0.5f) {
+                player.resetLastBlink();
+            }
+        } else if (color.getColor() != playerColor.getColor()) {
+            color.setColor(playerColor.getColor());
+        }
+    }
+}
+
+void playerReviveUpdate(flecs::iter& iter, SharedLivesComponent* lives, PlayerComponent* players, HealthComponent* healths) {
+    for (auto i : iter) {
+        PlayerComponent& player = players[i];
+        HealthComponent& health = healths[i];
+
+        if (health.isDestroyed()) {
             if(lives->lives > 0) {
-                if (player.GetTimeTillRevive() <= 0.0f) {
-                    player.ResetTimeTillRevive();
-                    health.SetDestroyed(false);
-                    health.SetHealth(1.0f);
+                if (player.getTimeTillRevive() <= 0.0f) {
+                    player.resetTimeTillRevive();
+                    health.setDestroyed(false);
+                    health.setHealth(1.0f);
 
-                    printf("Lost a life: %u\n", lives->lives);
                     lives->lives--;
-                    lives->dirty = true;
+                    iter.world().modified<SharedLivesComponent>();
                 }
             } else {
-                game->DisableEntity(iter.entity(i));
+               ae::getEntityWorldNetworkManager().disable(iter.entity(i));
             }
         } 
     }
 }
 
-void CreateChildAsteroids(flecs::world& world, transform_t& parentTransform, integratable_t& parentIntegratable, u8_t parentStage) {
-    physicsWorld_t& physicsWorld = *world.get<physicsWorldComp_t>()->physicsWorld;
+void createChildAsteroids(flecs::world& world, ae::TransformComponent& parentTransform, ae::IntegratableComponent& parentIntegratable, u8 parentStage) {
+    ae::PhysicsWorld& physicsWorld = ae::getPhysicsWorld();
 
-    sf::Vector2f linearVelocity = parentIntegratable.GetLinearVelocity() * asteroidDestroySpeedMultiplier;
+    sf::Vector2f linearVelocity = parentIntegratable.getLinearVelocity() * asteroidDestroySpeedMultiplier;
 
-    for(u32_t i = 0; i < 2; i++) {
-        world.entity()
-            .add<isNetworked_t>()
-            .add<asteroidComp_t>()
-            .add<transform_t>()
-            .add<health_t>()
-            .add<integratable_t>()
-            .add<color_t>()
-            .add<asteroidComp_t>()
-            .set([&](asteroidComp_t& asteroid, shapeComp_t& shape, transform_t& transform, integratable_t& integratable, color_t& color) {
-                transform.SetPos(parentTransform.GetPos());
+    for(u32 i = 0; i < 2; i++) {
+        ae::getEntityWorldNetworkManager().entity()
+            .add<AsteroidComponent>()
+            .add<ae::TransformComponent>()
+            .add<HealthComponent>()
+            .add<ae::IntegratableComponent>()
+            .add<ColorComponent>()
+            .add<AsteroidComponent>()
+            .set([&](AsteroidComponent& asteroid, 
+                     ae::ShapeComponent& shape, 
+                     ae::TransformComponent& transform, 
+                     ae::IntegratableComponent& integratable, 
+                     ColorComponent& color) {
+                transform.setPos(parentTransform.getPos());
 
-                integratable.AddLinearVelocity(linearVelocity);
+                integratable.addLinearVelocity(linearVelocity);
                 linearVelocity *= -1.0f;
 
-                color.SetColor(sf::Color::Red);
+                color.setColor(sf::Color::Red);
 
-                shape.shape = physicsWorld.CreateShape<polygon_t>();
-                polygon_t& polygon = physicsWorld.GetPolygon(shape.shape);
+                shape.shape = physicsWorld.createShape<ae::Polygon>();
+                ae::Polygon& polygon = physicsWorld.getPolygon(shape.shape);
 
                 asteroid.stage = parentStage - 1;
 
-                std::vector<sf::Vector2f> vertices = GenerateRandomConvexShape(8, ((float)asteroid.stage / (float)initialAsteroidStage) * asteroidScalar);
-                polygon.SetVertices((u8_t)vertices.size(), vertices.data());
-                polygon.SetPos(transform.GetPos());
+                std::vector<sf::Vector2f> vertices = generateRandomConvexShape(8, ((float)asteroid.stage / (float)initialAsteroidStage) * asteroidScalar);
+                polygon.setVertices((u8)vertices.size(), vertices.data());
+                polygon.setPos(transform.getPos());
             });
     }
 }
 
-void AsteroidDestroyUpdate(flecs::iter& iter, asteroidComp_t* asteroids, transform_t* transforms, integratable_t* integratables, health_t* healths) {
+void asteroidDestroyUpdate(flecs::iter& iter, AsteroidComponent* asteroids, ae::TransformComponent* transforms, ae::IntegratableComponent* integratables, HealthComponent* healths) {
     for (auto i : iter) {
-        health_t& health = healths[i];
-        asteroidComp_t& asteroid = asteroids[i];
+        HealthComponent& health = healths[i];
+        AsteroidComponent& asteroid = asteroids[i];
 
-        if (health.IsDestroyed()) {
-            iter.entity(i).add<deferDelete_t>();
+        if (health.isDestroyed()) {
+            iter.entity(i).destruct();
 
-            if(asteroid.stage > 1 && !iter.entity(i).has<deferDelete_t>()) {
-                CreateChildAsteroids(iter.world(), transforms[i], integratables[i], asteroid.stage);
+            if(asteroid.stage > 1) {
+                createChildAsteroids(iter.world(), transforms[i], integratables[i], asteroid.stage);
             }
         }
     }
 }
 
-sf::Vector2f Wrap(mapSize_t* size, sf::Vector2f pos) {
-    if (pos.x >= size->GetWidth()) {
+sf::Vector2f wrap(MapSizeComponent* size, sf::Vector2f pos) {
+    if (pos.x >= size->getWidth()) {
         pos.x = 0.0f;
     }
     else if (pos.x <= 0.0f) {
-        pos.x = size->GetWidth();
+        pos.x = size->getWidth();
     }
 
-    if (pos.y >= size->GetHeight()) {
+    if (pos.y >= size->getHeight()) {
         pos.y = 0.0f;
     }
     else if (pos.y <= 0.0f) {
-        pos.y = size->GetHeight();
+        pos.y = size->getHeight();
     }
 
     return pos;
 }
 
-void TransformWrap(flecs::iter& iter, mapSize_t* size, transform_t* transforms) {
+void transformWrap(flecs::iter& iter, MapSizeComponent* size, ae::TransformComponent* transforms) {
     for (auto i : iter) {
-        transform_t& transform = transforms[i];
-        sf::Vector2f pos = Wrap(size, transform.GetPos());
+        ae::TransformComponent& transform = transforms[i];
+        sf::Vector2f pos = wrap(size, transform.getPos());
 
-        if (pos != transform.GetPos())
-            transform.SetPos(pos);
+        if (pos != transform.getPos())
+            transform.setPos(pos);
     }
 }
 
-void AsteroidAddUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorld, mapSize_t* mapSize, asteroidTimer_t* timer) {
+void asteroidAddUpdate(flecs::iter& iter, MapSizeComponent* mapSize, AsteroidTimerComponent* timer) {
+    ae::PhysicsWorld& physicsWorld = ae::getPhysicsWorld();
+
     timer->current -= iter.delta_time();
     if (timer->current < 0.0f) {
         timer->current = timer->resetTime;
         timer->resetTime -= timeToRemovePerAsteroidSpawn;
 
-        float spawnX = (RandomFloat() * mapSize->GetWidth());
-        float spawnY = (RandomFloat() * mapSize->GetHeight());
+        float spawnX = (randomFloat() * mapSize->getWidth());
+        float spawnY = (randomFloat() * mapSize->getHeight());
 
         float wallX = 0.0f;
         float distX = 0.0f;
         float distToLeft = spawnX;
-        float distToRight = mapSize->GetWidth() - spawnX;
+        float distToRight = mapSize->getWidth() - spawnX;
         if (distToLeft < distToRight) {
-            wallX = mapSize->GetWidth() - 0.01f;
+            wallX = mapSize->getWidth() - 0.01f;
             distX = distToRight;
         }
         else {
@@ -299,9 +323,9 @@ void AsteroidAddUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorld, mapS
         float wallY = 0.0f;
         float distY = 0.0f;
         float distToUp = spawnY;
-        float distToDown = mapSize->GetHeight() - spawnY;
+        float distToDown = mapSize->getHeight() - spawnY;
         if (distToUp < distToDown) {
-            wallY = mapSize->GetHeight() - 0.1f;
+            wallY = mapSize->getHeight() - 0.1f;
             distY = distToDown;
         }
         else {
@@ -315,46 +339,48 @@ void AsteroidAddUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorld, mapS
             spawnY = wallY;
         }
 
-        iter.world().entity()
-            .add<isNetworked_t>()
-            .add<asteroidComp_t>()
-            .add<transform_t>()
-            .add<health_t>()
-            .add<integratable_t>()
-            .add<color_t>()
-            .add<asteroidComp_t>()
-            .set([&](shapeComp_t& shape, transform_t& transform, integratable_t& integratable, color_t& color) {
-                transform.SetPos({ spawnX, spawnY });
+        ae::getEntityWorldNetworkManager().entity()
+            .add<AsteroidComponent>()
+            .add<ae::TransformComponent>()
+            .add<HealthComponent>()
+            .add<ae::IntegratableComponent>()
+            .add<ColorComponent>()
+            .add<AsteroidComponent>()
+            .set([&](ae::ShapeComponent& shape, ae::TransformComponent& transform, ae::IntegratableComponent& integratable, ColorComponent& color) {
+                transform.setPos({ spawnX, spawnY });
 
-                sf::Vector2f center = mapSize->GetSize() / 2.0f;
-                sf::Vector2f velToCenter = (transform.GetPos() - center).normalized();
-                integratable.AddLinearVelocity(velToCenter * 10.0f);
+                sf::Vector2f center = mapSize->getSize() / 2.0f;
+                sf::Vector2f velToCenter = (transform.getPos() - center).normalized();
+                integratable.addLinearVelocity(velToCenter * 10.0f);
 
-                color.SetColor(sf::Color::Red);
+                color.setColor(sf::Color::Red);
 
-                shape.shape = physicsWorld->physicsWorld->CreateShape<polygon_t>();
-                polygon_t& polygon = physicsWorld->physicsWorld->GetPolygon(shape.shape);
+                shape.shape = physicsWorld.createShape<ae::Polygon>();
+                ae::Polygon& polygon = physicsWorld.getPolygon(shape.shape);
 
-                std::vector<sf::Vector2f> vertices = GenerateRandomConvexShape(8, asteroidScalar);
-                polygon.SetVertices((u8_t)vertices.size(), vertices.data());
-                polygon.SetPos(transform.GetPos());
+                std::vector<sf::Vector2f> vertices = generateRandomConvexShape(8, asteroidScalar);
+                polygon.setVertices((u8)vertices.size(), vertices.data());
+                polygon.setPos(transform.getPos());
             });
     }
 }
 
-void TurretPlayUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorldComp, transform_t* transforms, turretComp_t* turrets) {
-    physicsWorld_t& physicsWorld = *physicsWorldComp->physicsWorld;
+void turretPlayUpdate(flecs::iter& iter, ae::TransformComponent* transforms, TurretComponent* turrets) {
+    ae::PhysicsWorld& physicsWorld = ae::getPhysicsWorld();
+    flecs::world& world = iter.world();
     
-    std::vector<spatialIndexElement_t> results = {};
+    std::vector<ae::SpatialIndexElement> results = {};
     for(auto i : iter) {
-        transform_t& transform = transforms[i];
-        turretComp_t& turret = turrets[i];
+        flecs::entity entity = iter.entity(i);
+        ae::TransformComponent& transform = transforms[i];
+        TurretComponent& turret = turrets[i];
 
-        turret.AddTimer(iter.delta_time());
-        transform.SetRot(transform.GetRot() + 0.1f);
+        turret.addTimer(iter.delta_time());
+        transform.setRot(transform.getRot() + 0.1f);
+        entity.modified<ae::TransformComponent>();
 
-        spatialIndexTree_t& tree = physicsWorld.GetTree();
-        aabb_t aabb(turretRange, turretRange, transform.GetPos());
+        ae::SpatialIndexTree& tree = physicsWorld.getTree();
+        ae::AABB aabb(turretRange, turretRange, transform.getPos());
 
         results.clear();
         tree.query(spatial::intersects<2>(aabb.min.data(), aabb.max.data()), std::back_inserter(results));
@@ -364,15 +390,15 @@ void TurretPlayUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorldComp, t
 
         sf::Vector2f closestPos = {0.0f, 0.0f};
         float smallestDistance2 = std::numeric_limits<float>::max();
-        for(spatialIndexElement_t& element : results) {
-            if(!element.entityId.is_alive())
+        for(ae::SpatialIndexElement& element : results) {
+            if(!world.is_alive(element.entityId))
                 continue;
 
-            if(!element.entityId.has<asteroidComp_t>())
+            if(!world.get_alive(element.entityId).has<AsteroidComponent>())
                 continue;
 
-            sf::Vector2f pos = physicsWorld.GetShape(element.shapeId).GetWeightedPos();
-            float distance2 = (transform.GetPos() - pos).lengthSq();
+            sf::Vector2f pos = physicsWorld.getShape(element.shapeId).getWeightedPos();
+            float distance2 = (transform.getPos() - pos).lengthSq();
             if(distance2 < smallestDistance2) {
                 closestPos = pos;
                 smallestDistance2 = distance2;
@@ -382,53 +408,56 @@ void TurretPlayUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorldComp, t
         if(smallestDistance2 == std::numeric_limits<float>::max())
             continue;
 
-        float angleToRotate = (closestPos - transform.GetPos()).angle().asRadians();
-        transform.SetRot(angleToRotate);
+        float angleToRotate = (closestPos - transform.getPos()).angle().asRadians();
+        transform.setRot(angleToRotate);
     
-        if(turret.GetLastFired() <= 0.0f) {
-            turret.ResetLastFired();
+        if(turret.getLastFired() <= 0.0f) {
+            turret.resetLastFired();
 
             iter.world().entity().set(
-                [&](transform_t& ctransform, integratable_t& integratable, color_t& color, shapeComp_t& shape, timedDelete_t& timer) {
-                    physicsWorld_t& world = *iter.world().get<physicsWorldComp_t>()->physicsWorld;
+                [&](ae::TransformComponent& ctransform, ae::IntegratableComponent& integratable, ColorComponent& color, ae::ShapeComponent& shape, ae::TimedDeleteComponent& deleteTimer) {
+                    ae::PhysicsWorld& world = ae::getPhysicsWorld();
 
                     ctransform = transform;
 
-                    color.SetColor(sf::Color::Yellow);
+                    color.setColor(sf::Color::Yellow);
 
-                    sf::Vector2f velocityDir = (closestPos - transform.GetPos()).normalized() * playerBulletSpeedMultiplier;
-                    integratable.AddLinearVelocity(velocityDir);
+                    sf::Vector2f velocityDir = (closestPos - transform.getPos()).normalized() * playerBulletSpeedMultiplier;
+                    integratable.addLinearVelocity(velocityDir);
 
-                    timer.timer = 1.0f;
+                    deleteTimer.setTime(1.0f);
 
-                    shape.shape = world.CreateShape<circle_t>(5.0f);
-                }).add<bulletComp_t>().add<isNetworked_t>();
+                    shape.shape = world.createShape<ae::Circle>(5.0f);
+                }).add<BulletComponent>();
+
+            entity.modified<TurretComponent>();
         }
     }
 }
 
-void ObservePlayerCollision(flecs::iter& iter, size_t i, shapeComp_t&) {
+void observePlayerCollision(flecs::iter& iter, size_t i, ae::ShapeComponent&) {
     flecs::entity entity = iter.entity(i);
-    collisionEvent_t& event = *iter.param<collisionEvent_t>();
+    ae::CollisionEvent& event = *iter.param<ae::CollisionEvent>();
     flecs::entity other = event.entityOther;
 
-    if (other.has<asteroidComp_t>()) {
-        entity.set([](health_t& health) { health.SetHealth(0.0f); });
-        game->PlayNoobSound();
+    if (other.has<AsteroidComponent>()) {
+        entity.set([](HealthComponent& health) { health.setHealth(0.0f); });
+        global->getNoobPlayer.play();
     }
 }
 
-void ObserveBulletCollision(flecs::iter& iter, size_t i, shapeComp_t&) {
+void observeBulletCollision(flecs::iter& iter, size_t i, ae::ShapeComponent&) {
     flecs::entity entity = iter.entity(i);
-    collisionEvent_t& event = *iter.param<collisionEvent_t>();
+    ae::CollisionEvent& event = *iter.param<ae::CollisionEvent>();
     flecs::entity other = event.entityOther;
 
-    if (other.has<asteroidComp_t>()) {
-        other.set([&](health_t& health) {
-            health.SetHealth(health.GetHealth() - entity.get<bulletComp_t>()->damage);
+    if (other.has<AsteroidComponent>()) {
+        other.set([&](HealthComponent& health) {
+            health.setHealth(health.getHealth() - entity.get<BulletComponent>()->damage);
         });
-        entity.add<deferDelete_t>();
-        game->PlayDestroySound();
-        iter.world().get_mut<score_t>()->AddScore(scorePerAsteroid);
+        entity.destruct();
+        global->destroyPlayer.play();
+        iter.world().get_mut<ScoreComponent>()->addScore(scorePerAsteroid);
+        iter.world().modified<ScoreComponent>();
     }
 }

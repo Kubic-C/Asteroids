@@ -1,135 +1,272 @@
 #pragma once
 #include "game.hpp"
+#include "component.hpp"
 
-/*
-if (isUserHost) {
-		SteamNetworkingIPAddr listenAddr;
-		listenAddr.SetIPv4(0, defaultHostPort);
-		SteamNetworkingConfigValue_t opt;
-		opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ServerOnSteamNetConnectionStatusChanged);
-		SetListen(sockets->CreateListenSocketIP(listenAddr, 1, &opt));
-	} else {
-		SteamNetworkingIPAddr connect_addr;
-		SteamNetworkingConfigValue_t opt;
-		opt.SetPtr(k_ESteamNetworkingConfig_Callback_ConnectionStatusChanged, (void*)ClientOnSteamNetConnectionStatusChanged);
+inline flecs::entity addPlayerComponents(flecs::entity e) {
+	e.add<PlayerComponent>()
+		.add<ae::TransformComponent>()
+		.add<HealthComponent>()
+		.add<ae::IntegratableComponent>()
+		.add<ColorComponent>()
+		.add<PlayerColorComponent>()
+		.add<ae::ShapeComponent>()
+		.set([&](ColorComponent& color) { color.setColor(sf::Color::Red); })
+		.set([](ae::TransformComponent& transform) { transform.setPos({ 300, 200 }); })
+		.set([&](ae::TransformComponent& transform, ae::ShapeComponent& shape) {
+			shape.shape = 
+				ae::getPhysicsWorld().createShape<ae::Polygon>(transform.getPos(), transform.getRot(), playerVertices);
+		});
 
-		do {
-			std::string ipv4;
-			std::cout << "What IP Address would you like to connect to?: ";
-			std::cin >> ipv4;
+	return e;
+}
 
-			connect_addr.ParseString(ipv4.c_str());
-			connect_addr.m_port = defaultHostPort;
+class ClientInterface: public ae::ClientInterface {
+public:
+	ClientInterface() {
+		inputUpdate.setRate(inputUPS);
+		inputUpdate.setFunction([](float){
+			ae::NetworkManager& networkManager = ae::getNetworkManager();
+			ae::MessageBuffer buffer;
+			MessageInput input(getInput());
+			
+			ae::Serializer ser = ae::startSerialize(buffer);
+			ser.object(MESSAGE_HEADER_INPUT);
+			ser.object(input);
+			ae::endSerialize(ser, buffer);
 
-			std::cout << "Attempting to connect. This may take some time.\n";
-			HSteamNetConnection connection = sockets->ConnectByIPAddress(connect_addr, 1, &opt);
-			if (connection == k_HSteamNetConnection_Invalid) {
-				continue;
-			} else {
-				AddNewClient(connection);
-				break;
-			}
-		} while (true);
+			networkManager.sendMessage(0, std::move(buffer), true);
+		});
+
+		ae::getWindow().setTitle("ECS Asteroids Client");
 	}
-*/
 
-/*
-	if(!isUserHost){
-		world.set_entity_range(clientEntityStartRange, 0);
-		world.enable_range_check(true);
-	} else {
-		// Initial game stuff
-		AddPlayerComponents(world.entity()).add<hostPlayer_t>().set([](color_t& color){ color.SetColor(sf::Color::Red); });
-
-		world.add<asteroidTimer_t>();
+	void update() override {
+		inputUpdate.update();
 	}
-*/
+
+	void onMessageRecieved(HSteamNetConnection conn, ae::MessageHeader header_, ae::Deserializer& des) override {
+		MessageHeader header = (MessageHeader)header_;
+
+		if(header != MESSAGE_HEADER_STATE) {
+			ae::log(ae::ERROR_SEVERITY_WARNING, "Recieved a non-state message client side?");
+			ae::getNetworkManager().connectionAddWarning(conn);
+		}
+
+		u64 stateId;
+		des.object(stateId);
+
+		ae::transitionState(stateId);
+	}
+
+private:
+	ae::Ticker<void(float)> inputUpdate;
+};
+
+class ServerInterface: public ae::ServerInterface {
+public:
+	ServerInterface() {
+		flecs::world& entityWorld = ae::getEntityWorld();
+		entityWorld.add<AsteroidTimerComponent>();
+		entityWorld.add<ae::NetworkedComponent>();
+		entityWorld.set([&](MapSizeComponent& size) { size.setSize(ae::getWindow().getSize()); });
+		entityWorld.add<SharedLivesComponent>();
+		entityWorld.add<ScoreComponent>();
+
+		setNetworkUPS(stateUPS);
+
+		stateUpdate.setRate(stateUPS);
+		stateUpdate.setFunction([](float deltaTime){
+			ae::MessageBuffer buffer;
+
+			ae::Serializer ser = ae::startSerialize(buffer);
+			ser.object(MESSAGE_HEADER_STATE);
+			ser.object(ae::getCurrentStateId());
+			ae::endSerialize(ser, buffer);
+
+			ae::getNetworkManager().sendMessage(0, std::move(buffer), true);
+		});
+
+		ae::getWindow().setTitle("ECS Asteroids Server");
+	}
+
+	void update() {
+		global->player.set([](PlayerComponent& player){
+			auto input = getInput();
+
+			player.setKeys(input.first);
+			player.setMouse(input.second);
+		});
+
+		stateUpdate.update();
+	}
+
+	void onConnectionJoin(HSteamNetConnection conn) {
+		clients[conn] = addPlayerComponents(ae::getEntityWorldNetworkManager().entity());
+
+		fullSyncUpdate(conn);
+	}
+
+	void onConnectionLeave(HSteamNetConnection conn) {
+		clients[conn].destruct();
+		clients.erase(conn);
+	}
+
+	void onMessageRecieved(HSteamNetConnection conn, ae::MessageHeader header_, ae::Deserializer& des) override {
+		MessageHeader header = (MessageHeader)header_;
+
+		switch(header) {
+		case MESSAGE_HEADER_INPUT: {
+			MessageInput keys;
+			des.object(keys);
+
+			clients[conn].set([&](PlayerComponent& playerComponent){
+				playerComponent.setKeys(keys.keys);
+				playerComponent.setMouse(keys.mouse);
+			});
+		} break;
+
+		case MESSAGE_HEADER_PLAYER_INFO: {
+			MessagePlayerInfo playerInfo;
+			des.object(playerInfo);
+
+			clients[conn].set([&](PlayerColorComponent& playerColor){
+				playerColor.setColor(playerInfo.playerColor);
+			});
+				
+		} break;
+
+		case MESSAGE_HEADER_STATE: {
+			u64 stateId;
+			des.object(stateId);
+			
+			ae::transitionState(stateId);
+		} break;
+
+		default:
+			ae::getNetworkManager().connectionAddWarning(conn);
+			break;
+		}
+	}
+private:
+	std::unordered_map<HSteamNetConnection, flecs::entity> clients;
+	ae::Ticker<void(float)> stateUpdate;
+};
+
+class ConnectingState;
+class StartState;
+class ConnectedState;
 
 // Get all necessary information such as:
 // - Are we hosting or playing solo
 // - If not what IP are we connecting to
-class initialGame_t : public gameState_t {
+class MainMenuState : public ae::State {
 public:
 	// Hosting:
-	//	- Remember to add isHost_t to flecs world
+	//	- Remember to add isHost to flecs world
 	//  - Game needs to be marked as host as well
 	// Quickplay:
-	//  - Same as hosting but we transition straight to the play_t state
+	//  - Same as hosting but we transition straight to the play state
 	// Client:
 	//	- Connect to the given IP
 
-	class module_t {
-	public:
-		module_t(flecs::world& world) {}
-	};
+	void onEntry() override {
+		ae::NetworkManager& networkManager = ae::getNetworkManager();
+		tgui::Gui& gui = ae::getGui();
 
-	void OnTransition() override {
-		tgui::Gui& gui = game->GetGUI();
-
-		if(game->IsNetworkActive() && !game->IsHost()) {
-			game->SetNetworkActive(false);
-			CreateClientMenu(gui);
+		if(networkManager.hasNetworkInterface<ClientInterface>()) {
+			createClientMenu(gui);
 			return;
 		}
 		
-		CreatePlayerInfoMenu(gui);
+		createPlayerInfoMenu(gui);
 
 #ifdef NDEBUG
 		game->PlayMainTrack();
 #endif
 	}
 
-	void OnDeTransition() override {
-		if(!game->IsHost()) {
-			messageManager_t& messageManager = game->GetMessageManager();
+	void onLeave() override {
+		ae::NetworkManager& networkManager = ae::getNetworkManager();
 
-			message_t message;
-			message.SetConnection(game->GetHostConnection());
+		if(networkManager.hasNetworkInterface<ClientInterface>()) {
+			ae::MessageBuffer message;
+			
+			auto ser = ae::startSerialize(message);
+			ser.object(MESSAGE_HEADER_PLAYER_INFO);
+			ser.object(playerInfo);
+			ae::endSerialize(ser, message);
 
-			auto ser = message.StartSerialize();
-			message.Serialize(ser, messageHeader_t::playerInfo);
-			message.Serialize(ser, playerInfo);
-			message.EndSerialize(ser);
-
-			messageManager.PushOutgoing(std::move(message));
+			networkManager.sendMessage(0, std::move(message), true, true);
 		} else {
-			game->GetClient(hostPlayerID).player.set([&](playerColor_t& color){
-				color.SetColor(playerInfo.playerColor);
+			global->player.set([&](PlayerColorComponent& color){
+				color.setColor(playerInfo.playerColor);
 			});
 		}
 	}
 
-	void OnUpdate() override {}
-	void OnTick() override {}
-
-	gameStateEnum_t Enum() { return initialGame; }
 private:
+	static void openServer() {
+		ae::NetworkManager& networkManager = ae::getNetworkManager();
+		std::shared_ptr<ServerInterface> server = std::make_shared<ServerInterface>();
+		networkManager.setNetworkInterface(server);
+		SteamNetworkingIPAddr addr;
+		addr.Clear();
+		addr.SetIPv4(0, defaultHostPort);
+		if (!networkManager.open(addr)) {
+			ae::log(ae::ERROR_SEVERITY_WARNING, "Failed to open server.\n");
+			networkManager.setNetworkInterface(nullptr);
+			return;
+		}
+
+		global->player = 
+			addPlayerComponents(ae::getEntityWorldNetworkManager().entity());
+	}
+
+	static void createClient() {
+		ae::NetworkManager& networkManager = ae::getNetworkManager();
+		std::shared_ptr<ClientInterface> client = std::make_shared<ClientInterface>();
+		networkManager.setNetworkInterface(client);
+	}
+
+	static void openClient(const char* ip) {
+		ae::NetworkManager& networkManager = ae::getNetworkManager();
+
+		SteamNetworkingIPAddr addr;
+		addr.Clear();
+		addr.ParseString(ip);
+		addr.m_port = (u16)defaultHostPort;
+
+		if(!networkManager.open(addr)) {
+			ae::log(ae::ERROR_SEVERITY_WARNING, "Failed to open client. %s:%i\n", ip, defaultHostPort);
+			return;
+		}
+	}
+	
 	static void OnHostButtonClick() {
-		game->StartHosting();
-		game->LoadRestOfState();
-		game->GetGUI().removeAllWidgets();
-		game->TransitionState(connecting);
+		openServer();
+
+		ae::transitionState<ConnectingState>();
 	}
 
 	static void OnClientButtonClick() {
-		game->LoadRestOfState();
-		game->GetCastState<initialGame_t>().CreateClientMenu(game->GetGUI());
+		createClient();
+
+		ae::getCurrentState<MainMenuState>().createClientMenu(ae::getGui());
 	}
 
 	static void OnQuickplayClick() {
-		game->StartHosting();
-		game->LoadRestOfState();
-		game->GetGUI().removeAllWidgets();
-		game->TransitionState(start);
+		openServer();
+
+		ae::transitionState<StartState>();
 	}
 
 	static void OnConnectClick(tgui::EditBox::Ptr editBox) {
-		game->TryConnect((std::string)editBox->getText());
-		game->GetGUI().removeAllWidgets();
-		game->TransitionState(connecting);
+		openClient(((std::string)editBox->getText()).c_str());
+
+		ae::transitionState<ConnectingState>();
 	}
 public:
-	void CreatePlayerInfoMenu(tgui::BackendGui& gui) {
+	void createPlayerInfoMenu(tgui::BackendGui& gui) {
 		auto horiBarBottom = tgui::HorizontalLayout::create();
 		horiBarBottom->setHeight("25%");
 		horiBarBottom->setPosition("0%", "70%");
@@ -145,7 +282,7 @@ public:
 		continueButton->setHeight("20%");
 		continueButton->onPress([&]() {
 			gui.removeAllWidgets();
-			CreateMainMenu(gui);
+			createMainMenu(gui);
 			});
 		horiBarBottom->add(continueButton);
 
@@ -207,7 +344,7 @@ public:
 
 	}
 
-	void CreateMainMenu(tgui::BackendGui& gui) {
+	void createMainMenu(tgui::BackendGui& gui) {
 		gui.removeAllWidgets();
 		gui.setTextSize(32);
 
@@ -249,8 +386,17 @@ public:
 		horiBar->addSpace(spacing);
 	}
 
-	void CreateClientMenu(tgui::BackendGui& gui) {
+	void createClientMenu(tgui::BackendGui& gui) {
 		gui.removeAllWidgets();
+
+		if(ae::getNetworkManager().getNetworkInterface().hasFailed()) {
+			auto hasFailedText = tgui::Label::create();
+			hasFailedText->setPosition("50%", "40%");
+			hasFailedText->setOrigin(0.5f, 0.5f);
+			hasFailedText->setText("Connection failed!");
+			hasFailedText->getRenderer()->setBackgroundColor(sf::Color::Red);
+			gui.add(hasFailedText);
+		}
 
 		auto ipAddress = tgui::EditBox::create();
 		ipAddress->setSize("50%", "10%");
@@ -269,191 +415,139 @@ public:
 	}
 
 private:
-	playerInfo_t playerInfo;
+	MessagePlayerInfo playerInfo;
 };
 
-class connecting_t : public gameState_t {
+class ConnectingState : public ae::State {
 public:
-	class module_t {
-	public:
-		module_t(flecs::world& world) {
-		}
-	};
-
-	connecting_t()
-		: text(game->GetFont()) {
-		if (!game->IsHost()) {
-			text.setString("Connecting...\n");
-		}
-		else {
-			text.setString("Waiting for connection...\n");
-		}
+	void onEntry() override {
+		createConnectingMenu(ae::getGui());
 	}
 
-	virtual void OnTransition() override {
-		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
-		text.setPosition(center);
+	void onUpdate() override {
+		if(ae::getNetworkManager().getNetworkInterface().hasFailed()) 
+			ae::transitionState<MainMenuState>();
 	}
 
-	virtual void OnUpdate() override {
-		game->GetWindow().draw(text);
-	}
-
-	virtual void OnTick() override {}
-
-	virtual gameStateEnum_t Enum() override { return gameStateEnum_t::connecting; }
 private:
-	sf::Text text;
+	void createConnectingMenu(ae::Gui& gui) {
+		gui.removeAllWidgets();
+
+		tgui::Label::Ptr connectingText = tgui::Label::create();
+		connectingText->setText("Attempting to connect!");
+		connectingText->setPosition("50%", "50%");
+		connectingText->setOrigin(0.5f, 0.5f);
+		connectingText->getRenderer()->setTextColor(sf::Color::White);
+		gui.add(connectingText);
+	}
 };
 
-class connectionFailed_t : public gameState_t {
+class ConnectionFailedState : public ae::State {
 public:
-	class module_t {
-	public:
-		module_t(flecs::world& world) {
-		}
-	};
-
-	connectionFailed_t()
-		: timeLeft(1.0f), text(game->GetFont(), "Connection Failed!") {}
-
-	virtual void OnUpdate() override {
-		game->GetWindow().draw(text);
-	}
-
-	virtual void OnTick() override {
-		timeLeft -= game->GetDeltaTime();
+	void onTick(float deltaTime) override {
+		timeLeft -= deltaTime;
 		if (timeLeft <= 0.0f) {
-			game->RemoveClient(game->GetHostConnection());
+			ae::getNetworkManager().close();
 			timeLeft = 1.0f;
-			game->TransitionState(initialGame);
+			ae::transitionState<MainMenuState>();
 		}
 	}
 
-	virtual gameStateEnum_t Enum() override { return gameStateEnum_t::connectionFailed; }
 private:
-	float timeLeft;
-	sf::Text text;
+	float timeLeft = 1.0f;
 };
 
-class start_t;
-class play_t;
-class gameOver_t;
-
-class connected_t : public gameState_t {
+class ConnectedState : public ae::State {
 public:
-	class module_t {
-	public:
-		module_t(flecs::world& world) {
-		}
-	};
-
-	connected_t() {}
-
-	virtual void OnUpdate() override {
-		game->TransitionState(gameStateEnum_t::start);
+	void onUpdate() override {
+		ae::transitionState<StartState>();
 	}
 
-	virtual void OnTick() override {}
-
-	virtual gameStateEnum_t Enum() override { return gameStateEnum_t::connected; }
 private:
 };
 
-void UpdatePlayerReady(flecs::iter& iter, playerComp_t* players, color_t* colors, playerColor_t* playerColors);
-void IsAllPlayersReady(flecs::iter& iter);
-void OrientPlayers(flecs::iter& iter, transform_t* transforms);
+void updatePlayerReady(flecs::iter& iter, PlayerComponent* players, ColorComponent* colors, PlayerColorComponent* playerColors);
+void isAllPlayersReady(flecs::iter& iter);
+void orientPlayers(flecs::iter& iter, ae::TransformComponent* transforms);
 
-class start_t : public gameState_t {
-public:
-	class module_t {
-	public:
-		module_t(flecs::world& world) {
-			if(world.has<isHost_t>()) {
-				world.system<playerComp_t, color_t, playerColor_t>().kind(flecs::OnUpdate).iter(UpdatePlayerReady);
-				world.system().kind(flecs::PostUpdate).iter(IsAllPlayersReady);
-				world.system<transform_t>().with<playerComp_t>().iter(OrientPlayers);
-			}
-		}
-	};
-
-	start_t()
-		: text(game->GetFont(), "Both players must press R to start.") {
+struct HostStartStateModule {
+	HostStartStateModule(flecs::world& world) {
+		world.system<PlayerComponent, ColorComponent, PlayerColorComponent>().kind(flecs::OnUpdate).iter(updatePlayerReady);
+		world.system().kind(flecs::PostUpdate).iter(isAllPlayersReady);
+		world.system<ae::TransformComponent>().with<PlayerComponent>().iter(orientPlayers);
 	}
-
-	virtual void OnTransition() override {
-		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
-		text.setPosition(center);
-	}
-
-	virtual void OnUpdate() override {
-		game->GetWindow().draw(text);
-	}
-
-	virtual void OnTick() override {
-	}
-
-	virtual gameStateEnum_t Enum() override { return gameStateEnum_t::start; }
-private:
-	sf::Text text;
 };
 
-void UpdatePlayerDead(flecs::iter& iter, health_t* health);
-void IsAllPlayersDead(flecs::iter& iter);
-void IsDead(flecs::iter& iter, health_t* healths);
-void PlayerPlayInputUpdate(flecs::iter& iter, playerComp_t* players, integratable_t* integratables, transform_t* transforms, health_t* healths);
-void PlayerBlinkUpdate(flecs::iter& iter, playerComp_t* players, health_t* healths, color_t* colors, playerColor_t* playerColors);
-void PlayerReviveUpdate(flecs::iter& iter, sharedLives_t* lives, playerComp_t* players, health_t* healths);
-void AsteroidDestroyUpdate(flecs::iter& iter, asteroidComp_t* asteroids, transform_t* transforms, integratable_t* integratables, health_t* healths);
-void TransformWrap(flecs::iter& iter, mapSize_t* size, transform_t* transforms);
-void AsteroidAddUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorld, mapSize_t* mapSize, asteroidTimer_t* timer);
-void TurretPlayUpdate(flecs::iter& iter, physicsWorldComp_t* physicsWorld, transform_t* transforms, turretComp_t* turrets);
-void ObservePlayerCollision(flecs::iter& iter, size_t i, shapeComp_t&);
-void ObserveBulletCollision(flecs::iter& iter, size_t i, shapeComp_t&);
-
-class play_t : public gameState_t {
+class StartState : public ae::State {
 public:
-	class module_t {
-	public:
-		module_t(flecs::world& world) {
-			if(world.has<isHost_t>()) { // Client should not be able to handle State changes...
-				world.system<health_t>().with<playerComp_t>().kind(flecs::OnUpdate).with(flecs::Disabled).optional().iter(UpdatePlayerDead);
-				world.system().kind(flecs::PostUpdate).iter(IsAllPlayersDead);
-				world.system<health_t>().iter(IsDead);
-				world.system<physicsWorldComp_t, mapSize_t, asteroidTimer_t>().term_at(1).singleton().term_at(2).singleton().term_at(3).singleton().iter(AsteroidAddUpdate);
-				world.system<asteroidComp_t, transform_t, integratable_t, health_t>().iter(AsteroidDestroyUpdate);
-				world.system<sharedLives_t, playerComp_t, health_t>().term_at(1).singleton().iter(PlayerReviveUpdate);
-				world.system<physicsWorldComp_t, transform_t, turretComp_t>().term_at(1).singleton().iter(TurretPlayUpdate);
-				world.system<mapSize_t, transform_t>().term_at(1).singleton().iter(TransformWrap);
-			}
-
-			world.system<playerComp_t, integratable_t, transform_t, health_t>().iter(PlayerPlayInputUpdate);
-			world.system<playerComp_t, health_t, color_t, playerColor_t>().iter(PlayerBlinkUpdate);
-			world.observer<shapeComp_t>().event<collisionEvent_t>().with<playerComp_t>().each(ObservePlayerCollision);
-			world.observer<shapeComp_t>().event<collisionEvent_t>().with<bulletComp_t>().each(ObserveBulletCollision);
-		}
-	};
-
-	play_t() {}
-
-	void OnTransition() override {
-		CreateStats(game->GetGUI());
+	void onEntry() override {
+		createStartMenu(ae::getGui());
 	}
 
-	void OnDeTransition() override {
-		game->GetGUI().removeAllWidgets();
+private:
+	void createStartMenu(ae::Gui& gui) {
+		gui.removeAllWidgets();
+
+		tgui::Label::Ptr connectingText = tgui::Label::create();
+		connectingText->setText("All players must press 'R' to start!");
+		connectingText->setPosition("50%", "20%");
+		connectingText->setOrigin(0.5f, 0.5f);
+		connectingText->getRenderer()->setTextColor(sf::Color::White);
+		gui.add(connectingText);
+	}
+};
+
+void updatePlayerDead(flecs::iter& iter, HealthComponent* health);
+void isAllPlayersDead(flecs::iter& iter);
+void isDead(flecs::iter& iter, HealthComponent* healths);
+
+void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::IntegratableComponent* integratables, ae::TransformComponent* transforms, HealthComponent* healths);
+void playerBlinkUpdate(flecs::iter& iter, PlayerComponent* players, HealthComponent* healths, ColorComponent* colors, PlayerColorComponent* playerColors);
+void playerReviveUpdate(flecs::iter& iter, SharedLivesComponent* lives, PlayerComponent* players, HealthComponent* healths);
+void asteroidDestroyUpdate(flecs::iter& iter, AsteroidComponent* asteroids, ae::TransformComponent* transforms, ae::IntegratableComponent* integratables, HealthComponent* healths);
+void transformWrap(flecs::iter& iter, MapSizeComponent* size, ae::TransformComponent* transforms);
+void asteroidAddUpdate(flecs::iter& iter, MapSizeComponent* mapSize, AsteroidTimerComponent* timer);
+void turretPlayUpdate(flecs::iter& iter, ae::TransformComponent* transforms, TurretComponent* turrets);
+void observePlayerCollision(flecs::iter& iter, size_t i, ae::ShapeComponent&);
+void observeBulletCollision(flecs::iter& iter, size_t i, ae::ShapeComponent&);
+
+struct HostPlayStateModule {
+	HostPlayStateModule(flecs::world& world) {
+		world.system<HealthComponent>().with<PlayerComponent>().kind(flecs::OnUpdate).with(flecs::Disabled).optional().iter(updatePlayerDead);
+		world.system().kind(flecs::PostUpdate).iter(isAllPlayersDead);
+		world.system<HealthComponent>().iter(isDead);
+		world.system<MapSizeComponent, AsteroidTimerComponent>().term_at(1).singleton().term_at(2).singleton().iter(asteroidAddUpdate);
+		world.system<AsteroidComponent, ae::TransformComponent, ae::IntegratableComponent, HealthComponent>().iter(asteroidDestroyUpdate);
+		world.system<SharedLivesComponent, PlayerComponent, HealthComponent>().term_at(1).singleton().iter(playerReviveUpdate);
+		world.system<ae::TransformComponent, TurretComponent>().iter(turretPlayUpdate);
+		world.system<MapSizeComponent, ae::TransformComponent>().term_at(1).singleton().iter(transformWrap);
+	}
+};
+
+struct PlayStateModule {
+	PlayStateModule(flecs::world& world) {
+		world.system<PlayerComponent, ae::IntegratableComponent, ae::TransformComponent, HealthComponent>().iter(playerPlayInputUpdate);
+		world.system<PlayerComponent, HealthComponent, ColorComponent, PlayerColorComponent>().iter(playerBlinkUpdate);
+		world.observer<ae::ShapeComponent>().event<ae::CollisionEvent>().with<PlayerComponent>().each(observePlayerCollision);
+		world.observer<ae::ShapeComponent>().event<ae::CollisionEvent>().with<BulletComponent>().each(observeBulletCollision);
+	}
+};
+
+class PlayState : public ae::State {
+public:
+	void onEntry() override {
+		createStats(ae::getGui());
 	}
 
-	virtual void OnUpdate() override {
-		i32_t score = game->GetWorld().get<score_t>()->GetScore();
-		u32_t lives = game->GetWorld().get<sharedLives_t>()->lives;
-		text->setText(FormatString("Lives: %li\nScore:%u", lives, score));
+	void onLeave() override {
+		ae::getGui().removeAllWidgets();
 	}
 
-	virtual void OnTick() override {
+	virtual void onUpdate() override {
+		i32 score = ae::getEntityWorld().get<ScoreComponent>()->getScore();
+		u32 lives = ae::getEntityWorld().get<SharedLivesComponent>()->lives;
+		text->setText(ae::formatString("Lives: %li\nScore:%u", lives, score));
 	}
-
-	virtual gameStateEnum_t Enum() override { return gameStateEnum_t::play; }
 
 public:
 	void AddDeadCount() { deadCount++; }
@@ -461,8 +555,8 @@ public:
 	int GetDeadCount() { return deadCount; }
 
 private:
-	void CreateStats(tgui::BackendGui& gui) {
-		game->GetGUI().removeAllWidgets();
+	void createStats(tgui::BackendGui& gui) {
+		gui.removeAllWidgets();
 		text = tgui::Label::create();
 		text->getRenderer()->setTextColor(sf::Color::White);
 		gui.add(text);
@@ -473,96 +567,82 @@ private:
 	int deadCount = 0;
 };
 
-class gameOver_t : public gameState_t {
+struct HostGameOverStateModule {
 public:
-	class module_t {
-	public:
-		module_t(flecs::world& world) {
-			// re-using systems from the start module
-			if (world.has<isHost_t>()) {
-				world.system<playerComp_t, color_t, playerColor_t>().kind(flecs::OnUpdate).iter(UpdatePlayerReady);
-				world.system().kind(flecs::PostUpdate).iter(IsAllPlayersReady);
-				world.system<transform_t>().with<playerComp_t>().iter(OrientPlayers);
-			}
-		}
-	};
+	HostGameOverStateModule(flecs::world& world) {
+		world.system<PlayerComponent, ColorComponent, PlayerColorComponent>().kind(flecs::OnUpdate).iter(updatePlayerReady);
+		world.system().kind(flecs::PostUpdate).iter(isAllPlayersReady);
+		world.system<ae::TransformComponent>().with<PlayerComponent>().iter(orientPlayers);
+	}
+};
 
-	gameOver_t()
-		: text(game->GetFont(), "Game Over. Both players must\npress R to Reset") {
+class GameOverState : public ae::State {
+public:
+	GameOverState() {
 
-		destroyAsteroids = game->GetWorld().query_builder<asteroidComp_t>().build();
-		destroyBullets = game->GetWorld().query_builder<bulletComp_t>().build();
-		resetPlayers = game->GetWorld().query_builder<playerComp_t, integratable_t, health_t, color_t>()
+		destroyAsteroids = ae::getEntityWorld().query_builder<AsteroidComponent>().build();
+		destroyBullets = ae::getEntityWorld().query_builder<BulletComponent>().build();
+		resetPlayers = ae::getEntityWorld().query_builder<PlayerComponent, ae::IntegratableComponent, HealthComponent, ColorComponent>()
 			.with(flecs::Disabled).optional().build();
-		destroyTurrets = game->GetWorld().query_builder<turretComp_t>().build();
+		destroyTurrets = ae::getEntityWorld().query_builder<TurretComponent>().build();
 	}
 
-	virtual void OnTransition() override {
-		sf::Vector2f center = ((sf::Vector2f)game->GetWindow().getSize() / 2.0f) - text.getLocalBounds().getCenter();
-		text.setPosition(center);
+	void onEntry() override {
+		createGameOverMenu(ae::getGui());
 
-		game->GetWorld().defer_begin();
-		destroyAsteroids.each([](flecs::entity e, asteroidComp_t& asteroid) {
-			e.add<deferDelete_t>();
+		ae::getEntityWorld().defer_begin();
+		destroyAsteroids.each([](flecs::entity e, AsteroidComponent& asteroid) {
+			e.destruct();
 		});
-		destroyBullets.each([](flecs::entity e, bulletComp_t& asteroid) {
-			e.add<deferDelete_t>();
+		destroyBullets.each([](flecs::entity e, BulletComponent& asteroid) {
+			e.destruct();
 		});
-		destroyTurrets.each([](flecs::entity e, turretComp_t& turret) {
-			e.add<deferDelete_t>();
+		destroyTurrets.each([](flecs::entity e, TurretComponent& turret) {
+			e.destruct();
 		});
 
 		std::vector<flecs::entity> entitiesToEnable;
-		resetPlayers.each([&](flecs::entity e, playerComp_t& player, integratable_t& integratable, health_t& health, color_t& color) {
-			player.SetIsReady(false);
-			integratable.AddLinearVelocity(-integratable.GetLinearVelocity());
-			health.SetDestroyed(false);
-			health.SetHealth(1.0f);
-			color.SetColor(sf::Color::Red);
+		resetPlayers.each([&](flecs::entity e, PlayerComponent& player, ae::IntegratableComponent& integratable, HealthComponent& health, ColorComponent& color) {
+			player.setIsReady(false);
+			integratable.addLinearVelocity(-integratable.getLinearVelocity());
+			health.setDestroyed(false);
+			health.setHealth(1.0f);
+			color.setColor(sf::Color::Red);
 
 			if(!e.enabled())
 				entitiesToEnable.push_back(e);
+
+			e.modified<PlayerComponent>();
+			e.modified<ae::IntegratableComponent>();
+			e.modified<HealthComponent>();
+			e.modified<ColorComponent>();
 		});
-		game->GetWorld().defer_end();
+		ae::getEntityWorld().defer_end();
 
-		for(auto e : entitiesToEnable)
-			game->EnableEntity(e);
+		for(const auto& e : entitiesToEnable)
+			ae::getEntityWorldNetworkManager().enable(e);
 
-		game->GetWorld().get_mut<sharedLives_t>()->lives = initialLives;
-		game->GetWorld().get_mut<score_t>()->ResetScore();
+		ae::getEntityWorld().get_mut<SharedLivesComponent>()->lives = initialLives;
+		ae::getEntityWorld().get_mut<ScoreComponent>()->resetScore();
 
-		if(game->GetWorld().has<isHost_t>())
-			game->GetWorld().get_mut<asteroidTimer_t>()->resetTime = timePerAsteroidSpawn;
+		if(ae::getNetworkManager().hasNetworkInterface<ServerInterface>())
+			ae::getEntityWorld().get_mut<AsteroidTimerComponent>()->resetTime = timePerAsteroidSpawn;
 	}
-
-	virtual void OnUpdate() override {
-		game->GetWindow().draw(text);
-	}
-	virtual void OnTick() override {
-	}
-
-	virtual gameStateEnum_t Enum() override { return gameStateEnum_t::gameOver; }
 
 protected:
-	flecs::query<asteroidComp_t> destroyAsteroids;
-	flecs::query<bulletComp_t> destroyBullets;
-	flecs::query<playerComp_t, integratable_t, health_t, color_t> resetPlayers;
-	flecs::query<turretComp_t> destroyTurrets;
-	sf::Text text;
-};
+	void createGameOverMenu(ae::Gui& gui) {
+		gui.removeAllWidgets();
 
-class unknown_t : public gameState_t {
-public:
-	class module_t {
-	public:
-		module_t(flecs::world& world) {
-		}
-	};
-
-	virtual void OnUpdate() override {
-	}
-	virtual void OnTick() override {
+		tgui::Label::Ptr connectingText = tgui::Label::create();
+		connectingText->setText("All players must press 'R' to start again!");
+		connectingText->setPosition("50%", "20%");
+		connectingText->setOrigin(0.5f, 0.5f);
+		connectingText->getRenderer()->setTextColor(sf::Color::White);
+		gui.add(connectingText);
 	}
 
-	virtual gameStateEnum_t Enum() override { return gameStateEnum_t::unknown; }
+	flecs::query<AsteroidComponent> destroyAsteroids;
+	flecs::query<BulletComponent> destroyBullets;
+	flecs::query<PlayerComponent, ae::IntegratableComponent, HealthComponent, ColorComponent> resetPlayers;
+	flecs::query<TurretComponent> destroyTurrets;
 };

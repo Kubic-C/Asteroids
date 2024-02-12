@@ -1,65 +1,7 @@
 #pragma once
-// STD
-#include <iostream>
-#include <queue>
-#include <algorithm>
-#include <random>
-#include <fstream>
-#include <functional>
-#include <variant>
-#include <bitset>
 
-// Networking
-#include <steam/isteamnetworkingsockets.h>
-#include <steam/isteamnetworkingmessages.h>
-#include <steam/isteamnetworkingutils.h>
-#include <steam/steamnetworkingsockets.h>
+#include "entry.hpp"
 
-// Serialization
-#include <bitsery/bitsery.h>
-#include <bitsery/adapter/buffer.h>
-#include <bitsery/traits/vector.h>
-#include <bitsery/traits/deque.h>
-#include <bitsery/traits/list.h>
-#include <bitsery/traits/string.h>
-#include <bitsery/traits/array.h>
-#include <bitsery/ext/inheritance.h>
-
-// User I/O
-#include <SFML/Graphics.hpp>
-#include <SFML/Audio.hpp>
-
-// Spatial Partitioning for physics
-#include <RTree.h>
-
-// ECS
-#include <flecs.h>
-
-// GUI
-#include <TGUI/TGUI.hpp>
-#include <TGUI/Backend/SFML-Graphics.hpp>
-
-// I am extremely lazy
-typedef uint8_t  u8_t;
-typedef uint16_t u16_t;
-typedef uint32_t u32_t;
-typedef uint64_t u64_t;
-typedef int8_t  i8_t;
-typedef int16_t i16_t;
-typedef int32_t i32_t;
-typedef int64_t i64_t;
-
-namespace bitsery {
-    template<typename S>
-    void serialize(S& s, u64_t& o) {
-        s.value8b(o);
-    }
-
-    template<typename S>
-    void serialize(S& s, u32_t& o) {
-        s.value4b(o);
-    }
-}
 /* Window constants */
 constexpr float windowWidth = 600.0f;
 constexpr float windowHeight = 400.0f;
@@ -77,24 +19,23 @@ constexpr float blinkResetTime = 1.0f;
 constexpr float reviveImmunityTime = 5.0f;
 constexpr int initialLives = 3;
 
-constexpr i32_t turretPrice = 100;
-constexpr u32_t maxTurrets = 20;
+constexpr i32 turretPrice = 100;
+constexpr u32 maxTurrets = 20;
 constexpr float turretPlaceCooldown = 1.0f;
 constexpr float turretRange = 100.0f;
 
 constexpr float timePerAsteroidSpawn = 2.0f;
 constexpr float timeToRemovePerAsteroidSpawn = 0.01f;
-constexpr u32_t scorePerAsteroid = 10;
-constexpr u32_t initialAsteroidStage = 4;
+constexpr u32 scorePerAsteroid = 10;
+constexpr u32 initialAsteroidStage = 4;
 constexpr float asteroidScalar = 8.0f;
 constexpr float asteroidDestroySpeedMultiplier = 1.5f;
 
 /* Network related constants */
 constexpr int defaultHostPort = 9999;
-constexpr float timePerInputUpdate = 1.0f / 30.0f;
-constexpr float timePerStateUpdate = 1.0f / 20.0f;
+constexpr float inputUPS = 30.0f;
+constexpr float stateUPS = 20.0f;
 constexpr HSteamNetConnection hostPlayerID = 1;
-constexpr u32_t clientEntityStartRange = 1000000;
 
 constexpr std::initializer_list<sf::Vector2f> playerVertices = {
     {10.0f, -10.0f},
@@ -114,62 +55,12 @@ const std::initializer_list<std::vector<sf::Vector2f>> asteroidHulls = {
     { std::vector<sf::Vector2f>{sf::Vector2f(3.46638f, 8.70434f),sf::Vector2f(2.51958f, 5.72524f),sf::Vector2f(3.0589f, 2.28153f),sf::Vector2f(5.03308f, 2.58745f),sf::Vector2f(5.56972f, 2.95221f),sf::Vector2f(6.56609f, 7.66304f),sf::Vector2f(6.56975f, 8.12644f),sf::Vector2f(5.44032f, 8.37034f)} },
 };
 
-inline std::string FormatString(const char* format, ...) {
-    std::string str = "";
-
-    va_list args;
-    va_start(args, format);
-    int requiredSize = vsnprintf(nullptr, 0, format, args);
-    str.resize(requiredSize);
-    vsnprintf(str.data(), str.size() + 1, format, args);
-    va_end(args);
-
-    return str;
-}
-
-inline auto start_time = std::chrono::high_resolution_clock::now();
-
-inline std::chrono::high_resolution_clock::time_point NowTP() {
-    return std::chrono::high_resolution_clock::now();
-}
-
-template<typename measure = std::chrono::seconds>
-typename measure::rep Now() {
-    using namespace std::chrono;
-
-    auto end = NowTP();
-    measure dur = duration_cast<measure>(end - start_time);
-
-    return dur.count();
-}
-
-template<typename rep, typename period>
-rep Now() {
-    using namespace std::chrono;
-    using durationRP = duration<rep, period>;
-
-    auto end = NowTP();
-    durationRP dur = duration_cast<durationRP>(end - start_time);
-
-    return dur.count();
-}
-
-inline float NowSeconds() {
-    return Now<float, std::chrono::seconds::period>();
-}
-
-namespace bitsery {
-    template<typename S>
-    void serialize(S& s, sf::Vector2f& v) {
-        s.value4b(v.x);
-        s.value4b(v.y);
-    }
-
-    template<typename S>
-    void serialize(S& s, sf::Color& v) {
-        s.value1b(v.r);
-        s.value1b(v.g);
-        s.value1b(v.b);
-        s.value1b(v.a);
-    }
-}
+enum InputFlagBits : u8 {
+    UP = 1 << 0,
+    RIGHT = 1 << 1,
+    LEFT = 1 << 2,
+    DOWN = 1 << 3,
+    READY = 1 << 4,
+    FIRE = 1 << 5,
+    PLACE_TURRET = 1 << 6
+};

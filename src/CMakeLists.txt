@@ -1,15 +1,9 @@
 
-add_executable(asteroids "main.cpp" "base.hpp" "game.hpp" "game.cpp" "physics.hpp" "physicsEcs.hpp" "entity.hpp" "network.hpp" "state.hpp" "statesDefine.hpp" "statesDefine.cpp")
+add_executable(asteroids 
+	"main.cpp" "base.hpp" "game.hpp" "game.cpp" "component.hpp" "statesDefine.hpp" "statesDefine.cpp")
 
 target_link_libraries(asteroids PUBLIC 
-	bitsery 
-	GameNetworkingSockets::static
-	sfml-system
-	sfml-graphics
-    sfml-audio
-    flecs_static
-	THST
-	tgui)
+	AsteroidsEngine)
 
 add_custom_command(TARGET asteroids POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:asteroids> $<TARGET_FILE_DIR:asteroids>
