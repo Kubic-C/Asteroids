@@ -75,18 +75,6 @@ public:
 
 		setNetworkUPS(stateUPS);
 
-		stateUpdate.setRate(stateUPS);
-		stateUpdate.setFunction([](float deltaTime){
-			ae::MessageBuffer buffer;
-
-			ae::Serializer ser = ae::startSerialize(buffer);
-			ser.object(MESSAGE_HEADER_STATE);
-			ser.object(ae::getCurrentStateId());
-			ae::endSerialize(ser, buffer);
-
-			ae::getNetworkManager().sendMessage(0, std::move(buffer), true);
-		});
-
 		ae::getWindow().setTitle("ECS Asteroids Server");
 	}
 
@@ -97,8 +85,6 @@ public:
 			player.setKeys(input.first);
 			player.setMouse(input.second);
 		});
-
-		stateUpdate.update();
 
 #ifndef NDEBUG
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F1)) {
@@ -175,7 +161,7 @@ public:
 	void onConnectionJoin(HSteamNetConnection conn) {
 		clients[conn] = addPlayerComponents(ae::getEntityWorldNetworkManager().entity());
 
-		fullSyncUpdate(conn);
+		fullSyncUpdate(0, true); // When a connection joins use this as an opportunity to sync all of them
 	}
 
 	void onConnectionLeave(HSteamNetConnection conn) {
@@ -226,7 +212,6 @@ public:
 
 private:
 	std::unordered_map<HSteamNetConnection, flecs::entity> clients;
-	ae::Ticker<void(float)> stateUpdate;
 };
 
 class ConnectingState;
@@ -616,7 +601,7 @@ struct PlayStateModule {
 class PlayState : public ae::State {
 public:
 	void onEntry() override {
-		createStats(ae::getGui());
+		createStats(ae::getGui()); 
 	}
 
 	void onLeave() override {
@@ -662,8 +647,6 @@ public:
 	}
 
 	void onEntry() override {
-		ae::log("Game over!\n");
-
 		createGameOverMenu(ae::getGui());
 
 		ae::getEntityWorld().defer_begin();
@@ -702,15 +685,6 @@ public:
 
 		for(const auto& e : entitiesToEnable)
 			ae::getEntityWorldNetworkManager().enable(e);
-
-		resetPlayers.each([&](
-			flecs::entity e,
-			PlayerComponent& player,
-			ae::IntegratableComponent& integratable,
-			HealthComponent& health,
-			ColorComponent& color) {
-				ae::log("E(%llu), Health: %f", (u64)e, health.getHealth());
-			});
 
 		if(ae::getNetworkManager().hasNetworkInterface<ServerInterface>()) {
 			ae::getEntityWorld().get_mut<SharedLivesComponent>()->lives = initialLives;

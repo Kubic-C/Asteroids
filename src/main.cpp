@@ -7,7 +7,18 @@
  *  - None!
  */
 
+struct someType {
+    int xyz = 0;
+};
+
+void observerSet(flecs::entity e, someType& type) {
+    ae::log("Got the set!");
+}
+
 int main(int argc, char* argv[]) {
+    ae::getEntityWorld().observer<someType>().event(flecs::OnSet).each(observerSet);
+    ae::getEntityWorld().entity().add<someType>();
+
     global = std::make_shared<Global>();
     if(!global->loadResources()) {
         ae::log(ae::ERROR_SEVERITY_FATAL, "Failed to load resources\n");
@@ -42,6 +53,8 @@ int main(int argc, char* argv[]) {
         ae::log(ae::ERROR_SEVERITY_FATAL, "Times new roman failed\n");
 
     sf::Text text(font);
+
+    sf::VertexArray array(sf::PrimitiveType::Triangles);
 	
      ae::setUpdateCallback([&](){
         using namespace ae;
@@ -94,16 +107,13 @@ int main(int argc, char* argv[]) {
             case ShapeEnum::Polygon: {
                 Polygon& polygon = dynamic_cast<Polygon&>(physicsShape);
 
-                sf::ConvexShape sfShape(polygon.getVerticeCount());
-                sfShape.setFillColor(color.getColor());
-                for (u8 i = 0; i < polygon.getVerticeCount(); i++) {
-                    sfShape.setPoint(i, polygon.getWorldVertices()[i]);
+                ae::Polygon::vertices_t vertices = polygon.getWorldVertices();
+                for (u8 i = 1; i + 1 < polygon.getVerticeCount(); i++) { 
+                    array.append(sf::Vertex(vertices[0], color.getColor(), sf::Vector2f()));
+                    array.append(sf::Vertex(vertices[i + 0], color.getColor(), sf::Vector2f()));
+                    array.append(sf::Vertex(vertices[i + 1], color.getColor(), sf::Vector2f()));
                 }
 
-                sfShape.setOutlineColor(outlineColor);
-                sfShape.setOutlineThickness(-2.0f);
-
-                window.draw(sfShape);
             } break;
             case ShapeEnum::Circle: {
                 Circle& circle = dynamic_cast<Circle&>(physicsShape);
@@ -133,6 +143,9 @@ int main(int argc, char* argv[]) {
             text.setString(ae::formatString("Entity count: %u", networkCount));
             window.draw(text);
         }
+
+        window.draw(array);
+        array.clear();
 	});
 
     ae::mainLoop();

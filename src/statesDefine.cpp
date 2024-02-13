@@ -119,15 +119,19 @@ void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::Inte
 
         if (player.isUpPressed()) {
             integratable.addLinearVelocity(-backwards * playerSpeed);
+               iter.entity(i).modified<ae::IntegratableComponent>();
         }
         if (player.isDownPressed()) {
             integratable.addLinearVelocity(backwards * playerSpeed);
+            iter.entity(i).modified<ae::IntegratableComponent>();
         }
         if (player.isLeftPressed()) {
             integratable.addLinearVelocity(left * playerSpeed * 0.5f);
+            iter.entity(i).modified<ae::IntegratableComponent>();
         }
         if (player.isRightPressed()) {
             integratable.addLinearVelocity(-left * playerSpeed * 0.5f);
+            iter.entity(i).modified<ae::IntegratableComponent>();
         }
 
          // make sure to only place turrets down and fire host side
@@ -188,8 +192,11 @@ void playerBlinkUpdate(flecs::iter& iter, PlayerComponent* players, HealthCompon
             if(player.getLastBlink() <= -0.5f) {
                 player.resetLastBlink();
             }
+
+            iter.entity(i).modified<HealthComponent>();
         } else if (color.getColor() != playerColor.getColor()) {
             color.setColor(playerColor.getColor());
+            iter.entity(i).modified<HealthComponent>();
         }
     }
 }
