@@ -4,14 +4,7 @@
 
 /**
  * Current Bugs:
- *  - When in the GameOverState and all players have pressed 'R',
- *  it will transition to PlayState then back to GameOverState the again back
- * to PlayState where it will stop.
- * 
- *  - When all players have died and its transitioned to a GameOverState,
- * when all players have pressed 'R' and then it transitions to a PlayState,
- * some players may still be dead for the first frame meaning that the reviveSystem kicks
- * in and they lose a life.
+ *  - None!
  */
 
 int main(int argc, char* argv[]) {
