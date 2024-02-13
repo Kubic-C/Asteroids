@@ -12,7 +12,7 @@ constexpr float ticksPerSecond = 60.0f;
 constexpr float playerSpeed = 1.0f;
 constexpr float playerFireRate = 1.0f;
 constexpr float playerBulletRecoilMultiplier = 0.5f;
-constexpr float playerBulletSpeedMultiplier = 150.0f;
+constexpr float playerBulletSpeed = 150.0f;
 constexpr float playerBaseHealth = 1.0f;
 
 constexpr float blinkResetTime = 1.0f;
@@ -29,7 +29,7 @@ constexpr float timeToRemovePerAsteroidSpawn = 0.01f;
 constexpr u32 scorePerAsteroid = 10;
 constexpr u32 initialAsteroidStage = 4;
 constexpr float asteroidScalar = 8.0f;
-constexpr float asteroidDestroySpeedMultiplier = 1.5f;
+constexpr float asteroidDestroySpeedMultiplier = 2.0f;
 
 /* Network related constants */
 constexpr int defaultHostPort = 9999;

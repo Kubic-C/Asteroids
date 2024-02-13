@@ -158,7 +158,7 @@ void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::Inte
                         ctransform = transform;
                         color.setColor(sf::Color::Yellow);
 
-                        sf::Vector2f velocityDir = (player.getMouse() - transform.getPos()).normalized() * playerBulletSpeedMultiplier;
+                        sf::Vector2f velocityDir = (player.getMouse() - transform.getPos()).normalized() * playerBulletSpeed;
                         integratable.addLinearVelocity(velocityDir);
                         integratables[i].addLinearVelocity(-velocityDir * playerBulletRecoilMultiplier);
 
@@ -391,23 +391,24 @@ void turretPlayUpdate(flecs::iter& iter, ae::TransformComponent* transforms, Tur
             continue;
 
         sf::Vector2f closestPos = {0.0f, 0.0f};
-        float smallestDistance2 = std::numeric_limits<float>::max();
+        float smallestDistance = std::numeric_limits<float>::max();
         for(ae::SpatialIndexElement& element : results) {
-            if(!world.is_alive(element.entityId))
+            flecs::entity other = ae::impl::af(element.entityId);
+            if(!other.is_valid())
                 continue;
 
-            if(!world.get_alive(element.entityId).has<AsteroidComponent>())
+            if(!other.has<AsteroidComponent>())
                 continue;
 
             sf::Vector2f pos = physicsWorld.getShape(element.shapeId).getWeightedPos();
-            float distance2 = (transform.getPos() - pos).lengthSq();
-            if(distance2 < smallestDistance2) {
+            float distance = (transform.getPos() - pos).length();
+            if(distance < smallestDistance) {
                 closestPos = pos;
-                smallestDistance2 = distance2;
+                smallestDistance = distance;
             }
         }
 
-        if(smallestDistance2 == std::numeric_limits<float>::max())
+        if(smallestDistance == std::numeric_limits<float>::max())
             continue;
 
         float angleToRotate = (closestPos - transform.getPos()).angle().asRadians();
@@ -424,7 +425,7 @@ void turretPlayUpdate(flecs::iter& iter, ae::TransformComponent* transforms, Tur
 
                     color.setColor(sf::Color::Yellow);
 
-                    sf::Vector2f velocityDir = (closestPos - transform.getPos()).normalized() * playerBulletSpeedMultiplier;
+                    sf::Vector2f velocityDir = (closestPos - transform.getPos()).normalized() * playerBulletSpeed;
                     integratable.addLinearVelocity(velocityDir);
 
                     deleteTimer.setTime(1.0f);

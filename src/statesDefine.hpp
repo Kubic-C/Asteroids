@@ -48,7 +48,7 @@ public:
 		MessageHeader header = (MessageHeader)header_;
 
 		if(header != MESSAGE_HEADER_STATE) {
-			ae::log(ae::ERROR_SEVERITY_WARNING, "Recieved a non-state message client side?");
+			ae::log(ae::ERROR_SEVERITY_WARNING, "Recieved a non-state message client side?\n");
 			ae::getNetworkManager().connectionAddWarning(conn);
 		}
 
@@ -66,6 +66,7 @@ class ServerInterface: public ae::ServerInterface {
 public:
 	ServerInterface() {
 		flecs::world& entityWorld = ae::getEntityWorld();
+		entityWorld.add<ae::NetworkedEntity>();
 		entityWorld.add<AsteroidTimerComponent>();
 		entityWorld.add<ae::NetworkedComponent>();
 		entityWorld.set([&](MapSizeComponent& size) { size.setSize(ae::getWindow().getSize()); });
@@ -98,6 +99,77 @@ public:
 		});
 
 		stateUpdate.update();
+
+#ifndef NDEBUG
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F1)) {
+			ae::getEntityWorld().set([](ScoreComponent& score){
+				score.addScore(100);
+			});
+		}
+#endif
+		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F3)) {
+			ae::PhysicsWorld& physicsWorld = ae::getPhysicsWorld();
+			float width = (float)ae::getWindow().getSize().x;
+			float height = (float)ae::getWindow().getSize().y;
+
+			float spawnX = (randomFloat() * width);
+			float spawnY = (randomFloat() * height);
+
+			float wallX = 0.0f;
+			float distX = 0.0f;
+			float distToLeft = spawnX;
+			float distToRight = width - spawnX;
+			if (distToLeft < distToRight) {
+				wallX = width - 0.01f;
+				distX = distToRight;
+			}
+			else {
+				distX = distToLeft;
+			}
+
+			float wallY = 0.0f;
+			float distY = 0.0f;
+			float distToUp = spawnY;
+			float distToDown = height - spawnY;
+			if (distToUp < distToDown) {
+				wallY = height - 0.1f;
+				distY = distToDown;
+			}
+			else {
+				distY = distToUp;
+			}
+
+			if (distX < distY) {
+				spawnX = wallX;
+			}
+			else {
+				spawnY = wallY;
+			}
+
+			ae::getEntityWorldNetworkManager().entity()
+				.add<AsteroidComponent>()
+				.add<ae::TransformComponent>()
+				.add<HealthComponent>()
+				.add<ae::IntegratableComponent>()
+				.add<ColorComponent>()
+				.add<AsteroidComponent>()
+				.set([&](ae::ShapeComponent& shape, ae::TransformComponent& transform, ae::IntegratableComponent& integratable, ColorComponent& color) {
+				transform.setPos({ spawnX, spawnY });
+
+				sf::Vector2f center = sf::Vector2f(width, height) / 2.0f;
+				sf::Vector2f velToCenter = (transform.getPos() - center).normalized();
+				integratable.addLinearVelocity(velToCenter * 10.0f);
+
+				color.setColor(sf::Color::Red);
+
+				shape.shape = physicsWorld.createShape<ae::Polygon>();
+				ae::Polygon& polygon = physicsWorld.getPolygon(shape.shape);
+
+				std::vector<sf::Vector2f> vertices = generateRandomConvexShape(8, asteroidScalar);
+				polygon.setVertices((u8)vertices.size(), vertices.data());
+				polygon.setPos(transform.getPos());
+					});
+		}
 	}
 
 	void onConnectionJoin(HSteamNetConnection conn) {
@@ -147,6 +219,11 @@ public:
 			break;
 		}
 	}
+
+	size_t getConnectionCount() const {
+		return clients.size();
+	}
+
 private:
 	std::unordered_map<HSteamNetConnection, flecs::entity> clients;
 	ae::Ticker<void(float)> stateUpdate;
@@ -181,7 +258,7 @@ public:
 		createPlayerInfoMenu(gui);
 
 #ifdef NDEBUG
-		game->PlayMainTrack();
+		global->res.music.play();
 #endif
 	}
 
@@ -427,6 +504,10 @@ public:
 	void onUpdate() override {
 		if(ae::getNetworkManager().getNetworkInterface().hasFailed()) 
 			ae::transitionState<MainMenuState>();
+
+		if(ae::getNetworkManager().hasNetworkInterface<ServerInterface>())
+			if(ae::getNetworkManager().getNetworkInterface<ServerInterface>().getConnectionCount() > 0)
+				ae::transitionState<StartState>();
 	}
 
 private:
@@ -551,6 +632,7 @@ public:
 private:
 	void createStats(tgui::BackendGui& gui) {
 		gui.removeAllWidgets();
+
 		text = tgui::Label::create();
 		text->getRenderer()->setTextColor(sf::Color::White);
 		gui.add(text);
@@ -618,6 +700,9 @@ public:
 		});
 		ae::getEntityWorld().defer_end();
 
+		for(const auto& e : entitiesToEnable)
+			ae::getEntityWorldNetworkManager().enable(e);
+
 		resetPlayers.each([&](
 			flecs::entity e,
 			PlayerComponent& player,
@@ -626,9 +711,6 @@ public:
 			ColorComponent& color) {
 				ae::log("E(%llu), Health: %f", (u64)e, health.getHealth());
 			});
-
-		for(const auto& e : entitiesToEnable)
-			ae::getEntityWorldNetworkManager().enable(e);
 
 		if(ae::getNetworkManager().hasNetworkInterface<ServerInterface>()) {
 			ae::getEntityWorld().get_mut<SharedLivesComponent>()->lives = initialLives;
@@ -641,12 +723,12 @@ protected:
 	void createGameOverMenu(ae::Gui& gui) {
 		gui.removeAllWidgets();
 
-		tgui::Label::Ptr connectingText = tgui::Label::create();
-		connectingText->setText("All players must press 'R' to start again!");
-		connectingText->setPosition("50%", "20%");
-		connectingText->setOrigin(0.5f, 0.5f);
-		connectingText->getRenderer()->setTextColor(sf::Color::White);
-		gui.add(connectingText);
+		tgui::Label::Ptr toStartText = tgui::Label::create();
+		toStartText->setText("All players must press 'R' to start again!");
+		toStartText->setPosition("50%", "20%");
+		toStartText->setOrigin(0.5f, 0.5f);
+		toStartText->getRenderer()->setTextColor(sf::Color::White);
+		gui.add(toStartText);
 	}
 
 	flecs::query<AsteroidComponent> destroyAsteroids;

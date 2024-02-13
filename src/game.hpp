@@ -26,7 +26,7 @@ struct Global {
 		}
 
 		res.music.setLoop(true);
-		std::cout << "Loaded Music\n";
+		ae::log("Loaded Music\n");
 
 		if (!res.destroySound.loadFromFile("./res/destroySound.mp3")) {
 			return false;
