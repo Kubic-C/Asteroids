@@ -1,6 +1,5 @@
 #pragma once
 #include "base.hpp"
-#include "physics.hpp"
 
 struct HealthComponent : public ae::NetworkedComponent {
 public:

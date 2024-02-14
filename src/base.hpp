@@ -1,6 +1,6 @@
 #pragma once
 
-#include "entry.hpp"
+#include <asteroids/asteroids.hpp>
 
 /* Window constants */
 constexpr float windowWidth = 600.0f;
@@ -10,8 +10,8 @@ constexpr float windowHeight = 400.0f;
 constexpr float ticksPerSecond = 60.0f;
 
 constexpr float playerSpeed = 1.0f;
-constexpr float playerFireRate = 1.0f;
-constexpr float playerBulletRecoilMultiplier = 0.5f;
+constexpr float playerFireRate = 0.05f;
+constexpr float playerBulletRecoilMultiplier = 0.0f;
 constexpr float playerBulletSpeed = 150.0f;
 constexpr float playerBaseHealth = 1.0f;
 

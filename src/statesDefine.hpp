@@ -41,24 +41,51 @@ public:
 	}
 
 	void update() override {
+		if(!global->player.is_alive()) {
+			if(!playerRequestSent) {
+				ae::log("Sent player request\n");
+				
+				ae::MessageBuffer buffer;
+				ae::Serializer ser = ae::startSerialize(buffer);
+				ser.object(MESSAGE_HEADER_REQUEST_PLAYER_ID);
+				ae::endSerialize(ser, buffer);
+
+				ae::getNetworkManager().sendMessage(0, std::move(buffer), true, true);
+				playerRequestSent = true;
+			}
+		} else {
+			global->player.set([](PlayerComponent& player) {
+				auto input = getInput();
+
+				player.setKeys(input.first);
+				player.setMouse(input.second);
+			});
+		}
+
 		inputUpdate.update();
 	}
 
 	void onMessageRecieved(HSteamNetConnection conn, ae::MessageHeader header_, ae::Deserializer& des) override {
 		MessageHeader header = (MessageHeader)header_;
 
-		if(header != MESSAGE_HEADER_STATE) {
-			ae::log(ae::ERROR_SEVERITY_WARNING, "Recieved a non-state message client side?\n");
-			ae::getNetworkManager().connectionAddWarning(conn);
+		switch(header) {
+		case MESSAGE_HEADER_REQUEST_PLAYER_ID: {
+			u32 playerId = 0;
+			des.object(playerId);
+
+			global->player = ae::impl::af(playerId);
+			ae::log("Recieved player request\n");
+
+		} break;
 		}
+	}
 
-		u64 stateId;
-		des.object(stateId);
-
-		ae::transitionState(stateId);
+	void onConnectionJoin(HSteamNetConnection connection) {
+		playerRequestSent = false;
 	}
 
 private:
+	bool playerRequestSent = false;
 	ae::Ticker<void(float)> inputUpdate;
 };
 
@@ -66,9 +93,7 @@ class ServerInterface: public ae::ServerInterface {
 public:
 	ServerInterface() {
 		flecs::world& entityWorld = ae::getEntityWorld();
-		entityWorld.add<ae::NetworkedEntity>();
 		entityWorld.add<AsteroidTimerComponent>();
-		entityWorld.add<ae::NetworkedComponent>();
 		entityWorld.set([&](MapSizeComponent& size) { size.setSize(ae::getWindow().getSize()); });
 		entityWorld.add<SharedLivesComponent>();
 		entityWorld.add<ScoreComponent>();
@@ -161,7 +186,7 @@ public:
 	void onConnectionJoin(HSteamNetConnection conn) {
 		clients[conn] = addPlayerComponents(ae::getEntityWorldNetworkManager().entity());
 
-		fullSyncUpdate(0, true); // When a connection joins use this as an opportunity to sync all of them
+		fullSyncUpdate(0); // When a connection joins use this as an opportunity to sync all of them
 	}
 
 	void onConnectionLeave(HSteamNetConnection conn) {
@@ -193,11 +218,16 @@ public:
 				
 		} break;
 
-		case MESSAGE_HEADER_STATE: {
-			u64 stateId;
-			des.object(stateId);
-			
-			ae::transitionState(stateId);
+		case MESSAGE_HEADER_REQUEST_PLAYER_ID: {
+			u32 playerId = ae::impl::cf(clients[conn]);
+
+			ae::MessageBuffer buffer;
+			ae::Serializer ser = ae::startSerialize(buffer);
+			ser.object(MESSAGE_HEADER_REQUEST_PLAYER_ID);
+			ser.object(playerId);
+			ae::endSerialize(ser, buffer);
+
+			ae::getNetworkManager().sendMessage(conn, std::move(buffer), false, true);
 		} break;
 
 		default:

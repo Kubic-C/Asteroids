@@ -38,15 +38,15 @@ int main(int argc, char* argv[]) {
 	/* ALL NETWORKED COMPONENTS MUST BE DECLARED HERE! */
 	ae::EntityWorldNetworkManager& networkManager = ae::getEntityWorldNetworkManager();
 	networkManager.registerComponent<HealthComponent>();
-	networkManager.registerComponent<ColorComponent>();
-	networkManager.registerComponent<PlayerColorComponent>();
+	networkManager.registerComponent<ColorComponent>(ae::ComponentPiority::High);
+	networkManager.registerComponent<PlayerColorComponent>(ae::ComponentPiority::High);
 	networkManager.registerComponent<PlayerComponent>();
 	networkManager.registerComponent<AsteroidComponent>();
-	networkManager.registerComponent<SharedLivesComponent>();
+	networkManager.registerComponent<SharedLivesComponent>(ae::ComponentPiority::High);
 	networkManager.registerComponent<BulletComponent>();
-	networkManager.registerComponent<MapSizeComponent>();
+	networkManager.registerComponent<MapSizeComponent>(ae::ComponentPiority::High);
 	networkManager.registerComponent<TurretComponent>();
-	networkManager.registerComponent<ScoreComponent>();
+	networkManager.registerComponent<ScoreComponent>(ae::ComponentPiority::High);
 
     sf::Font font;
     if(!font.loadFromFile("./res/times.ttf"))
@@ -136,17 +136,21 @@ int main(int argc, char* argv[]) {
             }
         });
 
-        if(debugShow) {
+        window.draw(array);
+        array.clear();
+	
+        if (debugShow) {
             u32 networkCount = world.count<ae::NetworkedEntity>();
 
             text.setPosition(sf::Vector2f(window.getSize().x / 2, 0.0f));
+            text.setOutlineThickness(5.0f);
+            text.setOutlineColor(sf::Color::White);
+            text.setFillColor(sf::Color::Black);
             text.setString(ae::formatString("Entity count: %u", networkCount));
             window.draw(text);
         }
 
-        window.draw(array);
-        array.clear();
-	});
+     });
 
     ae::mainLoop();
 
