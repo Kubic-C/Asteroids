@@ -20,6 +20,23 @@ inline flecs::entity addPlayerComponents(flecs::entity e) {
 	return e;
 }
 
+inline void addSoundControlMenu(tgui::BackendGui& gui) {
+	auto musicToggle = tgui::Button::create();
+	musicToggle->setText("Toggle music");
+	musicToggle->setPosition("50%", "10%");
+	musicToggle->setSize("210", "60");
+	musicToggle->setOrigin(0.5f, 0.5f);
+	musicToggle->onClick([](){
+		auto status = global->res.music.getStatus();
+		if(status == sf::SoundSource::Paused) {
+			global->res.music.play();
+		} else {
+			global->res.music.pause();
+		}
+	});
+	gui.add(musicToggle);
+}
+
 class ClientInterface: public ae::ClientInterface {
 public:
 	ClientInterface() {
@@ -439,6 +456,8 @@ public:
 	void createMainMenu(tgui::BackendGui& gui) {
 		gui.removeAllWidgets();
 		gui.setTextSize(32);
+
+		addSoundControlMenu(gui);
 
 		auto vertBar = tgui::VerticalLayout::create();
 		vertBar->setHeight("50%");

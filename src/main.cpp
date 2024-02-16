@@ -4,36 +4,17 @@
 
 /**
  * Current Bugs:
- *  - None!
+ *  - If entities are deleted in between world snapshots (20 times a second) they could get sync
+ * up wrong client side!
  */
 
-struct someType {
-    int xyz = 0;
-};
-
-void observerSet(flecs::entity e, someType& type) {
-    ae::log("Got the set!");
-}
-
 int main(int argc, char* argv[]) {
-    ae::getEntityWorld().observer<someType>().event(flecs::OnSet).each(observerSet);
-    ae::getEntityWorld().entity().add<someType>();
+    ae::MessageBuffer test;
 
     global = std::make_shared<Global>();
     if(!global->loadResources()) {
         ae::log(ae::ERROR_SEVERITY_FATAL, "Failed to load resources\n");
     }
-
-    ae::registerState<MainMenuState>();
-    ae::registerState<ConnectingState>();
-    ae::registerState<ConnectedState>();
-    ae::registerState<StartState>();
-    ae::registerState<PlayState, PlayStateModule>();
-    ae::registerState<GameOverState>();
-    ae::registerNetworkInterfaceStateModule<ServerInterface, StartState, HostStartStateModule>();
-    ae::registerNetworkInterfaceStateModule<ServerInterface, PlayState, HostPlayStateModule>();
-    ae::registerNetworkInterfaceStateModule<ServerInterface, GameOverState, HostGameOverStateModule>();
-    ae::transitionState<MainMenuState>();
 
 	/* ALL NETWORKED COMPONENTS MUST BE DECLARED HERE! */
 	ae::EntityWorldNetworkManager& networkManager = ae::getEntityWorldNetworkManager();
@@ -47,6 +28,34 @@ int main(int argc, char* argv[]) {
 	networkManager.registerComponent<MapSizeComponent>(ae::ComponentPiority::High);
 	networkManager.registerComponent<TurretComponent>();
 	networkManager.registerComponent<ScoreComponent>(ae::ComponentPiority::High);
+
+    ae::registerState<MainMenuState>();
+    ae::registerState<ConnectingState>();
+    ae::registerState<ConnectedState>();
+    ae::registerState<StartState>();
+    ae::registerState<PlayState, PlayStateModule>();
+    ae::registerState<GameOverState>();
+    ae::registerNetworkInterfaceStateModule<ServerInterface, StartState, HostStartStateModule>();
+    ae::registerNetworkInterfaceStateModule<ServerInterface, PlayState, HostPlayStateModule>();
+    ae::registerNetworkInterfaceStateModule<ServerInterface, GameOverState, HostGameOverStateModule>();
+    ae::transitionState<MainMenuState>();
+
+    flecs::world& ecs = ae::getEntityWorld();
+
+    ecs.defer_begin();
+
+    flecs::entity e = ecs.entity();
+    u32 id = e.id() & ECS_ENTITY_MASK;
+    e.destruct();
+    e = ecs.entity();
+    u32 newId = e.id() & ECS_ENTITY_MASK;
+    if(id == newId) { // generations can change within a single frame??
+        ae::log("Generations can change within a single frame\n");
+    }
+
+    ae::log("OLD vs NEW: %u : %u\n", id, newId);
+
+    ecs.defer_end();
 
     sf::Font font;
     if(!font.loadFromFile("./res/times.ttf"))
@@ -130,9 +139,15 @@ int main(int argc, char* argv[]) {
             }
 
             if(debugShow) {
+                if(e.has<NetworkedEntity>())
+                    text.setFillColor(sf::Color::Green);
+                else
+                    text.setFillColor(sf::Color::Red);
+
                 text.setString(ae::formatString("Entity: %lu", e.id() & ECS_ENTITY_MASK));
                 text.setPosition(physicsShape.getPos());
                 window.draw(text);
+                text.setFillColor(sf::Color::Black);
             }
         });
 

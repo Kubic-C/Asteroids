@@ -424,7 +424,7 @@ void turretPlayUpdate(flecs::iter& iter, ae::TransformComponent* transforms, Tur
         if(turret.getLastFired() <= 0.0f) {
             turret.resetLastFired();
 
-            iter.world().entity().set(
+            ae::getEntityWorldNetworkManager().entity().set(
                 [&](ae::TransformComponent& ctransform, ae::IntegratableComponent& integratable, ColorComponent& color, ae::ShapeComponent& shape, ae::TimedDeleteComponent& deleteTimer) {
                     ae::PhysicsWorld& world = ae::getPhysicsWorld();
 
