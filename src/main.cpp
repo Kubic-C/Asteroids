@@ -155,13 +155,18 @@ int main(int argc, char* argv[]) {
         array.clear();
 	
         if (debugShow) {
+            u32 serverTick = ae::getCurrentTick();
             u32 networkCount = world.count<ae::NetworkedEntity>();
+
+            if(getNetworkManager().hasNetworkInterface<ae::ClientInterface>()) {
+                serverTick = getNetworkManager().getNetworkInterface<ae::ClientInterface>().getCurrentServerTick();
+            }
 
             text.setPosition(sf::Vector2f(window.getSize().x / 2, 0.0f));
             text.setOutlineThickness(5.0f);
             text.setOutlineColor(sf::Color::White);
             text.setFillColor(sf::Color::Black);
-            text.setString(ae::formatString("Entity count: %u", networkCount));
+            text.setString(ae::formatString("Entity count: %u\nServer Tick: %u", networkCount, serverTick));
             window.draw(text);
         }
 

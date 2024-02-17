@@ -203,7 +203,7 @@ public:
 	void onConnectionJoin(HSteamNetConnection conn) {
 		clients[conn] = addPlayerComponents(ae::getEntityWorldNetworkManager().entity());
 
-		fullSyncUpdate(0); // When a connection joins use this as an opportunity to sync all of them
+		fullSyncUpdate(conn); // When a connection joins use this as an opportunity to sync all of them
 	}
 
 	void onConnectionLeave(HSteamNetConnection conn) {
@@ -635,12 +635,12 @@ struct HostPlayStateModule {
 		world.system<SharedLivesComponent, PlayerComponent, HealthComponent>().term_at(1).singleton().iter(playerReviveUpdate);
 		world.system<ae::TransformComponent, TurretComponent>().iter(turretPlayUpdate);
 		world.system<MapSizeComponent, ae::TransformComponent>().term_at(1).singleton().iter(transformWrap);
+		world.system<PlayerComponent, ae::IntegratableComponent, ae::TransformComponent, HealthComponent>().iter(playerPlayInputUpdate);
 	}
 };
 
 struct PlayStateModule {
 	PlayStateModule(flecs::world& world) {
-		world.system<PlayerComponent, ae::IntegratableComponent, ae::TransformComponent, HealthComponent>().iter(playerPlayInputUpdate);
 		world.system<PlayerComponent, HealthComponent, ColorComponent, PlayerColorComponent>().iter(playerBlinkUpdate);
 		world.observer<ae::ShapeComponent>().event<ae::CollisionEvent>().with<PlayerComponent>().each(observePlayerCollision);
 		world.observer<ae::ShapeComponent>().event<ae::CollisionEvent>().with<BulletComponent>().each(observeBulletCollision);
