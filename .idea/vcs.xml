@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="VcsDirectoryMappings">
+    <mapping directory="" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/AsteroidsEngine" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/AsteroidsEngine/deps/GameNetworkingSockets" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/AsteroidsEngine/deps/SFML" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/AsteroidsEngine/deps/TGUI" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/AsteroidsEngine/deps/THST" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/AsteroidsEngine/deps/bitsery" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/deps/AsteroidsEngine/deps/flecs" vcs="Git" />
+  </component>
+</project>

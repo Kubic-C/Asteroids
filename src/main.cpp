@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
             text.setOutlineThickness(5.0f);
             text.setOutlineColor(sf::Color::White);
             text.setFillColor(sf::Color::Black);
-            text.setString(ae::formatString("Entity count: %u\nServer Tick: %u", networkCount, serverTick));
+            text.setString(ae::formatString("Entity count: %u\nServer Tick: %u", (unsigned int)networkCount, (unsigned int)serverTick));
             window.draw(text);
         }
 

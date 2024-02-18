@@ -1,0 +1,822 @@
+{
+	"inputs" : 
+	[
+		{
+			"path" : "CMakeLists.txt"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/3.27.8/CMakeSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeSystemSpecificInitialize.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Platform/Linux-Initialize.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/3.27.8/CMakeCCompiler.cmake"
+		},
+		{
+			"isGenerated" : true,
+			"path" : "cmake-build-debug/CMakeFiles/3.27.8/CMakeCXXCompiler.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeSystemSpecificInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeGenericSystem.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeInitializeConfigs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Platform/Linux.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Platform/UnixPaths.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Compiler/Clang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Compiler/GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Compiler/CMakeCommonCompilerMacros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Platform/Linux-Clang-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Platform/Linux-GNU-C.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Platform/Linux-GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCXXInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeLanguageInformation.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Compiler/Clang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Compiler/Clang.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Platform/Linux-Clang-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Platform/Linux-GNU-CXX.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Platform/Linux-GNU.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCommonLanguageInclude.cmake"
+		},
+		{
+			"path" : "deps/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/bitsery/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/BasicConfigVersion-SameMajorVersion.cmake.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckIPOSupported.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDependentOption.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakePushCheckState.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckSymbolExists.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/DefaultBuildType.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/FindSanitizers.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/FindASan.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/sanitize-helpers.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/FindTSan.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/sanitize-helpers.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/FindMSan.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/sanitize-helpers.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/FindUBSan.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/sanitize-helpers.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/FlagsMSVC.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindOpenSSL.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPkgConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/examples/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckFlagCommonConfig.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCheckCompilerFlagCommonPatterns.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCXXCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCXXSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckSymbolExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakePushCheckState.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindProtobuf.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/SelectLibraryConfigurations.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake/GameNetworkingSocketsConfig.cmake.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/cmake/Config.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/tools/pkg-config/sfml-all.pc.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/tools/pkg-config/sfml-system.pc.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/tools/pkg-config/sfml-window.pc.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/tools/pkg-config/sfml-graphics.pc.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/tools/pkg-config/sfml-audio.pc.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/tools/pkg-config/sfml-network.pc.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/BasicConfigVersion-SameMajorVersion.cmake.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/cmake/SFMLConfig.cmake.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/cmake/SFMLConfigDependencies.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CPack.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CPackComponent.cmake"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Templates/CPackConfig.cmake.in"
+		},
+		{
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Templates/CPackConfig.cmake.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/cmake/Macros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeParseArguments.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/cmake/CompilerWarnings.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/System/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Window/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindX11.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckFunctionExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindOpenGL.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/cmake/Modules/FindUDev.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Graphics/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/cmake/Modules/FindFreetype.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Audio/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/cmake/Modules/FindOpenAL.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/cmake/Modules/FindVorbis.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/SFML/cmake/Modules/FindFLAC.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/flecs/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/flecs/cmake/target_default_compile_warnings.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/flecs/cmake/target_default_compile_options.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/THST/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/cmake/Macros.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/GNUInstallDirs.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/cmake/Config.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/cmake/Dependencies.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/cmake/pkgconfig/tgui.pc.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/src/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/ProcessorCount.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindThreads.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckIncludeFile.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCSourceCompiles.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/src/Backend/CMakeLists.txt"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindX11.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindPackageMessage.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckFunctionExists.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckLibraryExists.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/include/TGUI/Config.hpp.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakePackageConfigHelpers.cmake"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/WriteBasicConfigVersionFile.cmake"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/cmake/TGUIConfig.cmake.in"
+		},
+		{
+			"isCMake" : true,
+			"isExternal" : true,
+			"path" : "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/BasicConfigVersion-SameMajorVersion.cmake.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/gui-builder/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/deps/TGUI/cmake/gui-builder/tgui-gui-builder.desktop.in"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/src/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/src/asteroids/CMakeLists.txt"
+		},
+		{
+			"path" : "deps/AsteroidsEngine/src/test_field/CMakeLists.txt"
+		},
+		{
+			"path" : "src/CMakeLists.txt"
+		}
+	],
+	"kind" : "cmakeFiles",
+	"paths" : 
+	{
+		"build" : "/home/sawyer/dev/Asteroids/cmake-build-debug",
+		"source" : "/home/sawyer/dev/Asteroids"
+	},
+	"version" : 
+	{
+		"major" : 1,
+		"minor" : 0
+	}
+}

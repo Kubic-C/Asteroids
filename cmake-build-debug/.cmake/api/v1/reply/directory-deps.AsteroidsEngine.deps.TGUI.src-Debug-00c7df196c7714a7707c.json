@@ -1,0 +1,100 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"deps/AsteroidsEngine/deps/TGUI/src/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 452,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 458,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 463,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "bin",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/game/libtgui-d.so.1.1.0"
+			],
+			"targetId" : "tgui::@7999e071d32ae2de17b6",
+			"targetIndex" : 13,
+			"targetInstallNamelink" : "skip",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 1,
+			"component" : "bin",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/game/libtgui-d.so"
+			],
+			"targetId" : "tgui::@7999e071d32ae2de17b6",
+			"targetIndex" : 13,
+			"targetInstallNamelink" : "only",
+			"type" : "target"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "Unspecified",
+			"destination" : "lib/cmake/TGUI",
+			"exportName" : "TGUIConfigExport",
+			"exportTargets" : 
+			[
+				{
+					"id" : "tgui::@7999e071d32ae2de17b6",
+					"index" : 13
+				}
+			],
+			"paths" : 
+			[
+				"deps/AsteroidsEngine/deps/TGUI/src/CMakeFiles/Export/36a674cdf324870c851ff74a1da5415f/TGUISharedTargets.cmake"
+			],
+			"type" : "export"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "devel",
+			"destination" : "lib/cmake/TGUI",
+			"paths" : 
+			[
+				"cmake-build-debug/deps/AsteroidsEngine/deps/TGUI/TGUIConfig.cmake",
+				"cmake-build-debug/deps/AsteroidsEngine/deps/TGUI/TGUIConfigVersion.cmake"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "deps/AsteroidsEngine/deps/TGUI/src",
+		"source" : "deps/AsteroidsEngine/deps/TGUI/src"
+	}
+}

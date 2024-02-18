@@ -1,0 +1,109 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"deps/AsteroidsEngine/deps/TGUI/gui-builder/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 76,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 79,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 85,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 90,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 93,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "gui-builder",
+			"destination" : "share/applications",
+			"paths" : 
+			[
+				"cmake-build-debug/deps/AsteroidsEngine/deps/TGUI/gui-builder/tgui-gui-builder.desktop"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 2,
+			"component" : "gui-builder",
+			"destination" : "share/icons/hicolor/48x48/apps",
+			"paths" : 
+			[
+				"deps/AsteroidsEngine/deps/TGUI/cmake/gui-builder/TexusGUI.png"
+			],
+			"type" : "file"
+		},
+		{
+			"backtrace" : 3,
+			"component" : "gui-builder",
+			"destination" : "share/tgui-1/gui-builder",
+			"paths" : 
+			[
+				"/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/game/gui-builder"
+			],
+			"targetId" : "gui-builder::@2807c13f4d251b02ffef",
+			"targetIndex" : 6,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 4,
+			"component" : "gui-builder",
+			"destination" : "share/tgui-1/gui-builder",
+			"paths" : 
+			[
+				"deps/AsteroidsEngine/deps/TGUI/gui-builder/resources"
+			],
+			"type" : "directory"
+		},
+		{
+			"backtrace" : 5,
+			"component" : "gui-builder",
+			"destination" : "share/tgui-1/gui-builder",
+			"paths" : 
+			[
+				"deps/AsteroidsEngine/deps/TGUI/themes"
+			],
+			"type" : "directory"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "deps/AsteroidsEngine/deps/TGUI/gui-builder",
+		"source" : "deps/AsteroidsEngine/deps/TGUI/gui-builder"
+	}
+}

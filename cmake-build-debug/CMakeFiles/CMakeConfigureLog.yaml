@@ -1,0 +1,1080 @@
+
+---
+events:
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineSystem.cmake:211 (message)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      The system is: Linux - 6.5.0-18-generic - x86_64
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCCompiler.cmake:123 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+      Compiler: /usr/bin/cc 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
+      
+      The C compiler identification is Clang, found in:
+        /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/3.27.8/CompilerIdC/a.out
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCXXCompiler.cmake:126 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: /usr/bin/c++ 
+      Build flags: 
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+      
+      The CXX compiler identification is Clang, found in:
+        /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/3.27.8/CompilerIdCXX/a.out
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    checks:
+      - "Detecting C compiler ABI info"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LySIu8"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LySIu8"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_C_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LySIu8'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_34539
+        [1/2] /usr/bin/cc   -fcolor-diagnostics   -v -MD -MT CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -c /home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCCompilerABI.c
+        Ubuntu clang version 14.0.0-1ubuntu1.1
+        Target: x86_64-pc-linux-gnu
+        Thread model: posix
+        InstalledDir: /usr/bin
+        Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11
+        Selected GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11
+        Candidate multilib: .;@m64
+        Selected multilib: .;@m64
+         (in-process)
+         "/usr/lib/llvm-14/bin/clang" -cc1 -triple x86_64-pc-linux-gnu -emit-obj -mrelax-all --mrelax-relocations -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=all -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -mllvm -treat-scalable-fixed-error-as-warning -debugger-tuning=gdb -v -fcoverage-compilation-dir=/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LySIu8 -resource-dir /usr/lib/llvm-14/lib/clang/14.0.0 -dependency-file CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -sys-header-deps -internal-isystem /usr/lib/llvm-14/lib/clang/14.0.0/include -internal-isystem /usr/local/include -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdebug-compilation-dir=/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LySIu8 -ferror-limit 19 -fgnuc-version=4.2.1 -fcolor-diagnostics -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -x c /home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCCompilerABI.c
+        clang -cc1 version 14.0.0 based upon LLVM 14.0.0 default target x86_64-pc-linux-gnu
+        ignoring nonexistent directory "/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include"
+        ignoring nonexistent directory "/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /usr/lib/llvm-14/lib/clang/14.0.0/include
+         /usr/local/include
+         /usr/include/x86_64-linux-gnu
+         /usr/include
+        End of search list.
+        [2/2] : && /usr/bin/cc  -v CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -o cmTC_34539   && :
+        Ubuntu clang version 14.0.0-1ubuntu1.1
+        Target: x86_64-pc-linux-gnu
+        Thread model: posix
+        InstalledDir: /usr/bin
+        Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11
+        Selected GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11
+        Candidate multilib: .;@m64
+        Selected multilib: .;@m64
+         "/usr/bin/ld" -pie -z relro --hash-style=gnu --build-id --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_34539 /lib/x86_64-linux-gnu/Scrt1.o /lib/x86_64-linux-gnu/crti.o /usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/bin/../lib/gcc/x86_64-linux-gnu/11 -L/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../lib64 -L/lib/x86_64-linux-gnu -L/lib/../lib64 -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib64 -L/usr/lib/llvm-14/bin/../lib -L/lib -L/usr/lib CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtendS.o /lib/x86_64-linux-gnu/crtn.o
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCompilerABI.cmake:127 (message)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed C implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/usr/lib/llvm-14/lib/clang/14.0.0/include]
+          add: [/usr/local/include]
+          add: [/usr/include/x86_64-linux-gnu]
+          add: [/usr/include]
+        end of search list found
+        collapse include dir [/usr/lib/llvm-14/lib/clang/14.0.0/include] ==> [/usr/lib/llvm-14/lib/clang/14.0.0/include]
+        collapse include dir [/usr/local/include] ==> [/usr/local/include]
+        collapse include dir [/usr/include/x86_64-linux-gnu] ==> [/usr/include/x86_64-linux-gnu]
+        collapse include dir [/usr/include] ==> [/usr/include]
+        implicit include dirs: [/usr/lib/llvm-14/lib/clang/14.0.0/include;/usr/local/include;/usr/include/x86_64-linux-gnu;/usr/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCompilerABI.cmake:152 (message)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeTestCCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed C implicit link information:
+        link line regex: [^( *|.*[/\\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        ignore line: [Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LySIu8']
+        ignore line: []
+        ignore line: [Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_34539]
+        ignore line: [[1/2] /usr/bin/cc   -fcolor-diagnostics   -v -MD -MT CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -MF CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o.d -o CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -c /home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCCompilerABI.c]
+        ignore line: [Ubuntu clang version 14.0.0-1ubuntu1.1]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: /usr/bin]
+        ignore line: [Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11]
+        ignore line: [Selected GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11]
+        ignore line: [Candidate multilib: .]
+        ignore line: [@m64]
+        ignore line: [Selected multilib: .]
+        ignore line: [@m64]
+        ignore line: [ (in-process)]
+        ignore line: [ "/usr/lib/llvm-14/bin/clang" -cc1 -triple x86_64-pc-linux-gnu -emit-obj -mrelax-all --mrelax-relocations -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCCompilerABI.c -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=all -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -mllvm -treat-scalable-fixed-error-as-warning -debugger-tuning=gdb -v -fcoverage-compilation-dir=/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LySIu8 -resource-dir /usr/lib/llvm-14/lib/clang/14.0.0 -dependency-file CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o.d -MT CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -sys-header-deps -internal-isystem /usr/lib/llvm-14/lib/clang/14.0.0/include -internal-isystem /usr/local/include -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdebug-compilation-dir=/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LySIu8 -ferror-limit 19 -fgnuc-version=4.2.1 -fcolor-diagnostics -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -x c /home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCCompilerABI.c]
+        ignore line: [clang -cc1 version 14.0.0 based upon LLVM 14.0.0 default target x86_64-pc-linux-gnu]
+        ignore line: [ignoring nonexistent directory "/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include"]
+        ignore line: [ignoring nonexistent directory "/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /usr/lib/llvm-14/lib/clang/14.0.0/include]
+        ignore line: [ /usr/local/include]
+        ignore line: [ /usr/include/x86_64-linux-gnu]
+        ignore line: [ /usr/include]
+        ignore line: [End of search list.]
+        ignore line: [[2/2] : && /usr/bin/cc  -v CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -o cmTC_34539   && :]
+        ignore line: [Ubuntu clang version 14.0.0-1ubuntu1.1]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: /usr/bin]
+        ignore line: [Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11]
+        ignore line: [Selected GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11]
+        ignore line: [Candidate multilib: .]
+        ignore line: [@m64]
+        ignore line: [Selected multilib: .]
+        ignore line: [@m64]
+        link line: [ "/usr/bin/ld" -pie -z relro --hash-style=gnu --build-id --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_34539 /lib/x86_64-linux-gnu/Scrt1.o /lib/x86_64-linux-gnu/crti.o /usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/bin/../lib/gcc/x86_64-linux-gnu/11 -L/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../lib64 -L/lib/x86_64-linux-gnu -L/lib/../lib64 -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib64 -L/usr/lib/llvm-14/bin/../lib -L/lib -L/usr/lib CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtendS.o /lib/x86_64-linux-gnu/crtn.o]
+          arg [/usr/bin/ld] ==> ignore
+          arg [-pie] ==> ignore
+          arg [-zrelro] ==> ignore
+          arg [--hash-style=gnu] ==> ignore
+          arg [--build-id] ==> ignore
+          arg [--eh-frame-hdr] ==> ignore
+          arg [-m] ==> ignore
+          arg [elf_x86_64] ==> ignore
+          arg [-dynamic-linker] ==> ignore
+          arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_34539] ==> ignore
+          arg [/lib/x86_64-linux-gnu/Scrt1.o] ==> obj [/lib/x86_64-linux-gnu/Scrt1.o]
+          arg [/lib/x86_64-linux-gnu/crti.o] ==> obj [/lib/x86_64-linux-gnu/crti.o]
+          arg [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtbeginS.o] ==> obj [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtbeginS.o]
+          arg [-L/usr/bin/../lib/gcc/x86_64-linux-gnu/11] ==> dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11]
+          arg [-L/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../lib64] ==> dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../lib64]
+          arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+          arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+          arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+          arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+          arg [-L/usr/lib/llvm-14/bin/../lib] ==> dir [/usr/lib/llvm-14/bin/../lib]
+          arg [-L/lib] ==> dir [/lib]
+          arg [-L/usr/lib] ==> dir [/usr/lib]
+          arg [CMakeFiles/cmTC_34539.dir/CMakeCCompilerABI.c.o] ==> ignore
+          arg [-lgcc] ==> lib [gcc]
+          arg [--as-needed] ==> ignore
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [--no-as-needed] ==> ignore
+          arg [-lc] ==> lib [c]
+          arg [-lgcc] ==> lib [gcc]
+          arg [--as-needed] ==> ignore
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [--no-as-needed] ==> ignore
+          arg [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtendS.o] ==> obj [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtendS.o]
+          arg [/lib/x86_64-linux-gnu/crtn.o] ==> obj [/lib/x86_64-linux-gnu/crtn.o]
+        collapse obj [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtbeginS.o] ==> [/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o]
+        collapse obj [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtendS.o] ==> [/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o]
+        collapse library dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11] ==> [/usr/lib/gcc/x86_64-linux-gnu/11]
+        collapse library dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../lib64] ==> [/usr/lib64]
+        collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+        collapse library dir [/lib/../lib64] ==> [/lib64]
+        collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+        collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+        collapse library dir [/usr/lib/llvm-14/bin/../lib] ==> [/usr/lib/llvm-14/lib]
+        collapse library dir [/lib] ==> [/lib]
+        collapse library dir [/usr/lib] ==> [/usr/lib]
+        implicit libs: [gcc;gcc_s;c;gcc;gcc_s]
+        implicit objs: [/lib/x86_64-linux-gnu/Scrt1.o;/lib/x86_64-linux-gnu/crti.o;/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o;/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o;/lib/x86_64-linux-gnu/crtn.o]
+        implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/11;/usr/lib64;/lib/x86_64-linux-gnu;/lib64;/usr/lib/x86_64-linux-gnu;/usr/lib/llvm-14/lib;/lib;/usr/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCompilerABI.cmake:57 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-gK1Jxc"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-gK1Jxc"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-gK1Jxc'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_1b480
+        [1/2] /usr/bin/c++   -fcolor-diagnostics   -v -MD -MT CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -c /home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCXXCompilerABI.cpp
+        Ubuntu clang version 14.0.0-1ubuntu1.1
+        Target: x86_64-pc-linux-gnu
+        Thread model: posix
+        InstalledDir: /usr/bin
+        Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11
+        Selected GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11
+        Candidate multilib: .;@m64
+        Selected multilib: .;@m64
+         (in-process)
+         "/usr/lib/llvm-14/bin/clang" -cc1 -triple x86_64-pc-linux-gnu -emit-obj -mrelax-all --mrelax-relocations -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=all -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -mllvm -treat-scalable-fixed-error-as-warning -debugger-tuning=gdb -v -fcoverage-compilation-dir=/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-gK1Jxc -resource-dir /usr/lib/llvm-14/lib/clang/14.0.0 -dependency-file CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o.d -MT CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11 -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11 -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/backward -internal-isystem /usr/lib/llvm-14/lib/clang/14.0.0/include -internal-isystem /usr/local/include -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir=/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-gK1Jxc -ferror-limit 19 -fgnuc-version=4.2.1 -fcxx-exceptions -fexceptions -fcolor-diagnostics -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -x c++ /home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCXXCompilerABI.cpp
+        clang -cc1 version 14.0.0 based upon LLVM 14.0.0 default target x86_64-pc-linux-gnu
+        ignoring nonexistent directory "/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include"
+        ignoring nonexistent directory "/include"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11
+         /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11
+         /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/backward
+         /usr/lib/llvm-14/lib/clang/14.0.0/include
+         /usr/local/include
+         /usr/include/x86_64-linux-gnu
+         /usr/include
+        End of search list.
+        [2/2] : && /usr/bin/c++  -v CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_1b480   && :
+        Ubuntu clang version 14.0.0-1ubuntu1.1
+        Target: x86_64-pc-linux-gnu
+        Thread model: posix
+        InstalledDir: /usr/bin
+        Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11
+        Selected GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11
+        Candidate multilib: .;@m64
+        Selected multilib: .;@m64
+         "/usr/bin/ld" -pie -z relro --hash-style=gnu --build-id --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_1b480 /lib/x86_64-linux-gnu/Scrt1.o /lib/x86_64-linux-gnu/crti.o /usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/bin/../lib/gcc/x86_64-linux-gnu/11 -L/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../lib64 -L/lib/x86_64-linux-gnu -L/lib/../lib64 -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib64 -L/usr/lib/llvm-14/bin/../lib -L/lib -L/usr/lib CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtendS.o /lib/x86_64-linux-gnu/crtn.o
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCompilerABI.cmake:127 (message)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11]
+          add: [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11]
+          add: [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/backward]
+          add: [/usr/lib/llvm-14/lib/clang/14.0.0/include]
+          add: [/usr/local/include]
+          add: [/usr/include/x86_64-linux-gnu]
+          add: [/usr/include]
+        end of search list found
+        collapse include dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11] ==> [/usr/include/c++/11]
+        collapse include dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11] ==> [/usr/include/x86_64-linux-gnu/c++/11]
+        collapse include dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/backward] ==> [/usr/include/c++/11/backward]
+        collapse include dir [/usr/lib/llvm-14/lib/clang/14.0.0/include] ==> [/usr/lib/llvm-14/lib/clang/14.0.0/include]
+        collapse include dir [/usr/local/include] ==> [/usr/local/include]
+        collapse include dir [/usr/include/x86_64-linux-gnu] ==> [/usr/include/x86_64-linux-gnu]
+        collapse include dir [/usr/include] ==> [/usr/include]
+        implicit include dirs: [/usr/include/c++/11;/usr/include/x86_64-linux-gnu/c++/11;/usr/include/c++/11/backward;/usr/lib/llvm-14/lib/clang/14.0.0/include;/usr/local/include;/usr/include/x86_64-linux-gnu;/usr/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeDetermineCompilerABI.cmake:152 (message)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:2 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        ignore line: [Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-gK1Jxc']
+        ignore line: []
+        ignore line: [Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_1b480]
+        ignore line: [[1/2] /usr/bin/c++   -fcolor-diagnostics   -v -MD -MT CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -c /home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Ubuntu clang version 14.0.0-1ubuntu1.1]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: /usr/bin]
+        ignore line: [Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11]
+        ignore line: [Selected GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11]
+        ignore line: [Candidate multilib: .]
+        ignore line: [@m64]
+        ignore line: [Selected multilib: .]
+        ignore line: [@m64]
+        ignore line: [ (in-process)]
+        ignore line: [ "/usr/lib/llvm-14/bin/clang" -cc1 -triple x86_64-pc-linux-gnu -emit-obj -mrelax-all --mrelax-relocations -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -pic-is-pie -mframe-pointer=all -fmath-errno -ffp-contract=on -fno-rounding-math -mconstructor-aliases -funwind-tables=2 -target-cpu x86-64 -tune-cpu generic -mllvm -treat-scalable-fixed-error-as-warning -debugger-tuning=gdb -v -fcoverage-compilation-dir=/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-gK1Jxc -resource-dir /usr/lib/llvm-14/lib/clang/14.0.0 -dependency-file CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o.d -MT CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11 -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11 -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/backward -internal-isystem /usr/lib/llvm-14/lib/clang/14.0.0/include -internal-isystem /usr/local/include -internal-isystem /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include -internal-externc-isystem /usr/include/x86_64-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir=/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-gK1Jxc -ferror-limit 19 -fgnuc-version=4.2.1 -fcxx-exceptions -fexceptions -fcolor-diagnostics -faddrsig -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -x c++ /home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [clang -cc1 version 14.0.0 based upon LLVM 14.0.0 default target x86_64-pc-linux-gnu]
+        ignore line: [ignoring nonexistent directory "/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../x86_64-linux-gnu/include"]
+        ignore line: [ignoring nonexistent directory "/include"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11]
+        ignore line: [ /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/x86_64-linux-gnu/c++/11]
+        ignore line: [ /usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../include/c++/11/backward]
+        ignore line: [ /usr/lib/llvm-14/lib/clang/14.0.0/include]
+        ignore line: [ /usr/local/include]
+        ignore line: [ /usr/include/x86_64-linux-gnu]
+        ignore line: [ /usr/include]
+        ignore line: [End of search list.]
+        ignore line: [[2/2] : && /usr/bin/c++  -v CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_1b480   && :]
+        ignore line: [Ubuntu clang version 14.0.0-1ubuntu1.1]
+        ignore line: [Target: x86_64-pc-linux-gnu]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: /usr/bin]
+        ignore line: [Found candidate GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11]
+        ignore line: [Selected GCC installation: /usr/bin/../lib/gcc/x86_64-linux-gnu/11]
+        ignore line: [Candidate multilib: .]
+        ignore line: [@m64]
+        ignore line: [Selected multilib: .]
+        ignore line: [@m64]
+        link line: [ "/usr/bin/ld" -pie -z relro --hash-style=gnu --build-id --eh-frame-hdr -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_1b480 /lib/x86_64-linux-gnu/Scrt1.o /lib/x86_64-linux-gnu/crti.o /usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtbeginS.o -L/usr/bin/../lib/gcc/x86_64-linux-gnu/11 -L/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../lib64 -L/lib/x86_64-linux-gnu -L/lib/../lib64 -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib64 -L/usr/lib/llvm-14/bin/../lib -L/lib -L/usr/lib CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtendS.o /lib/x86_64-linux-gnu/crtn.o]
+          arg [/usr/bin/ld] ==> ignore
+          arg [-pie] ==> ignore
+          arg [-zrelro] ==> ignore
+          arg [--hash-style=gnu] ==> ignore
+          arg [--build-id] ==> ignore
+          arg [--eh-frame-hdr] ==> ignore
+          arg [-m] ==> ignore
+          arg [elf_x86_64] ==> ignore
+          arg [-dynamic-linker] ==> ignore
+          arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+          arg [-o] ==> ignore
+          arg [cmTC_1b480] ==> ignore
+          arg [/lib/x86_64-linux-gnu/Scrt1.o] ==> obj [/lib/x86_64-linux-gnu/Scrt1.o]
+          arg [/lib/x86_64-linux-gnu/crti.o] ==> obj [/lib/x86_64-linux-gnu/crti.o]
+          arg [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtbeginS.o] ==> obj [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtbeginS.o]
+          arg [-L/usr/bin/../lib/gcc/x86_64-linux-gnu/11] ==> dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11]
+          arg [-L/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../lib64] ==> dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../lib64]
+          arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+          arg [-L/lib/../lib64] ==> dir [/lib/../lib64]
+          arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+          arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
+          arg [-L/usr/lib/llvm-14/bin/../lib] ==> dir [/usr/lib/llvm-14/bin/../lib]
+          arg [-L/lib] ==> dir [/lib]
+          arg [-L/usr/lib] ==> dir [/usr/lib]
+          arg [CMakeFiles/cmTC_1b480.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [-lstdc++] ==> lib [stdc++]
+          arg [-lm] ==> lib [m]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [-lc] ==> lib [c]
+          arg [-lgcc_s] ==> lib [gcc_s]
+          arg [-lgcc] ==> lib [gcc]
+          arg [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtendS.o] ==> obj [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtendS.o]
+          arg [/lib/x86_64-linux-gnu/crtn.o] ==> obj [/lib/x86_64-linux-gnu/crtn.o]
+        collapse obj [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtbeginS.o] ==> [/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o]
+        collapse obj [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/crtendS.o] ==> [/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o]
+        collapse library dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11] ==> [/usr/lib/gcc/x86_64-linux-gnu/11]
+        collapse library dir [/usr/bin/../lib/gcc/x86_64-linux-gnu/11/../../../../lib64] ==> [/usr/lib64]
+        collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+        collapse library dir [/lib/../lib64] ==> [/lib64]
+        collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+        collapse library dir [/usr/lib/../lib64] ==> [/usr/lib64]
+        collapse library dir [/usr/lib/llvm-14/bin/../lib] ==> [/usr/lib/llvm-14/lib]
+        collapse library dir [/lib] ==> [/lib]
+        collapse library dir [/usr/lib] ==> [/usr/lib]
+        implicit libs: [stdc++;m;gcc_s;gcc;c;gcc_s;gcc]
+        implicit objs: [/lib/x86_64-linux-gnu/Scrt1.o;/lib/x86_64-linux-gnu/crti.o;/usr/lib/gcc/x86_64-linux-gnu/11/crtbeginS.o;/usr/lib/gcc/x86_64-linux-gnu/11/crtendS.o;/lib/x86_64-linux-gnu/crtn.o]
+        implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/11;/usr/lib64;/lib/x86_64-linux-gnu;/lib64;/usr/lib/x86_64-linux-gnu;/usr/lib/llvm-14/lib;/lib;/usr/lib]
+        implicit fwks: []
+      
+      
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckSymbolExists.cmake:140 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckSymbolExists.cmake:66 (__CHECK_SYMBOL_EXISTS_IMPL)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/CMakeLists.txt:117 (check_symbol_exists)"
+    checks:
+      - "Looking for EVP_MD_CTX_free"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-RN6neb"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-RN6neb"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "OPENSSL_NEW_ENOUGH"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-RN6neb'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_6111e
+        [1/2] /usr/bin/cc   -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_6111e.dir/CheckSymbolExists.c.o -MF CMakeFiles/cmTC_6111e.dir/CheckSymbolExists.c.o.d -o CMakeFiles/cmTC_6111e.dir/CheckSymbolExists.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-RN6neb/CheckSymbolExists.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_6111e.dir/CheckSymbolExists.c.o -o cmTC_6111e  /usr/lib/x86_64-linux-gnu/libcrypto.so && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCSourceCompiles.cmake:52 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindThreads.cmake:97 (CHECK_C_SOURCE_COMPILES)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindThreads.cmake:163 (_threads_check_libc)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindProtobuf.cmake:444 (find_package)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:7 (find_package)"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-5F3FcX"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-5F3FcX"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "CMAKE_HAVE_LIBC_PTHREAD"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-5F3FcX'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_c1f05
+        [1/2] /usr/bin/cc -DCMAKE_HAVE_LIBC_PTHREAD  -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_c1f05.dir/src.c.o -MF CMakeFiles/cmTC_c1f05.dir/src.c.o.d -o CMakeFiles/cmTC_c1f05.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-5F3FcX/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_c1f05.dir/src.c.o -o cmTC_c1f05   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake:51 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:265 (check_c_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _fvisibility_hidden_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-zWzpf0"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-zWzpf0"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_fvisibility_hidden_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-zWzpf0'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_3546b
+        [1/2] /usr/bin/cc -D_fvisibility_hidden_TEST  -fcolor-diagnostics   -fvisibility=hidden -MD -MT CMakeFiles/cmTC_3546b.dir/src.c.o -MF CMakeFiles/cmTC_3546b.dir/src.c.o.d -o CMakeFiles/cmTC_3546b.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-zWzpf0/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_3546b.dir/src.c.o -o cmTC_3546b   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake:51 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:265 (check_c_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _fno_strict_aliasing_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-WBk2kH"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-WBk2kH"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_fno_strict_aliasing_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-WBk2kH'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_cb43e
+        [1/2] /usr/bin/cc -D_fno_strict_aliasing_TEST  -fcolor-diagnostics   -fno-strict-aliasing -MD -MT CMakeFiles/cmTC_cb43e.dir/src.c.o -MF CMakeFiles/cmTC_cb43e.dir/src.c.o.d -o CMakeFiles/cmTC_cb43e.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-WBk2kH/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_cb43e.dir/src.c.o -o cmTC_cb43e   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake:51 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:265 (check_c_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wall_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-4qIgZo"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-4qIgZo"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wall_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-4qIgZo'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_c9168
+        [1/2] /usr/bin/cc -D_Wall_TEST  -fcolor-diagnostics   -Wall -MD -MT CMakeFiles/cmTC_c9168.dir/src.c.o -MF CMakeFiles/cmTC_c9168.dir/src.c.o.d -o CMakeFiles/cmTC_c9168.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-4qIgZo/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_c9168.dir/src.c.o -o cmTC_c9168   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake:51 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:265 (check_c_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wno_unknown_pragmas_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-ZaLIQt"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-ZaLIQt"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wno_unknown_pragmas_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-ZaLIQt'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_3c549
+        [1/2] /usr/bin/cc -D_Wno_unknown_pragmas_TEST  -fcolor-diagnostics   -Wno-unknown-pragmas -MD -MT CMakeFiles/cmTC_3c549.dir/src.c.o -MF CMakeFiles/cmTC_3c549.dir/src.c.o.d -o CMakeFiles/cmTC_3c549.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-ZaLIQt/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_3c549.dir/src.c.o -o cmTC_3c549   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake:51 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:265 (check_c_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wno_sign_compare_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-SUYyT9"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-SUYyT9"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wno_sign_compare_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-SUYyT9'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_c8529
+        [1/2] /usr/bin/cc -D_Wno_sign_compare_TEST  -fcolor-diagnostics   -Wno-sign-compare -MD -MT CMakeFiles/cmTC_c8529.dir/src.c.o -MF CMakeFiles/cmTC_c8529.dir/src.c.o.d -o CMakeFiles/cmTC_c8529.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-SUYyT9/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_c8529.dir/src.c.o -o cmTC_c8529   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake:51 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:265 (check_c_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wno_unused_local_typedef_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-NZs2JN"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-NZs2JN"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wno_unused_local_typedef_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-NZs2JN'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_d7ed1
+        [1/2] /usr/bin/cc -D_Wno_unused_local_typedef_TEST  -fcolor-diagnostics   -Wno-unused-local-typedef -MD -MT CMakeFiles/cmTC_d7ed1.dir/src.c.o -MF CMakeFiles/cmTC_d7ed1.dir/src.c.o.d -o CMakeFiles/cmTC_d7ed1.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-NZs2JN/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_d7ed1.dir/src.c.o -o cmTC_d7ed1   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake:51 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:265 (check_c_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wno_unused_const_variable_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-ybRamZ"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-ybRamZ"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wno_unused_const_variable_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-ybRamZ'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_1e92f
+        [1/2] /usr/bin/cc -D_Wno_unused_const_variable_TEST  -fcolor-diagnostics   -Wno-unused-const-variable -MD -MT CMakeFiles/cmTC_1e92f.dir/src.c.o -MF CMakeFiles/cmTC_1e92f.dir/src.c.o.d -o CMakeFiles/cmTC_1e92f.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-ybRamZ/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_1e92f.dir/src.c.o -o cmTC_1e92f   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake:51 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:265 (check_c_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wno_nested_anon_types_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-52qSqJ"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-52qSqJ"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wno_nested_anon_types_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-52qSqJ'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_e4cd9
+        [1/2] /usr/bin/cc -D_Wno_nested_anon_types_TEST  -fcolor-diagnostics   -Wno-nested-anon-types -MD -MT CMakeFiles/cmTC_e4cd9.dir/src.c.o -MF CMakeFiles/cmTC_e4cd9.dir/src.c.o.d -o CMakeFiles/cmTC_e4cd9.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-52qSqJ/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_e4cd9.dir/src.c.o -o cmTC_e4cd9   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake:51 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:265 (check_c_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wno_format_truncation_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-J6cdPk"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-J6cdPk"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wno_format_truncation_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-J6cdPk'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_2e1b3
+        [1/2] /usr/bin/cc -D_Wno_format_truncation_TEST  -fcolor-diagnostics   -Wno-format-truncation -MD -MT CMakeFiles/cmTC_2e1b3.dir/src.c.o -MF CMakeFiles/cmTC_2e1b3.dir/src.c.o.d -o CMakeFiles/cmTC_2e1b3.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-J6cdPk/src.c
+        warning: unknown warning option '-Wno-format-truncation' [-Wunknown-warning-option]
+        1 warning generated.
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_2e1b3.dir/src.c.o -o cmTC_2e1b3   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCCompilerFlag.cmake:51 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:265 (check_c_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wstrict_prototypes_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-m2PZgz"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-m2PZgz"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wstrict_prototypes_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-m2PZgz'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_95020
+        [1/2] /usr/bin/cc -D_Wstrict_prototypes_TEST  -fcolor-diagnostics   -Wstrict-prototypes -MD -MT CMakeFiles/cmTC_95020.dir/src.c.o -MF CMakeFiles/cmTC_95020.dir/src.c.o.d -o CMakeFiles/cmTC_95020.dir/src.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-m2PZgz/src.c
+        [2/2] : && /usr/bin/cc   CMakeFiles/cmTC_95020.dir/src.c.o -o cmTC_95020   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCXXCompilerFlag.cmake:34 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:274 (check_cxx_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _fvisibility_inlines_hidden_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-GZk7QP"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-GZk7QP"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_fvisibility_inlines_hidden_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-GZk7QP'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_a358b
+        [1/2] /usr/bin/c++ -D_fvisibility_inlines_hidden_TEST  -fcolor-diagnostics   -fvisibility-inlines-hidden -MD -MT CMakeFiles/cmTC_a358b.dir/src.cxx.o -MF CMakeFiles/cmTC_a358b.dir/src.cxx.o.d -o CMakeFiles/cmTC_a358b.dir/src.cxx.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-GZk7QP/src.cxx
+        [2/2] : && /usr/bin/c++   CMakeFiles/cmTC_a358b.dir/src.cxx.o -o cmTC_a358b   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCXXCompilerFlag.cmake:34 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:274 (check_cxx_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wno_reorder_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LWFTyp"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LWFTyp"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wno_reorder_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LWFTyp'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_3c011
+        [1/2] /usr/bin/c++ -D_Wno_reorder_TEST  -fcolor-diagnostics   -Wno-reorder -MD -MT CMakeFiles/cmTC_3c011.dir/src.cxx.o -MF CMakeFiles/cmTC_3c011.dir/src.cxx.o.d -o CMakeFiles/cmTC_3c011.dir/src.cxx.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LWFTyp/src.cxx
+        [2/2] : && /usr/bin/c++   CMakeFiles/cmTC_3c011.dir/src.cxx.o -o cmTC_3c011   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCXXCompilerFlag.cmake:34 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:274 (check_cxx_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wno_non_virtual_dtor_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LFxdJN"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LFxdJN"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wno_non_virtual_dtor_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LFxdJN'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_d262d
+        [1/2] /usr/bin/c++ -D_Wno_non_virtual_dtor_TEST  -fcolor-diagnostics   -Wno-non-virtual-dtor -MD -MT CMakeFiles/cmTC_d262d.dir/src.cxx.o -MF CMakeFiles/cmTC_d262d.dir/src.cxx.o.d -o CMakeFiles/cmTC_d262d.dir/src.cxx.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-LFxdJN/src.cxx
+        [2/2] : && /usr/bin/c++   CMakeFiles/cmTC_d262d.dir/src.cxx.o -o cmTC_d262d   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCXXCompilerFlag.cmake:34 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:274 (check_cxx_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _Wno_zero_as_null_pointer_constant_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A3BNi3"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A3BNi3"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_Wno_zero_as_null_pointer_constant_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A3BNi3'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_01eef
+        [1/2] /usr/bin/c++ -D_Wno_zero_as_null_pointer_constant_TEST  -fcolor-diagnostics   -Wno-zero-as-null-pointer-constant -MD -MT CMakeFiles/cmTC_01eef.dir/src.cxx.o -MF CMakeFiles/cmTC_01eef.dir/src.cxx.o.d -o CMakeFiles/cmTC_01eef.dir/src.cxx.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A3BNi3/src.cxx
+        [2/2] : && /usr/bin/c++   CMakeFiles/cmTC_01eef.dir/src.cxx.o -o cmTC_01eef   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCXXCompilerFlag.cmake:34 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:274 (check_cxx_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _fno_exceptions_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-KWRvO7"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-KWRvO7"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_fno_exceptions_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-KWRvO7'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_0593b
+        [1/2] /usr/bin/c++ -D_fno_exceptions_TEST  -fcolor-diagnostics   -fno-exceptions -MD -MT CMakeFiles/cmTC_0593b.dir/src.cxx.o -MF CMakeFiles/cmTC_0593b.dir/src.cxx.o.d -o CMakeFiles/cmTC_0593b.dir/src.cxx.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-KWRvO7/src.cxx
+        [2/2] : && /usr/bin/c++   CMakeFiles/cmTC_0593b.dir/src.cxx.o -o cmTC_0593b   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckSourceCompiles.cmake:101 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/Internal/CheckCompilerFlag.cmake:18 (cmake_check_source_compiles)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckCXXCompilerFlag.cmake:34 (cmake_check_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:274 (check_cxx_compiler_flag)"
+      - "deps/AsteroidsEngine/deps/GameNetworkingSockets/src/CMakeLists.txt:327 (set_clientlib_target_properties)"
+    checks:
+      - "Performing Test _fno_rtti_TEST"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-pveEql"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-pveEql"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: ""
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/GameNetworkingSockets/cmake"
+    buildResult:
+      variable: "_fno_rtti_TEST"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-pveEql'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_4d65c
+        [1/2] /usr/bin/c++ -D_fno_rtti_TEST  -fcolor-diagnostics   -fno-rtti -MD -MT CMakeFiles/cmTC_4d65c.dir/src.cxx.o -MF CMakeFiles/cmTC_4d65c.dir/src.cxx.o.d -o CMakeFiles/cmTC_4d65c.dir/src.cxx.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-pveEql/src.cxx
+        [2/2] : && /usr/bin/c++   CMakeFiles/cmTC_4d65c.dir/src.cxx.o -o cmTC_4d65c   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckLibraryExists.cmake:69 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindX11.cmake:682 (check_library_exists)"
+      - "deps/AsteroidsEngine/deps/SFML/src/SFML/Window/CMakeLists.txt:276 (find_package)"
+    checks:
+      - "Looking for XOpenDisplay in /usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-qV1wAq"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-qV1wAq"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/SFML/cmake/Modules/"
+      CMAKE_OSX_DEPLOYMENT_TARGET: "13.0"
+    buildResult:
+      variable: "X11_LIB_X11_SOLO"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-qV1wAq'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_09157
+        [1/2] /usr/bin/cc   -DCHECK_FUNCTION_EXISTS=XOpenDisplay -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_09157.dir/CheckFunctionExists.c.o -MF CMakeFiles/cmTC_09157.dir/CheckFunctionExists.c.o.d -o CMakeFiles/cmTC_09157.dir/CheckFunctionExists.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-qV1wAq/CheckFunctionExists.c
+        [2/2] : && /usr/bin/cc -DCHECK_FUNCTION_EXISTS=XOpenDisplay  CMakeFiles/cmTC_09157.dir/CheckFunctionExists.c.o -o cmTC_09157  /usr/lib/x86_64-linux-gnu/libX11.so  /usr/lib/x86_64-linux-gnu/libXext.so && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindX11.cmake:697 (check_function_exists)"
+      - "deps/AsteroidsEngine/deps/SFML/src/SFML/Window/CMakeLists.txt:276 (find_package)"
+    checks:
+      - "Looking for gethostbyname"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-hLljNe"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-hLljNe"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/SFML/cmake/Modules/"
+      CMAKE_OSX_DEPLOYMENT_TARGET: "13.0"
+    buildResult:
+      variable: "CMAKE_HAVE_GETHOSTBYNAME"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-hLljNe'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_a874a
+        [1/2] /usr/bin/cc   -DCHECK_FUNCTION_EXISTS=gethostbyname -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_a874a.dir/CheckFunctionExists.c.o -MF CMakeFiles/cmTC_a874a.dir/CheckFunctionExists.c.o.d -o CMakeFiles/cmTC_a874a.dir/CheckFunctionExists.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-hLljNe/CheckFunctionExists.c
+        [2/2] : && /usr/bin/cc -DCHECK_FUNCTION_EXISTS=gethostbyname  CMakeFiles/cmTC_a874a.dir/CheckFunctionExists.c.o -o cmTC_a874a   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindX11.cmake:711 (check_function_exists)"
+      - "deps/AsteroidsEngine/deps/SFML/src/SFML/Window/CMakeLists.txt:276 (find_package)"
+    checks:
+      - "Looking for connect"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-OOvoQi"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-OOvoQi"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/SFML/cmake/Modules/"
+      CMAKE_OSX_DEPLOYMENT_TARGET: "13.0"
+    buildResult:
+      variable: "CMAKE_HAVE_CONNECT"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-OOvoQi'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_06414
+        [1/2] /usr/bin/cc   -DCHECK_FUNCTION_EXISTS=connect -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_06414.dir/CheckFunctionExists.c.o -MF CMakeFiles/cmTC_06414.dir/CheckFunctionExists.c.o.d -o CMakeFiles/cmTC_06414.dir/CheckFunctionExists.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-OOvoQi/CheckFunctionExists.c
+        [2/2] : && /usr/bin/cc -DCHECK_FUNCTION_EXISTS=connect  CMakeFiles/cmTC_06414.dir/CheckFunctionExists.c.o -o cmTC_06414   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindX11.cmake:720 (check_function_exists)"
+      - "deps/AsteroidsEngine/deps/SFML/src/SFML/Window/CMakeLists.txt:276 (find_package)"
+    checks:
+      - "Looking for remove"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mQ493F"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mQ493F"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/SFML/cmake/Modules/"
+      CMAKE_OSX_DEPLOYMENT_TARGET: "13.0"
+    buildResult:
+      variable: "CMAKE_HAVE_REMOVE"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mQ493F'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_98527
+        [1/2] /usr/bin/cc   -DCHECK_FUNCTION_EXISTS=remove -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_98527.dir/CheckFunctionExists.c.o -MF CMakeFiles/cmTC_98527.dir/CheckFunctionExists.c.o.d -o CMakeFiles/cmTC_98527.dir/CheckFunctionExists.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-mQ493F/CheckFunctionExists.c
+        [2/2] : && /usr/bin/cc -DCHECK_FUNCTION_EXISTS=remove  CMakeFiles/cmTC_98527.dir/CheckFunctionExists.c.o -o cmTC_98527   && :
+        
+      exitCode: 0
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/CheckFunctionExists.cmake:86 (try_compile)"
+      - "/home/sawyer/Downloads/clion-2023.3.4/bin/cmake/linux/x64/share/cmake-3.27/Modules/FindX11.cmake:729 (check_function_exists)"
+      - "deps/AsteroidsEngine/deps/SFML/src/SFML/Window/CMakeLists.txt:276 (find_package)"
+    checks:
+      - "Looking for shmat"
+    directories:
+      source: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A6BDSU"
+      binary: "/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A6BDSU"
+    cmakeVariables:
+      CMAKE_C_FLAGS: ""
+      CMAKE_C_FLAGS_DEBUG: "-g"
+      CMAKE_EXE_LINKER_FLAGS: ""
+      CMAKE_MODULE_PATH: "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/SFML/cmake/Modules/"
+      CMAKE_OSX_DEPLOYMENT_TARGET: "13.0"
+    buildResult:
+      variable: "CMAKE_HAVE_SHMAT"
+      cached: true
+      stdout: |
+        Change Dir: '/home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A6BDSU'
+        
+        Run Build Command(s): /home/sawyer/Downloads/clion-2023.3.4/bin/ninja/linux/x64/ninja -v cmTC_0fcb5
+        [1/2] /usr/bin/cc   -DCHECK_FUNCTION_EXISTS=shmat -fcolor-diagnostics -MD -MT CMakeFiles/cmTC_0fcb5.dir/CheckFunctionExists.c.o -MF CMakeFiles/cmTC_0fcb5.dir/CheckFunctionExists.c.o.d -o CMakeFiles/cmTC_0fcb5.dir/CheckFunctionExists.c.o -c /home/sawyer/dev/Asteroids/cmake-build-debug/CMakeFiles/CMakeScratch/TryCompile-A6BDSU/CheckFunctionExists.c
+        [2/2] : && /usr/bin/cc -DCHECK_FUNCTION_EXISTS=shmat  CMakeFiles/cmTC_0fcb5.dir/CheckFunctionExists.c.o -o cmTC_0fcb5   && :
+        
+      exitCode: 0
+...

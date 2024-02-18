@@ -7,11 +7,15 @@ unset(BUILD_STATIC_LIBS)
 if(CMAKE_BUILD_TYPE STREQUAL "Release") 
 	message("BUILDING FOR RELEASE")
 
-	if(WIN32)
+	if(MSVC)
 		# explicitly link to runtime libraries and not debug libraries
 		add_compile_options("/MD")
 		add_link_options("/MD")
 	endif()
+endif()
+
+if(UNIX)
+	add_compile_options("-Wfatal-errors" "-Wall" "-Wunknown-warning-option")
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/game")

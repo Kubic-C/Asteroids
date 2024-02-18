@@ -152,7 +152,7 @@ private:
 
 struct MapSizeComponent : public ae::NetworkedComponent {
 public:
-    void setSize(float width, float height) { this->width = width; this->height = height; }
+    void setSize(float newWidth, float newHeight) { this->width = newWidth; this->height = newHeight; }
     void setSize(sf::Vector2u s) { this->width = (float)s.x; this->height = (float)s.y; }
     sf::Vector2f getSize() { return {width, height}; }
     float getWidth() { return width; }
@@ -165,8 +165,8 @@ public:
     }
 
 private:
-    float width;
-    float height;
+    float width = 0.0f;
+    float height = 0.0f;
 
 };
  

@@ -13,7 +13,7 @@ inline float randomFloat() {
 	return randFloat;
 }
 
-class Global;
+struct Global;
 inline std::shared_ptr<Global> global = nullptr;
 
 struct Global {

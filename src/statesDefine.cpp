@@ -35,7 +35,7 @@ void isAllPlayersReady(flecs::iter& iter) {
 
 struct {
     float curAngle = 0.0f;
-} internalOrientcontext;
+} internalOrientContext;
 
 float PI = 3.14159265359f;
 
@@ -44,13 +44,13 @@ void orientPlayers(flecs::iter& iter, ae::TransformComponent* transforms) {
 
     float radii = 50.0f;
     float anglePerTurn = 2.0f * PI / iter.world().count<PlayerComponent>();
-    
-    internalOrientcontext.curAngle += iter.delta_time();
 
-    for(int i = 0; i < iter.count(); i++, internalOrientcontext.curAngle += anglePerTurn) {        
+    internalOrientContext.curAngle += iter.delta_time();
+
+    for(int i = 0; i < iter.count(); i++, internalOrientContext.curAngle += anglePerTurn) {
         sf::Vector2f location = {
-            ae::fastCos(internalOrientcontext.curAngle),
-            ae::fastSin(internalOrientcontext.curAngle),
+            ae::fastCos(internalOrientContext.curAngle),
+            ae::fastSin(internalOrientContext.curAngle),
         };
 
         location = location * radii + middle;
@@ -69,8 +69,6 @@ inline struct InternalDeadCount {
 } internalDeadCount;
 
 void updatePlayerDead(flecs::iter& iter, HealthComponent* health) {
-    PlayState& playState = ae::getCurrentState<PlayState>();
-
     for(auto i : iter) {
         if(health[i].isDestroyed()) {
             internalDeadCount.deadCount++;
@@ -79,8 +77,6 @@ void updatePlayerDead(flecs::iter& iter, HealthComponent* health) {
 }
 
 void isAllPlayersDead(flecs::iter& iter) {
-    PlayState& playState = ae::getCurrentState<PlayState>();
-
     if(internalDeadCount.deadCount == iter.world().count<PlayerComponent>()) {
         internalDeadCount.deadCount = 0;
         ae::transitionState<GameOverState>();
@@ -224,7 +220,7 @@ void playerReviveUpdate(flecs::iter& iter, SharedLivesComponent* lives, PlayerCo
     }
 }
 
-void createChildAsteroids(flecs::world& world, ae::TransformComponent& parentTransform, ae::IntegratableComponent& parentIntegratable, u8 parentStage) {
+void createChildAsteroids(flecs::world world, ae::TransformComponent& parentTransform, ae::IntegratableComponent& parentIntegratable, u8 parentStage) {
     ae::PhysicsWorld& physicsWorld = ae::getPhysicsWorld();
 
     sf::Vector2f linearVelocity = parentIntegratable.getLinearVelocity() * asteroidDestroySpeedMultiplier;
@@ -376,7 +372,7 @@ void asteroidAddUpdate(flecs::iter& iter, MapSizeComponent* mapSize, AsteroidTim
 
 void turretPlayUpdate(flecs::iter& iter, ae::TransformComponent* transforms, TurretComponent* turrets) {
     ae::PhysicsWorld& physicsWorld = ae::getPhysicsWorld();
-    flecs::world& world = iter.world();
+    flecs::world world = iter.world();
     
     std::vector<ae::SpatialIndexElement> results = {};
     for(auto i : iter) {

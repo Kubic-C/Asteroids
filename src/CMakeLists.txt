@@ -5,10 +5,14 @@ add_executable(asteroids
 target_link_libraries(asteroids PUBLIC 
 	AsteroidsEngine)
 
-add_custom_command(TARGET asteroids POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_RUNTIME_DLLS:asteroids> $<TARGET_FILE_DIR:asteroids>
-  COMMAND_EXPAND_LISTS
-  )
+if(WIN32)
+	add_custom_command(TARGET asteroids POST_BUILD
+	  COMMAND ${CMAKE_COMMAND} -E copy
+			$<TARGET_RUNTIME_DLLS:asteroids>
+			$<TARGET_FILE_DIR:asteroids>
+	  COMMAND_EXPAND_LISTS
+	  )
+endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
 	if (WIN32)

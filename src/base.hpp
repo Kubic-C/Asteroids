@@ -2,10 +2,6 @@
 
 #include <asteroids/asteroids.hpp>
 
-/* Window constants */
-constexpr float windowWidth = 600.0f;
-constexpr float windowHeight = 400.0f;
-
 /* Game constants*/
 constexpr float ticksPerSecond = 60.0f;
 
@@ -35,7 +31,6 @@ constexpr float asteroidDestroySpeedMultiplier = 2.0f;
 constexpr int defaultHostPort = 9999;
 constexpr float inputUPS = 30.0f;
 constexpr float stateUPS = 20.0f;
-constexpr HSteamNetConnection hostPlayerID = 1;
 
 constexpr std::initializer_list<sf::Vector2f> playerVertices = {
     {10.0f, -10.0f},

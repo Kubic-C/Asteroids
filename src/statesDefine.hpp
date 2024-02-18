@@ -93,7 +93,7 @@ public:
 		}
 	}
 
-	void onConnectionJoin(HSteamNetConnection connection) {
+	void onConnectionJoin(HSteamNetConnection connection) override {
 		playerRequestSent = false;
 	}
 
@@ -116,7 +116,7 @@ public:
 		ae::getWindow().setTitle("ECS Asteroids Server");
 	}
 
-	void update() {
+	void update() override {
 		global->player.set([](PlayerComponent& player){
 			auto input = getInput();
 
@@ -196,13 +196,13 @@ public:
 		}
 	}
 
-	void onConnectionJoin(HSteamNetConnection conn) {
+	void onConnectionJoin(HSteamNetConnection conn) override {
 		clients[conn] = addPlayerComponents(ae::getEntityWorldNetworkManager().entity());
 
 		fullSyncUpdate(conn); // When a connection joins use this as an opportunity to sync all of them
 	}
 
-	void onConnectionLeave(HSteamNetConnection conn) {
+	void onConnectionLeave(HSteamNetConnection conn) override {
 		clients[conn].destruct();
 		clients.erase(conn);
 	}
