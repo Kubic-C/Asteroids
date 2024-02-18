@@ -42,21 +42,6 @@ int main(int argc, char* argv[]) {
 
     flecs::world& ecs = ae::getEntityWorld();
 
-    ecs.defer_begin();
-
-    flecs::entity e = ecs.entity();
-    u32 id = e.id() & ECS_ENTITY_MASK;
-    e.destruct();
-    e = ecs.entity();
-    u32 newId = e.id() & ECS_ENTITY_MASK;
-    if(id == newId) { // generations can change within a single frame??
-        ae::log("Generations can change within a single frame\n");
-    }
-
-    ae::log("OLD vs NEW: %u : %u\n", id, newId);
-
-    ecs.defer_end();
-
     sf::Font font;
     if(!font.loadFromFile("./res/times.ttf"))
         ae::log(ae::ERROR_SEVERITY_FATAL, "Times new roman failed\n");

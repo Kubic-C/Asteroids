@@ -60,8 +60,6 @@ public:
 	void update() override {
 		if(!global->player.is_alive()) {
 			if(!playerRequestSent) {
-				ae::log("Sent player request\n");
-				
 				ae::MessageBuffer buffer;
 				ae::Serializer ser = ae::startSerialize(buffer);
 				ser.object(MESSAGE_HEADER_REQUEST_PLAYER_ID);
@@ -91,8 +89,6 @@ public:
 			des.object(playerId);
 
 			global->player = ae::impl::af(playerId);
-			ae::log("Recieved player request\n");
-
 		} break;
 		}
 	}
