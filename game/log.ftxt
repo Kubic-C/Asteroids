@@ -1,6 +1,35 @@
+Component struct ae::NetworkedEntity: 16
+Component struct ae::TransformComponent: 19
+Component struct ae::ShapeComponent: 20
+Component struct ae::IntegratableComponent: 21
 Loaded Music
 Loaded Sounds
 Loaded Font
-Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 718
-Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 719
-Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 729
+Component struct HealthComponent: 25
+Component struct ColorComponent: 26
+Component struct PlayerColorComponent: 27
+Component struct PlayerComponent: 28
+Component struct AsteroidComponent: 29
+Component struct SharedLivesComponent: 30
+Component struct BulletComponent: 31
+Component struct MapSizeComponent: 32
+Component struct TurretComponent: 33
+Component struct ScoreComponent: 34
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 937
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 706
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 711
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 955
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 715
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 708
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 709
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 956
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 854
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 855
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 703
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 721
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 956
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 954
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 854
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 956
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 937
+Warning: Possible dsync: recieved destroyEntities contained entity that ws not alive: 855

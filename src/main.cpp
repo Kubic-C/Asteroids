@@ -1,11 +1,8 @@
 #include "game.hpp"
-#include "component.hpp"
-#include "statesDefine.hpp"
 
 /**
  * Current Bugs:
- *  - If entities are deleted in between world snapshots (20 times a second) they could get sync
- * up wrong client side!
+ *   - None
  */
 
 int main(int argc, char* argv[]) {
@@ -17,17 +14,17 @@ int main(int argc, char* argv[]) {
     }
 
 	/* ALL NETWORKED COMPONENTS MUST BE DECLARED HERE! */
-	ae::EntityWorldNetworkManager& networkManager = ae::getEntityWorldNetworkManager();
-	networkManager.registerComponent<HealthComponent>();
-	networkManager.registerComponent<ColorComponent>(ae::ComponentPiority::High);
-	networkManager.registerComponent<PlayerColorComponent>(ae::ComponentPiority::High);
-	networkManager.registerComponent<PlayerComponent>();
-	networkManager.registerComponent<AsteroidComponent>();
-	networkManager.registerComponent<SharedLivesComponent>(ae::ComponentPiority::High);
-	networkManager.registerComponent<BulletComponent>();
-	networkManager.registerComponent<MapSizeComponent>(ae::ComponentPiority::High);
-	networkManager.registerComponent<TurretComponent>();
-	networkManager.registerComponent<ScoreComponent>(ae::ComponentPiority::High);
+	ae::NetworkStateManager& networkManager = ae::getNetworkStateManager();
+    networkManager.registerComponent<HealthComponent>();
+    networkManager.registerComponent<ColorComponent>(ae::ComponentPiority::High);
+    networkManager.registerComponent<PlayerColorComponent>(ae::ComponentPiority::High);
+    networkManager.registerComponent<PlayerComponent>();
+    networkManager.registerComponent<AsteroidComponent>();
+    networkManager.registerComponent<SharedLivesComponent>(ae::ComponentPiority::High);
+    networkManager.registerComponent<BulletComponent>();
+    networkManager.registerComponent<MapSizeComponent>(ae::ComponentPiority::High);
+    networkManager.registerComponent<TurretComponent>();
+    networkManager.registerComponent<ScoreComponent>(ae::ComponentPiority::High);
 
     ae::registerState<MainMenuState>();
     ae::registerState<ConnectingState>();
@@ -50,11 +47,47 @@ int main(int argc, char* argv[]) {
 
     sf::VertexArray array(sf::PrimitiveType::Triangles);
 	
+    size_t ticks = 0;
+    size_t totalWrite = 0;
+    size_t totalRead = 0;
+    ae::Ticker<void(float)> deltaNetworkStatsTicker;
+    deltaNetworkStatsTicker.setFunction([&](float){
+        ae::NetworkManager& networkManager = ae::getNetworkManager();
+
+        ticks++;
+        totalWrite += networkManager.getWrittenByteCount();
+        totalRead += networkManager.getReadByteCount();
+        networkManager.clearStats();
+    });
+
+    deltaNetworkStatsTicker.setRate(ticksPerSecond);
+
+    ae::Ticker<void(float)> networkStatsLog;
+    networkStatsLog.setFunction([&](float) {
+        if(ticks == 0)
+            ticks = 1;
+
+        std::string lastNetworkReport = 
+            ae::formatString("<cyan, bold>NETWORK<reset> (AVG by TICK) <green>WB: %llu<reset> <red>RB: %llu<reset>\n", totalWrite / ticks, totalRead / ticks);
+
+        ae::log(lastNetworkReport);
+        totalWrite = 0;
+        totalRead = 0;
+        ticks = 0;
+    });
+
+    networkStatsLog.setRate(1.0f);
+
+    float debugLogCooldown = 1.0f;
+
      ae::setUpdateCallback([&](){
         using namespace ae;
         flecs::world& world = getEntityWorld();
         PhysicsWorld& physicsWorld = getPhysicsWorld();
         sf::RenderWindow& window = getWindow();
+
+        deltaNetworkStatsTicker.update();
+        networkStatsLog.update();
 
         bool debugShow = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F2);
 
@@ -92,8 +125,10 @@ int main(int argc, char* argv[]) {
             });
 
         world.each([&](flecs::entity e, ShapeComponent& shape, ColorComponent& color) {
-            if (!physicsWorld.doesShapeExist(shape.shape))
+            if (!physicsWorld.doesShapeExist(shape.shape)) {
+                ae::log("Invalid shape id %u - %u\n", e.id(), shape.shape);
                 return;
+            }
 
             Shape& physicsShape = physicsWorld.getShape(shape.shape);
 
@@ -140,21 +175,26 @@ int main(int argc, char* argv[]) {
         array.clear();
 	
         if (debugShow) {
-            u32 serverTick = ae::getCurrentTick();
+            //u32 serverTick = ae::getCurrentTick();
             u32 networkCount = world.count<ae::NetworkedEntity>();
 
-            if(getNetworkManager().hasNetworkInterface<ae::ClientInterface>()) {
-                serverTick = getNetworkManager().getNetworkInterface<ae::ClientInterface>().getCurrentServerTick();
-            }
+            //if(getNetworkManager().hasNetworkInterface<ae::ClientInterface>()) {
+            //    serverTick = getNetworkManager().getNetworkInterface<ae::ClientInterface>().getCurrentServerTick();
+            //}
 
             text.setPosition(sf::Vector2f(window.getSize().x / 2, 0.0f));
-            text.setOutlineThickness(5.0f);
+            text.setOutlineThickness(0.5f);
             text.setOutlineColor(sf::Color::White);
             text.setFillColor(sf::Color::Black);
-            text.setString(ae::formatString("Entity count: %u\nServer Tick: %u", (unsigned int)networkCount, (unsigned int)serverTick));
+            text.setString(ae::formatString("Entity count: %u", (unsigned int)networkCount));
             window.draw(text);
         }
 
+        debugLogCooldown -= 0.001f;
+        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F4) && debugLogCooldown < 0.0f) {
+            ae::log(getNetworkStateManager().getNetworkedEntityInfo());
+            debugLogCooldown = 1.0f;
+        }
      });
 
     ae::mainLoop();

@@ -1,6 +1,6 @@
 
 add_executable(asteroids 
-	"main.cpp" "base.hpp" "game.hpp" "game.cpp" "component.hpp" "statesDefine.hpp" "statesDefine.cpp")
+	"main.cpp" "base.hpp" "game.hpp" "game.cpp" "component.hpp" "global.hpp" "global.cpp")
 
 target_link_libraries(asteroids PUBLIC 
 	AsteroidsEngine)
