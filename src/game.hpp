@@ -407,10 +407,10 @@ public:
 		rSlider->setStep(1);
 		rSlider->setValue(0);
 		rSlider->onValueChange([&](tgui::Panel::Ptr panel, float value) {
-			playerInfo.playerColor.r = value;	
+			playerInfo.playerColor.r = (u8)value;	
 
 			sf::Color color = panel->getRenderer()->getBackgroundColor();
-			color.r = value;
+			color.r = (u8)value;
 			panel->getRenderer()->setBackgroundColor(color);
 		}, panel);
 		horiBarTop->add(rSlider, 0.2f);
@@ -423,10 +423,10 @@ public:
 		gSlider->setStep(1);
 		gSlider->setValue(255);
 		gSlider->onValueChange([&](tgui::Panel::Ptr panel, float value) {
-			playerInfo.playerColor.g = value;
+			playerInfo.playerColor.g = (u8)value;
 
 			sf::Color color = panel->getRenderer()->getBackgroundColor();
-			color.g = value;
+			color.g = (u8)value;
 			panel->getRenderer()->setBackgroundColor(color);
 		}, panel);
 		horiBarTop->add(gSlider, 0.2f);
@@ -439,10 +439,10 @@ public:
 		bSlider->setStep(1);
 		bSlider->setValue(0);
 		bSlider->onValueChange([&](tgui::Panel::Ptr panel, float value) {
-			playerInfo.playerColor.b = value;
+			playerInfo.playerColor.b = (u8)value;
 			
 			sf::Color color = panel->getRenderer()->getBackgroundColor();
-			color.b = value;
+			color.b = (u8)value;
 			panel->getRenderer()->setBackgroundColor(color);
 		}, panel);
 		horiBarTop->add(bSlider, 0.2f);
@@ -490,7 +490,7 @@ public:
 		auto quickplayButton = tgui::Button::copy(hostButton);
 		quickplayButton->setText("Quickplay");
 		quickplayButton->onPress(&OnQuickplayClick);
-		horiBar->add(quickplayButton, 0.2);
+		horiBar->add(quickplayButton, 0.2f);
 		horiBar->addSpace(spacing);
 	}
 

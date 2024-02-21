@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
             //    serverTick = getNetworkManager().getNetworkInterface<ae::ClientInterface>().getCurrentServerTick();
             //}
 
-            text.setPosition(sf::Vector2f(window.getSize().x / 2, 0.0f));
+            text.setPosition(sf::Vector2f((float)window.getSize().x / 2.0f, 0.0f));
             text.setOutlineThickness(0.5f);
             text.setOutlineColor(sf::Color::White);
             text.setFillColor(sf::Color::Black);
