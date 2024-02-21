@@ -1,0 +1,438 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/game/libsfml-network-d.so"
+		}
+	],
+	"backtrace" : 2,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"sfml_add_library",
+			"install",
+			"target_link_libraries",
+			"add_compile_options",
+			"target_compile_options",
+			"set_target_warnings",
+			"target_include_directories",
+			"target_compile_features"
+		],
+		"files" : 
+		[
+			"deps/AsteroidsEngine/deps/SFML/cmake/Macros.cmake",
+			"deps/AsteroidsEngine/deps/SFML/src/SFML/Network/CMakeLists.txt",
+			"CMakeLists.txt",
+			"deps/AsteroidsEngine/deps/SFML/cmake/CompilerWarnings.cmake"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 1
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 43,
+				"parent" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 72,
+				"parent" : 1
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 222,
+				"parent" : 1
+			},
+			{
+				"command" : 3,
+				"file" : 1,
+				"line" : 47,
+				"parent" : 0
+			},
+			{
+				"file" : 2
+			},
+			{
+				"command" : 4,
+				"file" : 2,
+				"line" : 18,
+				"parent" : 5
+			},
+			{
+				"command" : 6,
+				"file" : 0,
+				"line" : 85,
+				"parent" : 1
+			},
+			{
+				"command" : 5,
+				"file" : 3,
+				"line" : 42,
+				"parent" : 7
+			},
+			{
+				"command" : 5,
+				"file" : 3,
+				"line" : 77,
+				"parent" : 7
+			},
+			{
+				"command" : 7,
+				"file" : 0,
+				"line" : 229,
+				"parent" : 1
+			},
+			{
+				"command" : 8,
+				"file" : 0,
+				"line" : 77,
+				"parent" : 1
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-g -std=gnu++17 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -fcolor-diagnostics"
+				},
+				{
+					"backtrace" : 6,
+					"fragment" : "-Wfatal-errors"
+				},
+				{
+					"backtrace" : 6,
+					"fragment" : "-Wall"
+				},
+				{
+					"backtrace" : 6,
+					"fragment" : "-Wunknown-warning-option"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wextra"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wshadow"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wnon-virtual-dtor"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wcast-align"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wunused"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Woverloaded-virtual"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wconversion"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wsign-conversion"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wdouble-promotion"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wformat=2"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wimplicit-fallthrough"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wsuggest-override"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wnull-dereference"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wold-style-cast"
+				},
+				{
+					"backtrace" : 8,
+					"fragment" : "-Wpedantic"
+				},
+				{
+					"backtrace" : 9,
+					"fragment" : "-Wno-unknown-warning-option"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"define" : "SFML_NETWORK_EXPORTS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 10,
+					"path" : "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/SFML/include"
+				},
+				{
+					"backtrace" : 10,
+					"path" : "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/deps/SFML/src"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					11
+				],
+				"standard" : "17"
+			},
+			"sourceIndexes" : 
+			[
+				1,
+				3,
+				5,
+				7,
+				9,
+				13,
+				15,
+				17,
+				19,
+				21
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 4,
+			"id" : "sfml-system::@6fcf156895f8092d8265"
+		}
+	],
+	"folder" : 
+	{
+		"name" : "SFML"
+	},
+	"id" : "sfml-network::@982e4ccd923b9cfec208",
+	"install" : 
+	{
+		"destinations" : 
+		[
+			{
+				"backtrace" : 3,
+				"path" : "lib"
+			},
+			{
+				"backtrace" : 3,
+				"path" : "lib"
+			}
+		],
+		"prefix" : 
+		{
+			"path" : "/usr/local"
+		}
+	},
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "-Wl,-rpath,/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/game:",
+				"role" : "libraries"
+			},
+			{
+				"backtrace" : 4,
+				"fragment" : "/home/sawyer/dev/Asteroids/deps/AsteroidsEngine/game/libsfml-system-d.so.3.0.0",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "sfml-network",
+	"nameOnDisk" : "libsfml-network-d.so",
+	"paths" : 
+	{
+		"build" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network",
+		"source" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/Export.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/Ftp.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/Ftp.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/Http.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/Http.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/IpAddress.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/IpAddress.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/Packet.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/Packet.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/Socket.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/Socket.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/SocketImpl.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/SocketHandle.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/SocketSelector.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/SocketSelector.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/TcpListener.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/TcpListener.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/TcpSocket.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/TcpSocket.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/UdpSocket.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"path" : "deps/AsteroidsEngine/deps/SFML/include/SFML/Network/UdpSocket.hpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 2,
+			"compileGroupIndex" : 0,
+			"path" : "deps/AsteroidsEngine/deps/SFML/src/SFML/Network/Unix/SocketImpl.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "SHARED_LIBRARY"
+}
