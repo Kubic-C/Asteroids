@@ -30,7 +30,7 @@ constexpr float asteroidDestroySpeedMultiplier = 2.0f;
 /* Network related constants */
 constexpr int defaultHostPort = 9999;
 constexpr float inputUPS = 30.0f;
-constexpr float stateUPS = 10.0f;
+constexpr float stateUPS = 20.0f;
 
 constexpr std::initializer_list<sf::Vector2f> playerVertices = {
     {10.0f, -10.0f},
