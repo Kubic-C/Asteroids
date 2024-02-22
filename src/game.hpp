@@ -58,6 +58,8 @@ public:
 		ae::getWindow().setTitle("ECS Asteroids Client");
 	}
 
+	virtual ~ClientInterface() = default;
+
 	void update() override {
 		if(!global->player.is_valid()) {
 			if(!playerRequestSent) {
@@ -116,6 +118,8 @@ public:
 
 		ae::getWindow().setTitle("ECS Asteroids Server");
 	}
+
+	virtual ~ServerInterface() = default;
 
 	void update() override {
 		global->player.set([](PlayerComponent& player){
@@ -204,6 +208,8 @@ public:
 	}
 
 	void onConnectionLeave(HSteamNetConnection conn) override {
+		assert(clients.find(conn) != clients.end());
+
 		clients[conn].destruct();
 		clients.erase(conn);
 	}
@@ -261,6 +267,7 @@ private:
 class ConnectingState;
 class StartState;
 class ConnectedState;
+class GameOverState;
 
 // Get all necessary information such as:
 // - Are we hosting or playing solo
@@ -268,8 +275,7 @@ class ConnectedState;
 class MainMenuState : public ae::State {
 public:
 	// Hosting:
-	//	- Remember to add isHost to flecs world
-	//  - Game needs to be marked as host as well
+	//	- Wait for a client to connect before playing
 	// Quickplay:
 	//  - Same as hosting but we transition straight to the play state
 	// Client:
@@ -373,6 +379,8 @@ private:
 	}
 public:
 	void createPlayerInfoMenu(tgui::BackendGui& gui) {
+		gui.removeAllWidgets();
+
 		auto horiBarBottom = tgui::HorizontalLayout::create();
 		horiBarBottom->setHeight("25%");
 		horiBarBottom->setPosition("0%", "70%");
@@ -646,12 +654,64 @@ struct PlayStateModule {
 
 class PlayState : public ae::State {
 public:
+	PlayState() {
+		destroyAsteroids = ae::getEntityWorld().query_builder<AsteroidComponent>().build();
+		destroyBullets = ae::getEntityWorld().query_builder<BulletComponent>().build();
+		resetPlayers = ae::getEntityWorld().query_builder<PlayerComponent, ae::IntegratableComponent, HealthComponent, ColorComponent>()
+			.with(flecs::Disabled).optional().build();
+		destroyTurrets = ae::getEntityWorld().query_builder<TurretComponent>().build();
+	}
+
 	void onEntry() override {
 		createStats(ae::getGui()); 
 	}
 
 	void onLeave() override {
 		ae::getGui().removeAllWidgets();
+
+		if (!ae::getNetworkManager().hasNetworkInterface<ServerInterface>())
+			return;
+
+		ae::getEntityWorld().defer_begin();
+		destroyAsteroids.each([](flecs::entity e, AsteroidComponent& asteroid) {
+			e.destruct();
+			});
+		destroyBullets.each([](flecs::entity e, BulletComponent& asteroid) {
+			e.destruct();
+			});
+		destroyTurrets.each([](flecs::entity e, TurretComponent& turret) {
+			e.destruct();
+			});
+
+		std::vector<flecs::entity> entitiesToEnable;
+		resetPlayers.each([&](
+			flecs::entity e,
+			PlayerComponent& player,
+			ae::IntegratableComponent& integratable,
+			HealthComponent& health,
+			ColorComponent& color) {
+				player.setIsReady(false);
+				integratable.addLinearVelocity(-integratable.getLinearVelocity());
+				health.setDestroyed(false);
+				health.setHealth(1.0f);
+				color.setColor(sf::Color::Red);
+
+				if (!e.enabled())
+					entitiesToEnable.push_back(e);
+
+				e.modified<PlayerComponent>();
+				e.modified<ae::IntegratableComponent>();
+				e.modified<HealthComponent>();
+				e.modified<ColorComponent>();
+			});
+		ae::getEntityWorld().defer_end();
+
+		for (const auto& e : entitiesToEnable)
+			ae::getNetworkStateManager().enable(e);
+
+		ae::getEntityWorld().get_mut<SharedLivesComponent>()->lives = initialLives;
+		ae::getEntityWorld().get_mut<ScoreComponent>()->resetScore();
+		ae::getEntityWorld().get_mut<AsteroidTimerComponent>()->resetTime = timePerAsteroidSpawn;
 	}
 
 	virtual void onUpdate() override {
@@ -670,6 +730,10 @@ private:
 	}
 
 private:
+	flecs::query<AsteroidComponent> destroyAsteroids;
+	flecs::query<BulletComponent> destroyBullets;
+	flecs::query<PlayerComponent, ae::IntegratableComponent, HealthComponent, ColorComponent> resetPlayers;
+	flecs::query<TurretComponent> destroyTurrets;
 	tgui::Label::Ptr text;
 };
 
@@ -685,59 +749,10 @@ public:
 class GameOverState : public ae::State {
 public:
 	GameOverState() {
-		destroyAsteroids = ae::getEntityWorld().query_builder<AsteroidComponent>().build();
-		destroyBullets = ae::getEntityWorld().query_builder<BulletComponent>().build();
-		resetPlayers = ae::getEntityWorld().query_builder<PlayerComponent, ae::IntegratableComponent, HealthComponent, ColorComponent>()
-			.with(flecs::Disabled).optional().build();
-		destroyTurrets = ae::getEntityWorld().query_builder<TurretComponent>().build();
 	}
 
 	void onEntry() override {
 		createGameOverMenu(ae::getGui());
-
-		if (!ae::getNetworkManager().hasNetworkInterface<ServerInterface>())
-			return;
-
-		ae::getEntityWorld().defer_begin();
-		destroyAsteroids.each([](flecs::entity e, AsteroidComponent& asteroid) {
-			e.destruct();
-		});
-		destroyBullets.each([](flecs::entity e, BulletComponent& asteroid) {
-			e.destruct();
-		});
-		destroyTurrets.each([](flecs::entity e, TurretComponent& turret) {
-			e.destruct();
-		});
-
-		std::vector<flecs::entity> entitiesToEnable;
-		resetPlayers.each([&](
-				flecs::entity e, 
-				PlayerComponent& player, 
-				ae::IntegratableComponent& integratable, 
-				HealthComponent& health, 
-				ColorComponent& color) {
-			player.setIsReady(false);
-			integratable.addLinearVelocity(-integratable.getLinearVelocity());
-			health.setDestroyed(false);
-			health.setHealth(1.0f);
-			color.setColor(sf::Color::Red);
-
-			if(!e.enabled())
-				entitiesToEnable.push_back(e);
-
-			e.modified<PlayerComponent>();
-			e.modified<ae::IntegratableComponent>();
-			e.modified<HealthComponent>();
-			e.modified<ColorComponent>();
-		});
-		ae::getEntityWorld().defer_end();
-
-		for(const auto& e : entitiesToEnable)
-			ae::getNetworkStateManager().enable(e);
-
-		ae::getEntityWorld().get_mut<SharedLivesComponent>()->lives = initialLives;
-		ae::getEntityWorld().get_mut<ScoreComponent>()->resetScore();
-		ae::getEntityWorld().get_mut<AsteroidTimerComponent>()->resetTime = timePerAsteroidSpawn;
 	}
 
 protected:
@@ -751,9 +766,4 @@ protected:
 		toStartText->getRenderer()->setTextColor(sf::Color::White);
 		gui.add(toStartText);
 	}
-
-	flecs::query<AsteroidComponent> destroyAsteroids;
-	flecs::query<BulletComponent> destroyBullets;
-	flecs::query<PlayerComponent, ae::IntegratableComponent, HealthComponent, ColorComponent> resetPlayers;
-	flecs::query<TurretComponent> destroyTurrets;
 };

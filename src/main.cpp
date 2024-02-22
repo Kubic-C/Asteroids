@@ -9,9 +9,9 @@ int main(int argc, char* argv[]) {
     ae::setConfigApplyCallback([](ae::Config& config){
         ticksPerSecond = (float)config.value("ticksPerSecond", 60.0);
         playerSpeed = (float)config.value("playerSpeed", 1.0);
-        playerFireRate = (float)config.value("playerFireRate", 0.05);
-        playerBulletRecoilMultiplier = (float)config.value("playerBulletRecoilMultiplier", 0.0);
-        playerBulletSpeed = (float)config.value("playerBulletSpeed", 150.0);
+        playerFireRate = (float)config.value("playerFireRate", 1.0f);
+        playerBulletRecoilMultiplier = (float)config.value("playerBulletRecoilMultiplier", 0.2);
+        playerBulletSpeed = (float)config.value("playerBulletSpeed", 40.0);
         playerBaseHealth = (float)config.value("playerBaseHealth", 1.0);
         blinkResetTime = (float)config.value("blinkResetTime", 1.0);
         reviveImmunityTime = (float)config.value("reviveImmunityTime", 5.0);
@@ -44,17 +44,17 @@ int main(int argc, char* argv[]) {
     }
 
 	/* ALL NETWORKED COMPONENTS MUST BE DECLARED HERE! */
-	ae::NetworkStateManager& networkManager = ae::getNetworkStateManager();
-    networkManager.registerComponent<HealthComponent>();
-    networkManager.registerComponent<ColorComponent>(ae::ComponentPiority::High);
-    networkManager.registerComponent<PlayerColorComponent>(ae::ComponentPiority::High);
-    networkManager.registerComponent<PlayerComponent>();
-    networkManager.registerComponent<AsteroidComponent>();
-    networkManager.registerComponent<SharedLivesComponent>(ae::ComponentPiority::High);
-    networkManager.registerComponent<BulletComponent>();
-    networkManager.registerComponent<MapSizeComponent>(ae::ComponentPiority::High);
-    networkManager.registerComponent<TurretComponent>();
-    networkManager.registerComponent<ScoreComponent>(ae::ComponentPiority::High);
+	ae::NetworkStateManager& networkStateManager = ae::getNetworkStateManager();
+    networkStateManager.registerComponent<HealthComponent>();
+    networkStateManager.registerComponent<ColorComponent>(ae::ComponentPiority::High);
+    networkStateManager.registerComponent<PlayerColorComponent>(ae::ComponentPiority::High);
+    networkStateManager.registerComponent<PlayerComponent>();
+    networkStateManager.registerComponent<AsteroidComponent>();
+    networkStateManager.registerComponent<SharedLivesComponent>(ae::ComponentPiority::High);
+    networkStateManager.registerComponent<BulletComponent>();
+    networkStateManager.registerComponent<MapSizeComponent>(ae::ComponentPiority::High);
+    networkStateManager.registerComponent<TurretComponent>();
+    networkStateManager.registerComponent<ScoreComponent>(ae::ComponentPiority::High);
 
     ae::registerState<MainMenuState>();
     ae::registerState<ConnectingState>();
@@ -94,22 +94,24 @@ int main(int argc, char* argv[]) {
 
     float debugNetworkLogCooldown = 1.0f;
     float reapplyJSONCooldown = 1.0f;
-    ae::Ticker<void(float)> debugLog;
-    debugLog.setFunction([&](float dt) {
+    ae::Ticker<void(float)> inputUpdate;
+    inputUpdate.setFunction([&](float dt) {
         if(ticks == 0)
             ticks = 1;
 
-        std::string lastNetworkReport = 
-            ae::formatString("<cyan, bold>NETWORK<reset> (AVG by TICK) <green>WB: %llu<reset> <red>RB: %llu<reset>\n", totalWrite / ticks, totalRead / ticks);
-
-        ae::log(lastNetworkReport);
-        totalWrite = 0;
-        totalRead = 0;
-        ticks = 0;
-
         debugNetworkLogCooldown -= dt;
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F4) && debugNetworkLogCooldown < 0.0f) {
-            ae::log(ae::getNetworkStateManager().getNetworkedEntityInfo());
+        if(debugNetworkLogCooldown < 0.0f) {
+            std::string lastNetworkReport = 
+                ae::formatString("<cyan, bold>NETWORK<reset> (AVG by TICK) <green>WB: %llu<reset> <red>RB: %llu<reset>\n", totalWrite / ticks, totalRead / ticks);
+
+            ae::log(lastNetworkReport);
+            totalWrite = 0;
+            totalRead = 0;
+            ticks = 0;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F4)) {
+                ae::log(ae::getNetworkStateManager().getNetworkedEntityInfo());
+            }
+
             debugNetworkLogCooldown = 1.0f;
         }
 
@@ -118,11 +120,9 @@ int main(int argc, char* argv[]) {
             ae::applyConfig();
             reapplyJSONCooldown = 1.0f;
         }
-
     });
 
-    debugLog.setRate(1.0f);
-
+    inputUpdate.setRate(60.0f);
 
      ae::setUpdateCallback([&](){
         using namespace ae;
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
         sf::RenderWindow& window = getWindow();
 
         deltaNetworkStatsTicker.update();
-        debugLog.update();
+        inputUpdate.update();
 
         bool debugShow = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F2);
 
