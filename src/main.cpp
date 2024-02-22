@@ -6,6 +6,36 @@
  */
 
 int main(int argc, char* argv[]) {
+    ae::setConfigApplyCallback([](ae::Config& config){
+        ticksPerSecond = (float)config.value("ticksPerSecond", 60.0);
+        playerSpeed = (float)config.value("playerSpeed", 1.0);
+        playerFireRate = (float)config.value("playerFireRate", 0.05);
+        playerBulletRecoilMultiplier = (float)config.value("playerBulletRecoilMultiplier", 0.0);
+        playerBulletSpeed = (float)config.value("playerBulletSpeed", 150.0);
+        playerBaseHealth = (float)config.value("playerBaseHealth", 1.0);
+        blinkResetTime = (float)config.value("blinkResetTime", 1.0);
+        reviveImmunityTime = (float)config.value("reviveImmunityTime", 5.0);
+        initialLives = (int)config.value("initialLives", 3);
+        turretPrice = (i32)config.value("turretPrice", 100);
+        maxTurrets = (u32)config.value("maxTurrets", 20);
+        turretPlaceCooldown = (float)config.value("turretPlaceCooldown", 1.0);
+        turretRange = (float)config.value("turretRange", 100.0);
+        timePerAsteroidSpawn = (float)config.value("timePerAsteroidSpawn", 2.0);
+        timeToRemovePerAsteroidSpawn = (float)config.value("timeToRemovePerAsteroidSpawn", 0.01);
+        scorePerAsteroid = (u32)config.value("scorePerAsteroid", 10);
+        initialAsteroidStage = (u32)config.value("initialAsteroidStage", 4);
+        asteroidScalar = (float)config.value("asteroidScalar", 8.0);
+        asteroidDestroySpeedMultiplier = (float)config.value("asteroidDestroySpeedMultiplier", 2.0);
+        defaultHostPort = (int)config.value("defaultHostPort", 9999);
+        inputUPS = (float)config.value("inputUPS", 30.0);
+        stateUPS = (float)config.value("stateUPS", 20.0);
+
+        ae::log("Retrieved config file:\n");
+        std::cout << std::setw(2) << config << std::endl;
+    });
+
+    ae::applyConfig();
+
     ae::MessageBuffer test;
 
     global = std::make_shared<Global>();
@@ -62,8 +92,10 @@ int main(int argc, char* argv[]) {
 
     deltaNetworkStatsTicker.setRate(ticksPerSecond);
 
-    ae::Ticker<void(float)> networkStatsLog;
-    networkStatsLog.setFunction([&](float) {
+    float debugNetworkLogCooldown = 1.0f;
+    float reapplyJSONCooldown = 1.0f;
+    ae::Ticker<void(float)> debugLog;
+    debugLog.setFunction([&](float dt) {
         if(ticks == 0)
             ticks = 1;
 
@@ -74,11 +106,23 @@ int main(int argc, char* argv[]) {
         totalWrite = 0;
         totalRead = 0;
         ticks = 0;
+
+        debugNetworkLogCooldown -= dt;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F4) && debugNetworkLogCooldown < 0.0f) {
+            ae::log(ae::getNetworkStateManager().getNetworkedEntityInfo());
+            debugNetworkLogCooldown = 1.0f;
+        }
+
+        reapplyJSONCooldown -= dt;
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F5) && reapplyJSONCooldown < 0.0f) {
+            ae::applyConfig();
+            reapplyJSONCooldown = 1.0f;
+        }
+
     });
 
-    networkStatsLog.setRate(1.0f);
+    debugLog.setRate(1.0f);
 
-    float debugLogCooldown = 1.0f;
 
      ae::setUpdateCallback([&](){
         using namespace ae;
@@ -87,7 +131,7 @@ int main(int argc, char* argv[]) {
         sf::RenderWindow& window = getWindow();
 
         deltaNetworkStatsTicker.update();
-        networkStatsLog.update();
+        debugLog.update();
 
         bool debugShow = sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F2);
 
@@ -188,12 +232,6 @@ int main(int argc, char* argv[]) {
             text.setFillColor(sf::Color::Black);
             text.setString(ae::formatString("Entity count: %u", (unsigned int)networkCount));
             window.draw(text);
-        }
-
-        debugLogCooldown -= 0.001f;
-        if(sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F4) && debugLogCooldown < 0.0f) {
-            ae::log(getNetworkStateManager().getNetworkedEntityInfo());
-            debugLogCooldown = 1.0f;
         }
      });
 

@@ -2,35 +2,28 @@
 
 #include <asteroids/asteroids.hpp>
 
-/* Game constants*/
-constexpr float ticksPerSecond = 60.0f;
-
-constexpr float playerSpeed = 1.0f;
-constexpr float playerFireRate = 0.05f;
-constexpr float playerBulletRecoilMultiplier = 0.0f;
-constexpr float playerBulletSpeed = 150.0f;
-constexpr float playerBaseHealth = 1.0f;
-
-constexpr float blinkResetTime = 1.0f;
-constexpr float reviveImmunityTime = 5.0f;
-constexpr int initialLives = 3;
-
-constexpr i32 turretPrice = 100;
-constexpr u32 maxTurrets = 20;
-constexpr float turretPlaceCooldown = 1.0f;
-constexpr float turretRange = 100.0f;
-
-constexpr float timePerAsteroidSpawn = 2.0f;
-constexpr float timeToRemovePerAsteroidSpawn = 0.01f;
-constexpr u32 scorePerAsteroid = 10;
-constexpr u32 initialAsteroidStage = 4;
-constexpr float asteroidScalar = 8.0f;
-constexpr float asteroidDestroySpeedMultiplier = 2.0f;
-
-/* Network related constants */
-constexpr int defaultHostPort = 9999;
-constexpr float inputUPS = 30.0f;
-constexpr float stateUPS = 20.0f;
+inline float ticksPerSecond;
+inline float playerSpeed;
+inline float playerFireRate;
+inline float playerBulletRecoilMultiplier;
+inline float playerBulletSpeed;
+inline float playerBaseHealth;
+inline float blinkResetTime;
+inline float reviveImmunityTime;
+inline int initialLives;
+inline i32 turretPrice;
+inline u32 maxTurrets;
+inline float turretPlaceCooldown;
+inline float turretRange;
+inline float timePerAsteroidSpawn;
+inline float timeToRemovePerAsteroidSpawn;
+inline u32 scorePerAsteroid;
+inline u32 initialAsteroidStage;
+inline float asteroidScalar;
+inline float asteroidDestroySpeedMultiplier;
+inline int defaultHostPort;
+inline float inputUPS;
+inline float stateUPS;
 
 constexpr std::initializer_list<sf::Vector2f> playerVertices = {
     {10.0f, -10.0f},
