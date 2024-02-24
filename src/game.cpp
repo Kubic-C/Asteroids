@@ -189,10 +189,10 @@ void playerBlinkUpdate(flecs::iter& iter, PlayerComponent* players, HealthCompon
                 player.resetLastBlink();
             }
 
-            iter.entity(i).modified<HealthComponent>();
+            iter.entity(i).modified<ColorComponent>();
         } else if (color.getColor() != playerColor.getColor()) {
             color.setColor(playerColor.getColor());
-            iter.entity(i).modified<HealthComponent>();
+            iter.entity(i).modified<ColorComponent>();
         }
     }
 }
@@ -449,6 +449,7 @@ void observeBulletCollision(flecs::iter& iter, size_t i, ae::ShapeComponent&) {
         });
         entity.destruct();
         global->destroyPlayer.play();
+
         iter.world().get_mut<ScoreComponent>()->addScore(scorePerAsteroid);
         iter.world().modified<ScoreComponent>();
     }

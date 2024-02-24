@@ -572,12 +572,12 @@ struct HostPlayStateModule {
 		world.system<PlayerComponent, ae::IntegratableComponent, ae::TransformComponent, HealthComponent>().iter(playerPlayInputUpdate);
 		world.observer<ae::ShapeComponent>().event<ae::CollisionEvent>().with<PlayerComponent>().each(observePlayerCollision);
 		world.observer<ae::ShapeComponent>().event<ae::CollisionEvent>().with<BulletComponent>().each(observeBulletCollision);
+		world.system<PlayerComponent, HealthComponent, ColorComponent, PlayerColorComponent>().iter(playerBlinkUpdate);
 	}
 };
 
 struct PlayStateModule {
 	PlayStateModule(flecs::world& world) {
-		world.system<PlayerComponent, HealthComponent, ColorComponent, PlayerColorComponent>().iter(playerBlinkUpdate);
 	}
 };
 
@@ -596,12 +596,14 @@ public:
 	}
 
 	void onLeave() override {
+		flecs::world& world = ae::getEntityWorld();
+
 		ae::getGui().removeAllWidgets();
 
 		if (!ae::getNetworkManager().hasNetworkInterface<ServerInterface>())
 			return;
 
-		ae::getEntityWorld().defer_begin();
+		world.defer_begin();
 		destroyAsteroids.each([](flecs::entity e, AsteroidComponent& asteroid) {
 			e.destruct();
 			});
@@ -633,14 +635,14 @@ public:
 				e.modified<HealthComponent>();
 				e.modified<ColorComponent>();
 			});
-		ae::getEntityWorld().defer_end();
+		world.defer_end();
 
 		for (const auto& e : entitiesToEnable)
 			ae::getNetworkStateManager().enable(e);
 
-		ae::getEntityWorld().get_mut<SharedLivesComponent>()->lives = initialLives;
-		ae::getEntityWorld().get_mut<ScoreComponent>()->resetScore();
-		ae::getEntityWorld().get_mut<AsteroidTimerComponent>()->resetTime = timePerAsteroidSpawn;
+		world.set([](SharedLivesComponent& lives){ lives.lives = initialLives; });
+		world.set([](ScoreComponent& score){ score.resetScore(); });
+		world.set([](AsteroidTimerComponent& timer){ timer.resetTime = timePerAsteroidSpawn; });
 	}
 
 	virtual void onUpdate() override {
