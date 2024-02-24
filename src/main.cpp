@@ -5,38 +5,50 @@
  *   - None
  */
 
+struct LivesComponent {
+     int lives = 0;
+};
+
+struct SpeedComponent {
+    float speed = 10.0f;
+};
+
+struct SomeTag {};
+struct FooComponent {
+ int x = 0;
+};
+
+struct Entity {};
+
 int main(int argc, char* argv[]) {
     ae::setConfigApplyCallback([](ae::Config& config){
-        ticksPerSecond = (float)config.value("ticksPerSecond", 60.0);
-        playerSpeed = (float)config.value("playerSpeed", 1.0);
-        playerFireRate = (float)config.value("playerFireRate", 1.0f);
-        playerBulletRecoilMultiplier = (float)config.value("playerBulletRecoilMultiplier", 0.2);
-        playerBulletSpeed = (float)config.value("playerBulletSpeed", 40.0);
-        playerBaseHealth = (float)config.value("playerBaseHealth", 1.0);
-        blinkResetTime = (float)config.value("blinkResetTime", 1.0);
-        reviveImmunityTime = (float)config.value("reviveImmunityTime", 5.0);
-        initialLives = (int)config.value("initialLives", 3);
-        turretPrice = (i32)config.value("turretPrice", 100);
-        maxTurrets = (u32)config.value("maxTurrets", 20);
-        turretPlaceCooldown = (float)config.value("turretPlaceCooldown", 1.0);
-        turretRange = (float)config.value("turretRange", 100.0);
-        timePerAsteroidSpawn = (float)config.value("timePerAsteroidSpawn", 2.0);
-        timeToRemovePerAsteroidSpawn = (float)config.value("timeToRemovePerAsteroidSpawn", 0.01);
-        scorePerAsteroid = (u32)config.value("scorePerAsteroid", 10);
-        initialAsteroidStage = (u32)config.value("initialAsteroidStage", 4);
-        asteroidScalar = (float)config.value("asteroidScalar", 8.0);
-        asteroidDestroySpeedMultiplier = (float)config.value("asteroidDestroySpeedMultiplier", 2.0);
-        defaultHostPort = (int)config.value("defaultHostPort", 9999);
-        inputUPS = (float)config.value("inputUPS", 30.0);
-        stateUPS = (float)config.value("stateUPS", 20.0);
+        ticksPerSecond = (float)ae::dvalue(config, "ticksPerSecond", 60.0);
+        playerSpeed = (float)ae::dvalue(config, "playerSpeed", 1.0);
+        playerFireRate = (float)ae::dvalue(config, "playerFireRate", 1.0f);
+        playerBulletRecoilMultiplier = (float)ae::dvalue(config, "playerBulletRecoilMultiplier", 0.2);
+        playerBulletSpeed = (float)ae::dvalue(config, "playerBulletSpeed", 40.0);
+        playerBaseHealth = (float)ae::dvalue(config, "playerBaseHealth", 1.0);
+        blinkResetTime = (float)ae::dvalue(config, "blinkResetTime", 1.0);
+        reviveImmunityTime = (float)ae::dvalue(config, "reviveImmunityTime", 5.0);
+        initialLives = (int)ae::dvalue(config, "initialLives", 3);
+        turretPrice = (i32)ae::dvalue(config, "turretPrice", 100);
+        maxTurrets = (u32)ae::dvalue(config, "maxTurrets", 20);
+        turretPlaceCooldown = (float)ae::dvalue(config, "turretPlaceCooldown", 1.0);
+        turretRange = (float)ae::dvalue(config, "turretRange", 100.0);
+        timePerAsteroidSpawn = (float)ae::dvalue(config, "timePerAsteroidSpawn", 2.0);
+        timeToRemovePerAsteroidSpawn = (float)ae::dvalue(config, "timeToRemovePerAsteroidSpawn", 0.01);
+        scorePerAsteroid = (u32)ae::dvalue(config, "scorePerAsteroid", 10);
+        initialAsteroidStage = (u32)ae::dvalue(config, "initialAsteroidStage", 4);
+        asteroidScalar = (float)ae::dvalue(config, "asteroidScalar", 8.0);
+        asteroidDestroySpeedMultiplier = (float)ae::dvalue(config, "asteroidDestroySpeedMultiplier", 2.0);
+        defaultHostPort = (int)ae::dvalue(config, "defaultHostPort", 9999);
+        inputUPS = (float)ae::dvalue(config, "inputUPS", 30.0);
+        stateUPS = (float)ae::dvalue(config, "stateUPS", 20.0);
 
         ae::log("Retrieved config file:\n");
         std::cout << std::setw(2) << config << std::endl;
     });
-
     ae::applyConfig();
-
-    ae::MessageBuffer test;
 
     global = std::make_shared<Global>();
     if(!global->loadResources()) {
@@ -45,16 +57,50 @@ int main(int argc, char* argv[]) {
 
 	/* ALL NETWORKED COMPONENTS MUST BE DECLARED HERE! */
 	ae::NetworkStateManager& networkStateManager = ae::getNetworkStateManager();
+    networkStateManager.registerComponent<SharedLivesComponent>(ae::ComponentPiority::High);
+    networkStateManager.registerComponent<ScoreComponent>(ae::ComponentPiority::High);
     networkStateManager.registerComponent<HealthComponent>();
     networkStateManager.registerComponent<ColorComponent>(ae::ComponentPiority::High);
     networkStateManager.registerComponent<PlayerColorComponent>(ae::ComponentPiority::High);
     networkStateManager.registerComponent<PlayerComponent>();
     networkStateManager.registerComponent<AsteroidComponent>();
-    networkStateManager.registerComponent<SharedLivesComponent>(ae::ComponentPiority::High);
     networkStateManager.registerComponent<BulletComponent>();
     networkStateManager.registerComponent<MapSizeComponent>(ae::ComponentPiority::High);
     networkStateManager.registerComponent<TurretComponent>();
-    networkStateManager.registerComponent<ScoreComponent>(ae::ComponentPiority::High);
+    //networkStateManager.registerComponent<EnemyPlayerComponent>();
+
+    {
+        flecs::world& world = ae::getEntityWorld();
+
+        world.prefab<prefabs::Player>()
+            .override<PlayerComponent>()
+            .override<HealthComponent>()
+            .override<ae::IntegratableComponent>()
+            .override<PlayerColorComponent>()
+            .override<ae::ShapeComponent>()
+            .set_override(ae::TransformComponent({ 300, 200 }))
+            .set_override(ColorComponent(sf::Color::Red));
+
+        world.prefab<prefabs::Turret>()
+            .override<TurretComponent>()
+            .override<ae::TransformComponent>();
+
+        world.prefab<prefabs::Asteroid>()
+            .override<AsteroidComponent>()
+            .override<ae::TransformComponent>()
+            .override<HealthComponent>()
+            .override<ae::IntegratableComponent>()
+            .set_override(ColorComponent(sf::Color::Red))
+            .override<AsteroidComponent>();
+
+        world.prefab<prefabs::Bullet>()
+            .override<ae::NetworkedEntity>()
+            .override<ae::TransformComponent>()
+            .override<ae::IntegratableComponent>()
+            .override<ae::ShapeComponent>()
+            .set_override(ae::TimedDeleteComponent(1.0f))
+            .set_override(ColorComponent(sf::Color::Yellow));
+    }
 
     ae::registerState<MainMenuState>();
     ae::registerState<ConnectingState>();
@@ -66,8 +112,6 @@ int main(int argc, char* argv[]) {
     ae::registerNetworkInterfaceStateModule<ServerInterface, PlayState, HostPlayStateModule>();
     ae::registerNetworkInterfaceStateModule<ServerInterface, GameOverState, HostGameOverStateModule>();
     ae::transitionState<MainMenuState>();
-
-    flecs::world& ecs = ae::getEntityWorld();
 
     sf::Font font;
     if(!font.loadFromFile("./res/times.ttf"))

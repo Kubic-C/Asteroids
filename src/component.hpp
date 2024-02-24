@@ -22,6 +22,10 @@ private:
 
 struct ColorComponent : public ae::NetworkedComponent {
 public:
+    ColorComponent() = default;
+    explicit ColorComponent(const sf::Color& newColor)
+        : color(newColor) {}
+
     void setColor(sf::Color color) { this->color = color; }
     sf::Color getColor() { return color; }
 
@@ -181,9 +185,7 @@ public:
 
 
     template<typename S>
-    void serialize(S& s) {
-        s.value4b(lastFired);
-    }
+    void serialize(S& s) {}
 
 private:
     float lastFired = 0.0f;
@@ -193,3 +195,10 @@ struct AsteroidTimerComponent {
     float resetTime = timePerAsteroidSpawn;
     float current = timePerAsteroidSpawn;
 };
+
+namespace prefabs {
+    struct Player {};
+    struct Asteroid {};
+    struct Turret {};
+    struct Bullet {};
+}

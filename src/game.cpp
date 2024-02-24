@@ -139,9 +139,11 @@ void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::Inte
 
                 score->removeScore(turretPrice);
                 player.resetTurretPlaceCooldown();
-                ae::getNetworkStateManager().entity().set([&](ae::TransformComponent& turretTranform, TurretComponent& turret) {
-                    turretTranform.setPos(transform.getPos());
-                });
+                ae::getNetworkStateManager().entity()
+                    .is_a<prefabs::Turret>()
+                    .set([&](ae::TransformComponent& turretTranform) {
+                        turretTranform.setPos(transform.getPos());
+                    });
 
                 iter.entity(i).modified<PlayerComponent>();
                 iter.world().modified<ScoreComponent>();
@@ -151,18 +153,16 @@ void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::Inte
                 player.resetLastFired();
                 player.setIsFiring(true);
 
-                ae::getNetworkStateManager().entity().set(
-                    [&](ae::TransformComponent& ctransform, ae::IntegratableComponent& integratable, ColorComponent& color, ae::ShapeComponent& shape, ae::TimedDeleteComponent& timer) {
+                ae::getNetworkStateManager().entity()
+                    .is_a<prefabs::Bullet>()
+                    .set([&](ae::TransformComponent& bulletTransform, ae::IntegratableComponent& integratable, ae::ShapeComponent& shape) {
                         ae::PhysicsWorld& world = ae::getPhysicsWorld();
 
-                        ctransform = transform;
-                        color.setColor(sf::Color::Yellow);
+                        bulletTransform = transform;
 
                         sf::Vector2f velocityDir = (player.getMouse() - transform.getPos()).normalized() * playerBulletSpeed;
                         integratable.addLinearVelocity(velocityDir);
                         integratables[i].addLinearVelocity(-velocityDir * playerBulletRecoilMultiplier);
-
-                        timer.setTime(1.0f);
 
                         shape.shape = world.createShape<ae::Circle>(5.0f);
                     }).add<BulletComponent>();
@@ -227,23 +227,15 @@ void createChildAsteroids(flecs::world world, ae::TransformComponent& parentTran
 
     for(u32 i = 0; i < 2; i++) {
         ae::getNetworkStateManager().entity()
-            .add<AsteroidComponent>()
-            .add<ae::TransformComponent>()
-            .add<HealthComponent>()
-            .add<ae::IntegratableComponent>()
-            .add<ColorComponent>()
-            .add<AsteroidComponent>()
+            .is_a<prefabs::Asteroid>()
             .set([&](AsteroidComponent& asteroid, 
                      ae::ShapeComponent& shape, 
                      ae::TransformComponent& transform, 
-                     ae::IntegratableComponent& integratable, 
-                     ColorComponent& color) {
+                     ae::IntegratableComponent& integratable) {
                 transform.setPos(parentTransform.getPos());
 
                 integratable.addLinearVelocity(linearVelocity);
                 linearVelocity *= -1.0f;
-
-                color.setColor(sf::Color::Red);
 
                 shape.shape = physicsWorld.createShape<ae::Polygon>();
                 ae::Polygon& polygon = physicsWorld.getPolygon(shape.shape);
@@ -345,20 +337,13 @@ void asteroidAddUpdate(flecs::iter& iter, MapSizeComponent* mapSize, AsteroidTim
         }
 
         ae::getNetworkStateManager().entity()
-            .add<AsteroidComponent>()
-            .add<ae::TransformComponent>()
-            .add<HealthComponent>()
-            .add<ae::IntegratableComponent>()
-            .add<ColorComponent>()
-            .add<AsteroidComponent>()
-            .set([&](ae::ShapeComponent& shape, ae::TransformComponent& transform, ae::IntegratableComponent& integratable, ColorComponent& color) {
+            .is_a<prefabs::Asteroid>()
+            .set([&](ae::ShapeComponent& shape, ae::TransformComponent& transform, ae::IntegratableComponent& integratable) {
                 transform.setPos({ spawnX, spawnY });
 
                 sf::Vector2f center = mapSize->getSize() / 2.0f;
                 sf::Vector2f velToCenter = (transform.getPos() - center).normalized();
                 integratable.addLinearVelocity(velToCenter * 10.0f);
-
-                color.setColor(sf::Color::Red);
 
                 shape.shape = physicsWorld.createShape<ae::Polygon>();
                 ae::Polygon& polygon = physicsWorld.getPolygon(shape.shape);
@@ -420,23 +405,21 @@ void turretPlayUpdate(flecs::iter& iter, ae::TransformComponent* transforms, Tur
         if(turret.getLastFired() <= 0.0f) {
             turret.resetLastFired();
 
-            ae::getNetworkStateManager().entity().set(
-                [&](ae::TransformComponent& ctransform, ae::IntegratableComponent& integratable, ColorComponent& color, ae::ShapeComponent& shape, ae::TimedDeleteComponent& deleteTimer) {
+            ae::getNetworkStateManager().entity()
+                .is_a<prefabs::Bullet>()
+                .set(
+                [&](ae::TransformComponent& bulletTransform, 
+                    ae::IntegratableComponent& integratable, 
+                    ae::ShapeComponent& shape) {
                     ae::PhysicsWorld& world = ae::getPhysicsWorld();
 
-                    ctransform = transform;
-
-                    color.setColor(sf::Color::Yellow);
+                    bulletTransform = transform;
 
                     sf::Vector2f velocityDir = (closestPos - transform.getPos()).normalized() * playerBulletSpeed;
                     integratable.addLinearVelocity(velocityDir);
 
-                    deleteTimer.setTime(1.0f);
-
                     shape.shape = world.createShape<ae::Circle>(5.0f);
                 }).add<BulletComponent>();
-
-            entity.modified<TurretComponent>();
         }
     }
 }

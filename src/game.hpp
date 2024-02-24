@@ -2,22 +2,9 @@
 #include "global.hpp"
 #include "component.hpp"
 
-inline flecs::entity addPlayerComponents(flecs::entity e) {
-	e.add<PlayerComponent>()
-		.add<ae::TransformComponent>()
-		.add<HealthComponent>()
-		.add<ae::IntegratableComponent>()
-		.add<ColorComponent>()
-		.add<PlayerColorComponent>()
-		.add<ae::ShapeComponent>()
-		.set([&](ColorComponent& color) { color.setColor(sf::Color::Red); })
-		.set([](ae::TransformComponent& transform) { transform.setPos({ 300, 200 }); })
-		.set([&](ae::TransformComponent& transform, ae::ShapeComponent& shape) {
-		shape.shape =
-			ae::getPhysicsWorld().createShape<ae::Polygon>(transform.getPos(), transform.getRot(), playerVertices);
-			});
-
-	return e;
+inline void createPlayerPolygon(ae::TransformComponent& transform, ae::ShapeComponent& shape) {
+	shape.shape =
+		ae::getPhysicsWorld().createShape<ae::Polygon>(transform.getPos(), transform.getRot(), playerVertices);
 }
 
 inline void addSoundControlMenu(tgui::BackendGui& gui) {
@@ -136,73 +123,13 @@ public:
 			});
 		}
 #endif
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::F3)) {
-			ae::PhysicsWorld& physicsWorld = ae::getPhysicsWorld();
-			float width = (float)ae::getWindow().getSize().x;
-			float height = (float)ae::getWindow().getSize().y;
-
-			float spawnX = (randomFloat() * width);
-			float spawnY = (randomFloat() * height);
-
-			float wallX = 0.0f;
-			float distX = 0.0f;
-			float distToLeft = spawnX;
-			float distToRight = width - spawnX;
-			if (distToLeft < distToRight) {
-				wallX = width - 0.01f;
-				distX = distToRight;
-			}
-			else {
-				distX = distToLeft;
-			}
-
-			float wallY = 0.0f;
-			float distY = 0.0f;
-			float distToUp = spawnY;
-			float distToDown = height - spawnY;
-			if (distToUp < distToDown) {
-				wallY = height - 0.1f;
-				distY = distToDown;
-			}
-			else {
-				distY = distToUp;
-			}
-
-			if (distX < distY) {
-				spawnX = wallX;
-			}
-			else {
-				spawnY = wallY;
-			}
-
-			ae::getNetworkStateManager().entity()
-				.add<AsteroidComponent>()
-				.add<ae::TransformComponent>()
-				.add<HealthComponent>()
-				.add<ae::IntegratableComponent>()
-				.add<ColorComponent>()
-				.add<AsteroidComponent>()
-				.set([&](ae::ShapeComponent& shape, ae::TransformComponent& transform, ae::IntegratableComponent& integratable, ColorComponent& color) {
-				transform.setPos({ spawnX, spawnY });
-
-				sf::Vector2f center = sf::Vector2f(width, height) / 2.0f;
-				sf::Vector2f velToCenter = (transform.getPos() - center).normalized();
-				integratable.addLinearVelocity(velToCenter * 10.0f);
-
-				color.setColor(sf::Color::Red);
-
-				shape.shape = physicsWorld.createShape<ae::Polygon>();
-				ae::Polygon& polygon = physicsWorld.getPolygon(shape.shape);
-
-				std::vector<sf::Vector2f> vertices = generateRandomConvexShape(8, asteroidScalar);
-				polygon.setVertices((u8)vertices.size(), vertices.data());
-				polygon.setPos(transform.getPos());
-			});
-		}
 	}
 
 	void onConnectionJoin(HSteamNetConnection conn) override {
-		clients[conn] = addPlayerComponents(ae::getNetworkStateManager().entity());
+		clients[conn] =
+			ae::getNetworkStateManager().entity()
+			.is_a<prefabs::Player>()
+			.set(createPlayerPolygon);
 
 		fullSyncUpdate(0); // When a connection joins use this as an opportunity to sync all of them
 	}
@@ -330,8 +257,10 @@ private:
 			return;
 		}
 
-		global->player = 
-			addPlayerComponents(ae::getNetworkStateManager().entity());
+		global->player =
+			ae::getNetworkStateManager().entity()
+				.is_a<prefabs::Player>()
+				.set(createPlayerPolygon);
 	}
 
 	static void createClient() {
@@ -715,8 +644,8 @@ public:
 	}
 
 	virtual void onUpdate() override {
-		i32 score = ae::getEntityWorld().get<ScoreComponent>()->getScore();
-		u32 lives = ae::getEntityWorld().get<SharedLivesComponent>()->lives;
+		i32 score = ae::getEntityWorld().get_mut<ScoreComponent>()->getScore();
+		u32 lives = ae::getEntityWorld().get_mut<SharedLivesComponent>()->lives;
 		text->setText(ae::formatString("Lives: %li\nScore:%u", lives, score));
 	}
 
