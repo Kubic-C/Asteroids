@@ -15,7 +15,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Release")
 endif()
 
 if(UNIX)
-	add_compile_options("-Wfatal-errors" "-Wall" "-Wunknown-warning-option")
+	add_compile_options("-Wfatal-errors" "-Wall")
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/game")
