@@ -21,32 +21,32 @@ struct FooComponent {
 struct Entity {};
 
 int main(int argc, char* argv[]) {
-    ae::setConfigApplyCallback([](ae::Config& config){
-        ticksPerSecond = (float)ae::dvalue(config, "ticksPerSecond", 60.0);
-        playerSpeed = (float)ae::dvalue(config, "playerSpeed", 1.0);
-        playerFireRate = (float)ae::dvalue(config, "playerFireRate", 1.0f);
-        playerBulletRecoilMultiplier = (float)ae::dvalue(config, "playerBulletRecoilMultiplier", 0.2);
-        playerBulletSpeed = (float)ae::dvalue(config, "playerBulletSpeed", 40.0);
-        playerBaseHealth = (float)ae::dvalue(config, "playerBaseHealth", 1.0);
-        blinkResetTime = (float)ae::dvalue(config, "blinkResetTime", 1.0);
-        reviveImmunityTime = (float)ae::dvalue(config, "reviveImmunityTime", 5.0);
-        initialLives = (int)ae::dvalue(config, "initialLives", 3);
-        turretPrice = (i32)ae::dvalue(config, "turretPrice", 100);
-        maxTurrets = (u32)ae::dvalue(config, "maxTurrets", 20);
-        turretPlaceCooldown = (float)ae::dvalue(config, "turretPlaceCooldown", 1.0);
-        turretRange = (float)ae::dvalue(config, "turretRange", 100.0);
-        timePerAsteroidSpawn = (float)ae::dvalue(config, "timePerAsteroidSpawn", 2.0);
-        timeToRemovePerAsteroidSpawn = (float)ae::dvalue(config, "timeToRemovePerAsteroidSpawn", 0.01);
-        scorePerAsteroid = (u32)ae::dvalue(config, "scorePerAsteroid", 10);
-        initialAsteroidStage = (u32)ae::dvalue(config, "initialAsteroidStage", 4);
-        asteroidScalar = (float)ae::dvalue(config, "asteroidScalar", 8.0);
-        asteroidDestroySpeedMultiplier = (float)ae::dvalue(config, "asteroidDestroySpeedMultiplier", 2.0);
-        defaultHostPort = (int)ae::dvalue(config, "defaultHostPort", 9999);
-        inputUPS = (float)ae::dvalue(config, "inputUPS", 30.0);
-        stateUPS = (float)ae::dvalue(config, "stateUPS", 20.0);
+    ae::setConfigApplyCallback([](ae::Config& jConfig){
+        config.playerSpeed = (float)ae::dvalue(jConfig, "playerSpeed", 1.0);
+        config.playerFireRate = (float)ae::dvalue(jConfig, "playerFireRate", 1.0f);
+        config.playerBulletRecoilMultiplier = (float)ae::dvalue(jConfig, "playerBulletRecoilMultiplier", 0.2);
+        config.playerBulletSpeed = (float)ae::dvalue(jConfig, "playerBulletSpeed", 40.0);
+        config.playerBaseHealth = (float)ae::dvalue(jConfig, "playerBaseHealth", 1.0);
+        config.blinkResetTime = (float)ae::dvalue(jConfig, "blinkResetTime", 1.0);
+        config.reviveImmunityTime = (float)ae::dvalue(jConfig, "reviveImmunityTime", 5.0);
+        config.initialLives = (int)ae::dvalue(jConfig, "initialLives", 3);
+        config.turretPrice = (i32)ae::dvalue(jConfig, "turretPrice", 100);
+        config.maxTurrets = (u32)ae::dvalue(jConfig, "maxTurrets", 20);
+        config.turretPlaceCooldown = (float)ae::dvalue(jConfig, "turretPlaceCooldown", 1.0);
+        config.turretRange = (float)ae::dvalue(jConfig, "turretRange", 100.0);
+        config.timePerAsteroidSpawn = (float)ae::dvalue(jConfig, "timePerAsteroidSpawn", 2.0);
+        config.timeToRemovePerAsteroidSpawn = (float)ae::dvalue(jConfig, "timeToRemovePerAsteroidSpawn", 0.01);
+        config.scorePerAsteroid = (u32)ae::dvalue(jConfig, "scorePerAsteroid", 10);
+        config.initialAsteroidStage = (u32)ae::dvalue(jConfig, "initialAsteroidStage", 4);
+        config.asteroidScalar = (float)ae::dvalue(jConfig, "asteroidScalar", 8.0);
+        config.asteroidDestroySpeedMultiplier = (float)ae::dvalue(jConfig, "asteroidDestroySpeedMultiplier", 2.0);
+        config.defaultHostPort = (int)ae::dvalue(jConfig, "defaultHostPort", 9999);
+        config.inputUPS = (float)ae::dvalue(jConfig, "inputUPS", 30.0);
+        config.stateUPS = (float)ae::dvalue(jConfig, "stateUPS", 20.0);
+        config.maxAsteroids = (u32)ae::dvalue(jConfig, "maxAsteroids", 2000);
 
         ae::log("Retrieved config file:\n");
-        std::cout << std::setw(2) << config << std::endl;
+        std::cout << std::setw(2) << jConfig << std::endl;
     });
     ae::applyConfig();
 
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
         networkManager.clearStats();
     });
 
-    deltaNetworkStatsTicker.setRate(ticksPerSecond);
+    deltaNetworkStatsTicker.setRate(ae::getConfigValue<double>("tps"));
 
     float debugNetworkLogCooldown = 1.0f;
     float reapplyJSONCooldown = 1.0f;
@@ -203,8 +203,8 @@ int main(int argc, char* argv[]) {
                 outline.setFillColor(sf::Color::Transparent);
                 outline.setOutlineColor(sf::Color::Red);
                 outline.setOutlineThickness(-2.5f);
-                outline.setPosition(transform.getPos() - sf::Vector2f(turretRange, turretRange));
-                outline.setSize(sf::Vector2f(turretRange, turretRange) * 2.0f);
+                outline.setPosition(transform.getPos() - sf::Vector2f(config.turretRange, config.turretRange));
+                outline.setSize(sf::Vector2f(config.turretRange, config.turretRange) * 2.0f);
                 window.draw(outline);
             }
 
@@ -263,19 +263,16 @@ int main(int argc, char* argv[]) {
         array.clear();
 	
         if (debugShow) {
-            //u32 serverTick = ae::getCurrentTick();
             u32 networkCount = world.count<ae::NetworkedEntity>();
-
-            //if(getNetworkManager().hasNetworkInterface<ae::ClientInterface>()) {
-            //    serverTick = getNetworkManager().getNetworkInterface<ae::ClientInterface>().getCurrentServerTick();
-            //}
 
             text.setPosition(sf::Vector2f((float)window.getSize().x / 2.0f, 0.0f));
             text.setOutlineThickness(0.5f);
             text.setOutlineColor(sf::Color::White);
             text.setFillColor(sf::Color::Black);
+            text.setStyle(sf::Text::Bold);
             text.setString(ae::formatString("Entity count: %u", (unsigned int)networkCount));
             window.draw(text);
+            text.setStyle(sf::Text::Regular);
         }
      });
 

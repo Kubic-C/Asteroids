@@ -5,6 +5,11 @@
 inline void createPlayerPolygon(ae::TransformComponent& transform, ae::ShapeComponent& shape) {
 	shape.shape =
 		ae::getPhysicsWorld().createShape<ae::Polygon>(transform.getPos(), transform.getRot(), playerVertices);
+
+	ae::Polygon& polygon =
+		ae::getPhysicsWorld().getPolygon(shape.shape);
+
+	polygon.setCollisonMask(PlayerCollisionMask);
 }
 
 inline void addSoundControlMenu(tgui::BackendGui& gui) {
@@ -28,7 +33,7 @@ inline void addSoundControlMenu(tgui::BackendGui& gui) {
 class ClientInterface: public ae::ClientInterface {
 public:
 	ClientInterface() {
-		inputUpdate.setRate(inputUPS);
+		inputUpdate.setRate(config.inputUPS);
 		inputUpdate.setFunction([](float){
 			ae::NetworkManager& networkManager = ae::getNetworkManager();
 			ae::MessageBuffer buffer;
@@ -101,7 +106,7 @@ public:
 		entityWorld.add<SharedLivesComponent>();
 		entityWorld.add<ScoreComponent>();
 
-		setNetworkUPS(stateUPS);
+		setNetworkUPS(config.stateUPS);
 
 		ae::getWindow().setTitle("ECS Asteroids Server");
 	}
@@ -250,7 +255,7 @@ private:
 		networkManager.setNetworkInterface(server);
 		SteamNetworkingIPAddr addr;
 		addr.Clear();
-		addr.SetIPv4(0, defaultHostPort);
+		addr.SetIPv4(0, config.defaultHostPort);
 		if (!networkManager.open(addr)) {
 			ae::log(ae::ERROR_SEVERITY_WARNING, "Failed to open server.\n");
 			networkManager.setNetworkInterface(nullptr);
@@ -275,10 +280,10 @@ private:
 		SteamNetworkingIPAddr addr;
 		addr.Clear();
 		addr.ParseString(ip);
-		addr.m_port = (u16)defaultHostPort;
+		addr.m_port = (u16)config.defaultHostPort;
 
 		if(!networkManager.open(addr)) {
-			ae::log(ae::ERROR_SEVERITY_WARNING, "Failed to open client. %s:%i\n", ip, defaultHostPort);
+			ae::log(ae::ERROR_SEVERITY_WARNING, "Failed to open client. %s:%i\n", ip, config.defaultHostPort);
 			return;
 		}
 	}
@@ -640,9 +645,9 @@ public:
 		for (const auto& e : entitiesToEnable)
 			ae::getNetworkStateManager().enable(e);
 
-		world.set([](SharedLivesComponent& lives){ lives.lives = initialLives; });
+		world.set([](SharedLivesComponent& lives){ lives.lives = config.initialLives; });
 		world.set([](ScoreComponent& score){ score.resetScore(); });
-		world.set([](AsteroidTimerComponent& timer){ timer.resetTime = timePerAsteroidSpawn; });
+		world.set([](AsteroidTimerComponent& timer){ timer.resetTime = config.timePerAsteroidSpawn; });
 	}
 
 	virtual void onUpdate() override {

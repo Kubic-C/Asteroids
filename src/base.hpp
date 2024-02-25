@@ -2,28 +2,33 @@
 
 #include <asteroids/asteroids.hpp>
 
-inline float ticksPerSecond;
-inline float playerSpeed;
-inline float playerFireRate;
-inline float playerBulletRecoilMultiplier;
-inline float playerBulletSpeed;
-inline float playerBaseHealth;
-inline float blinkResetTime;
-inline float reviveImmunityTime;
-inline int initialLives;
-inline i32 turretPrice;
-inline u32 maxTurrets;
-inline float turretPlaceCooldown;
-inline float turretRange;
-inline float timePerAsteroidSpawn;
-inline float timeToRemovePerAsteroidSpawn;
-inline u32 scorePerAsteroid;
-inline u32 initialAsteroidStage;
-inline float asteroidScalar;
-inline float asteroidDestroySpeedMultiplier;
-inline int defaultHostPort;
-inline float inputUPS;
-inline float stateUPS;
+inline struct GameConfig {
+    float playerSpeed;
+    float playerFireRate;
+    float playerBulletRecoilMultiplier;
+    float playerBulletSpeed;
+    float playerBaseHealth;
+    float blinkResetTime;
+    float reviveImmunityTime;
+    int initialLives;
+    i32 turretPrice;
+    u32 maxTurrets;
+    float turretPlaceCooldown;
+    float turretRange;
+    float timePerAsteroidSpawn;
+    float timeToRemovePerAsteroidSpawn;
+    u32 scorePerAsteroid;
+    u32 initialAsteroidStage;
+    float asteroidScalar;
+    float asteroidDestroySpeedMultiplier;
+    int defaultHostPort;
+    float inputUPS;
+    float stateUPS;
+    u32 maxAsteroids;
+} config;
+
+constexpr u16 AsteroidCollisionMask = 1 << 0;
+constexpr u16 PlayerCollisionMask = 1 << 1;
 
 constexpr std::initializer_list<sf::Vector2f> playerVertices = {
     {10.0f, -10.0f},

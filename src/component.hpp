@@ -73,9 +73,9 @@ public:
     float getTurretPlaceCooldown() { return turretCooldown; }
 
     void resetLastFired() { lastFired = 0.0f; }
-    void resetLastBlink() { lastBlink = blinkResetTime; }
-    void resetTimeTillRevive() { timeTillRevive = reviveImmunityTime; }
-    void resetTurretPlaceCooldown() { turretCooldown = turretPlaceCooldown; }
+    void resetLastBlink() { lastBlink = config.blinkResetTime; }
+    void resetTimeTillRevive() { timeTillRevive = config.reviveImmunityTime; }
+    void resetTurretPlaceCooldown() { turretCooldown = config.turretPlaceCooldown; }
 
     void addTimer(float deltaTime, bool isDead) {
         lastBlink -= deltaTime;
@@ -111,7 +111,7 @@ private:
 };
 
 struct AsteroidComponent : public ae::NetworkedComponent {
-	u8 stage = initialAsteroidStage;
+	u8 stage = config.initialAsteroidStage;
 
     template<typename S>
     void serialize(S& s) {
@@ -130,7 +130,7 @@ struct BulletComponent : public ae::NetworkedComponent {
 
 // lives are shared between all players
 struct SharedLivesComponent : public ae::NetworkedComponent {
-    u32 lives = initialLives;
+    u32 lives = config.initialLives;
 
     template<typename S>
     void serialize(S& s) {
@@ -181,7 +181,7 @@ public:
     }
 
     float getLastFired() { return lastFired; }
-    void resetLastFired() { lastFired = playerFireRate; }
+    void resetLastFired() { lastFired = config.playerFireRate; }
 
 
     template<typename S>
@@ -192,8 +192,8 @@ private:
 };
 
 struct AsteroidTimerComponent {
-    float resetTime = timePerAsteroidSpawn;
-    float current = timePerAsteroidSpawn;
+    float resetTime = config.timePerAsteroidSpawn;
+    float current = config.timePerAsteroidSpawn;
 };
 
 namespace prefabs {

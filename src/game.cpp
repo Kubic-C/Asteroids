@@ -114,19 +114,19 @@ void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::Inte
             transform.setRot(backwards.angle().asRadians());
 
         if (player.isUpPressed()) {
-            integratable.addLinearVelocity(-backwards * playerSpeed);
+            integratable.addLinearVelocity(-backwards * config.playerSpeed);
                iter.entity(i).modified<ae::IntegratableComponent>();
         }
         if (player.isDownPressed()) {
-            integratable.addLinearVelocity(backwards * playerSpeed);
+            integratable.addLinearVelocity(backwards * config.playerSpeed);
             iter.entity(i).modified<ae::IntegratableComponent>();
         }
         if (player.isLeftPressed()) {
-            integratable.addLinearVelocity(left * playerSpeed * 0.5f);
+            integratable.addLinearVelocity(left * config.playerSpeed * 0.5f);
             iter.entity(i).modified<ae::IntegratableComponent>();
         }
         if (player.isRightPressed()) {
-            integratable.addLinearVelocity(-left * playerSpeed * 0.5f);
+            integratable.addLinearVelocity(-left * config.playerSpeed * 0.5f);
             iter.entity(i).modified<ae::IntegratableComponent>();
         }
 
@@ -134,10 +134,10 @@ void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::Inte
         if(ae::getNetworkManager().hasNetworkInterface<ServerInterface>()) {
             if (player.isTurretPlacePressed() &&  // IS IT PLACE BUTTON PRESSED?
                 player.getTurretPlaceCooldown() <= 0.0f &&  // IS THE PLACE COOLDOWN DOWN?
-                iter.world().count<TurretComponent>() + 1 <= maxTurrets && // DOES PLACING ONE MORE SURPASS maxTurrets?
-                (score->getScore() - turretPrice >= 0)) {
+                iter.world().count<TurretComponent>() + 1 <= config.maxTurrets && // DOES PLACING ONE MORE SURPASS maxTurrets?
+                (score->getScore() - config.turretPrice >= 0)) {
 
-                score->removeScore(turretPrice);
+                score->removeScore(config.turretPrice);
                 player.resetTurretPlaceCooldown();
                 ae::getNetworkStateManager().entity()
                     .is_a<prefabs::Turret>()
@@ -149,7 +149,7 @@ void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::Inte
                 iter.world().modified<ScoreComponent>();
             }
 
-            if (player.isFirePressed() && player.getLastFired() > playerFireRate) {
+            if (player.isFirePressed() && player.getLastFired() > config.playerFireRate) {
                 player.resetLastFired();
                 player.setIsFiring(true);
 
@@ -160,11 +160,13 @@ void playerPlayInputUpdate(flecs::iter& iter, PlayerComponent* players, ae::Inte
 
                         bulletTransform = transform;
 
-                        sf::Vector2f velocityDir = (player.getMouse() - transform.getPos()).normalized() * playerBulletSpeed;
+                        sf::Vector2f velocityDir = (player.getMouse() - transform.getPos()).normalized() * config.playerBulletSpeed;
                         integratable.addLinearVelocity(velocityDir);
-                        integratables[i].addLinearVelocity(-velocityDir * playerBulletRecoilMultiplier);
+                        integratables[i].addLinearVelocity(-velocityDir * config.playerBulletRecoilMultiplier);
 
                         shape.shape = world.createShape<ae::Circle>(5.0f);
+
+                        world.getCircle(shape.shape).setCollisonMask(PlayerCollisionMask);
                     }).add<BulletComponent>();
 
                 iter.entity(i).modified<PlayerComponent>();
@@ -223,7 +225,7 @@ void playerReviveUpdate(flecs::iter& iter, SharedLivesComponent* lives, PlayerCo
 void createChildAsteroids(flecs::world world, ae::TransformComponent& parentTransform, ae::IntegratableComponent& parentIntegratable, u8 parentStage) {
     ae::PhysicsWorld& physicsWorld = ae::getPhysicsWorld();
 
-    sf::Vector2f linearVelocity = parentIntegratable.getLinearVelocity() * asteroidDestroySpeedMultiplier;
+    sf::Vector2f linearVelocity = parentIntegratable.getLinearVelocity() * config.asteroidDestroySpeedMultiplier;
 
     for(u32 i = 0; i < 2; i++) {
         ae::getNetworkStateManager().entity()
@@ -242,9 +244,10 @@ void createChildAsteroids(flecs::world world, ae::TransformComponent& parentTran
 
                 asteroid.stage = parentStage - 1;
 
-                std::vector<sf::Vector2f> vertices = generateRandomConvexShape(8, ((float)asteroid.stage / (float)initialAsteroidStage) * asteroidScalar);
+                std::vector<sf::Vector2f> vertices = generateRandomConvexShape(8, ((float)asteroid.stage / (float)config.initialAsteroidStage) * config.asteroidScalar);
                 polygon.setVertices((u8)vertices.size(), vertices.data());
                 polygon.setPos(transform.getPos());
+                polygon.setCollisonMask(AsteroidCollisionMask);
             });
     }
 }
@@ -297,10 +300,13 @@ void transformWrap(flecs::iter& iter, MapSizeComponent* size, ae::TransformCompo
 void asteroidAddUpdate(flecs::iter& iter, MapSizeComponent* mapSize, AsteroidTimerComponent* timer) {
     ae::PhysicsWorld& physicsWorld = ae::getPhysicsWorld();
 
+    if(iter.world().count<AsteroidComponent>() > config.maxAsteroids)
+        return;
+
     timer->current -= iter.delta_time();
     if (timer->current < 0.0f) {
         timer->current = timer->resetTime;
-        timer->resetTime -= timeToRemovePerAsteroidSpawn;
+        timer->resetTime -= config.timeToRemovePerAsteroidSpawn;
 
         float spawnX = (randomFloat() * mapSize->getWidth());
         float spawnY = (randomFloat() * mapSize->getHeight());
@@ -348,10 +354,11 @@ void asteroidAddUpdate(flecs::iter& iter, MapSizeComponent* mapSize, AsteroidTim
                 shape.shape = physicsWorld.createShape<ae::Polygon>();
                 ae::Polygon& polygon = physicsWorld.getPolygon(shape.shape);
 
-                std::vector<sf::Vector2f> vertices = generateRandomConvexShape(8, asteroidScalar);
+                std::vector<sf::Vector2f> vertices = generateRandomConvexShape(8, config.asteroidScalar);
                 polygon.setVertices((u8)vertices.size(), vertices.data());
                 polygon.setPos(transform.getPos());
-            });
+                polygon.setCollisonMask(AsteroidCollisionMask);
+             });
     }
 }
 
@@ -370,7 +377,7 @@ void turretPlayUpdate(flecs::iter& iter, ae::TransformComponent* transforms, Tur
         entity.modified<ae::TransformComponent>();
 
         ae::SpatialIndexTree& tree = physicsWorld.getTree();
-        ae::AABB aabb(turretRange, turretRange, transform.getPos());
+        ae::AABB aabb(config.turretRange, config.turretRange, transform.getPos());
 
         results.clear();
         tree.query(spatial::intersects<2>(aabb.min.data(), aabb.max.data()), std::back_inserter(results));
@@ -382,10 +389,10 @@ void turretPlayUpdate(flecs::iter& iter, ae::TransformComponent* transforms, Tur
         float smallestDistance = std::numeric_limits<float>::max();
         for(ae::SpatialIndexElement& element : results) {
             flecs::entity other = ae::impl::af(element.entityId);
-            if(!other.is_valid())
+            if((element.collisionMask & AsteroidCollisionMask) == 0)
                 continue;
 
-            if(!other.has<AsteroidComponent>())
+            if(!other.is_valid())
                 continue;
 
             sf::Vector2f pos = physicsWorld.getShape(element.shapeId).getWeightedPos();
@@ -415,10 +422,12 @@ void turretPlayUpdate(flecs::iter& iter, ae::TransformComponent* transforms, Tur
 
                     bulletTransform = transform;
 
-                    sf::Vector2f velocityDir = (closestPos - transform.getPos()).normalized() * playerBulletSpeed;
+                    sf::Vector2f velocityDir = (closestPos - transform.getPos()).normalized() * config.playerBulletSpeed;
                     integratable.addLinearVelocity(velocityDir);
 
                     shape.shape = world.createShape<ae::Circle>(5.0f);
+
+                    world.getCircle(shape.shape).setCollisonMask(PlayerCollisionMask);
                 }).add<BulletComponent>();
         }
     }
@@ -432,10 +441,8 @@ void observePlayerCollision(flecs::iter& iter, size_t i, ae::ShapeComponent&) {
     if(entity.get<HealthComponent>()->isDestroyed())
         return;
 
-    if (other.has<AsteroidComponent>()) {
-        entity.set([](HealthComponent& health) { health.setHealth(0.0f); });
-        global->getNoobPlayer.play();
-    }
+    entity.set([](HealthComponent& health) { health.setHealth(0.0f); });
+    global->getNoobPlayer.play();
 }
 
 void observeBulletCollision(flecs::iter& iter, size_t i, ae::ShapeComponent&) {
@@ -443,14 +450,14 @@ void observeBulletCollision(flecs::iter& iter, size_t i, ae::ShapeComponent&) {
     ae::CollisionEvent& event = *iter.param<ae::CollisionEvent>();
     flecs::entity other = event.entityOther;
 
-    if (other.has<AsteroidComponent>()) {
-        other.set([&](HealthComponent& health) {
-            health.setHealth(health.getHealth() - entity.get<BulletComponent>()->damage);
-        });
-        entity.destruct();
-        global->destroyPlayer.play();
+    other.set([&](HealthComponent& health) {
+        health.setHealth(health.getHealth() - entity.get<BulletComponent>()->damage);
+    });
+    entity.destruct();
+    global->destroyPlayer.play();
 
-        iter.world().get_mut<ScoreComponent>()->addScore(scorePerAsteroid);
+    if(other.has<AsteroidComponent>()) {
+        iter.world().get_mut<ScoreComponent>()->addScore(config.scorePerAsteroid);
         iter.world().modified<ScoreComponent>();
     }
 }
