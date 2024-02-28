@@ -20,7 +20,18 @@ struct FooComponent {
 
 struct Entity {};
 
+#ifdef NDEBUG
+#define BUILD_MODE_STR "Release"
+#else 
+#define BUILD_MODE_STR "Debug"
+#endif
+
 int main(int argc, char* argv[]) {
+    ae::log("<red, bold>Note:\n  -<reset> This software was created by <green,bold>Sawyer Porter (Kubic0x43)<reset>\n");
+    ae::log("<red, bold>  -<reset, bold> All files located alongside the Asteroids executable are welcome to be copied and/or modified<reset>\n");
+    ae::log("<red, bold>  -<reset> <cyan>Find source code at: <it>https://github.com/Kubic-C/Asteroids<reset>\n");
+    ae::log("<red, bold>  -<reset> This version of Asteroids was created in <yellow>%s at %s<reset>\n", BUILD_MODE_STR, __TIMESTAMP__);
+
     ae::setConfigApplyCallback([](ae::Config& jConfig){
         config.playerSpeed = (float)ae::dvalue(jConfig, "playerSpeed", 1.0);
         config.playerFireRate = (float)ae::dvalue(jConfig, "playerFireRate", 1.0f);
@@ -44,9 +55,6 @@ int main(int argc, char* argv[]) {
         config.inputUPS = (float)ae::dvalue(jConfig, "inputUPS", 30.0);
         config.stateUPS = (float)ae::dvalue(jConfig, "stateUPS", 20.0);
         config.maxAsteroids = (u32)ae::dvalue(jConfig, "maxAsteroids", 2000);
-
-        ae::log("Retrieved config file:\n");
-        std::cout << std::setw(2) << jConfig << std::endl;
     });
     ae::applyConfig();
 
