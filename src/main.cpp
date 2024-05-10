@@ -234,9 +234,16 @@ int main(int argc, char* argv[]) {
 
                 ae::Polygon::vertices_t vertices = polygon.getWorldVertices();
                 for (u8 i = 1; i + 1 < polygon.getVerticeCount(); i++) { 
-                    array.append(sf::Vertex(vertices[0], color.getColor(), sf::Vector2f()));
-                    array.append(sf::Vertex(vertices[i + 0], color.getColor(), sf::Vector2f()));
-                    array.append(sf::Vertex(vertices[i + 1], color.getColor(), sf::Vector2f()));
+                    sf::Vertex vertex;
+                    vertex.color = color.getColor();
+                    vertex.texCoords = sf::Vector2f();
+                    vertex.position = vertices[0];
+
+                    array.append(vertex);
+                    vertex.position = vertices[i + 0];
+                    array.append(vertex);
+                    vertex.position = vertices[i + 1];
+                    array.append(vertex);
                 }
 
             } break;

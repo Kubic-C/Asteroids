@@ -20,7 +20,7 @@ inline void addSoundControlMenu(tgui::BackendGui& gui) {
 	musicToggle->setOrigin(0.5f, 0.5f);
 	musicToggle->onClick([]() {
 		auto status = global->res.music.getStatus();
-		if (status == sf::SoundSource::Paused) {
+		if (status == sf::SoundSource::Status::Paused) {
 			global->res.music.play();
 		}
 		else {
